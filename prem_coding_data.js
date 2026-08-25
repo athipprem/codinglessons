@@ -52,17 +52,24 @@ var PREM_CODING_DATA = {
 
   // One entry per completed unit/milestone, built from that unit's
   // coding_unitNN_results.json once Prem plays it and the file lands in
-  // Lessons/Results/. Empty until the first real result comes in — this is
-  // also what keeps Unit 2 (and everything after it) locked for now.
+  // Lessons/Results/. See Executive_Summary/Curriculum and Progress.md's
+  // "Unit 1 & 2 — Results Analysis" section for the write-up behind these.
   results: [
-    // Example shape for the next entry (delete this comment once real data exists):
-    // {
-    //   unit: 1, title: "Sequence", completed_at: "2026-08-26", xp_earned: 120,
-    //   coding: { concept_score: 2, concept_out_of: 2,
-    //             mission1_succeeded: true, mission1_attempts: 2,
-    //             mission2_succeeded: true, mission2_attempts: 1 },
-    //   life: { score: 3, out_of: 3, hits: 3, false_positives: 0 }
-    // }
+    {
+      unit: 1, title: "Sequence", completed_at: "2026-08-25", xp_earned: 84,
+      coding: { concept_score: 2, concept_out_of: 2,
+                mission1_succeeded: true, mission1_attempts: 1,
+                mission2_succeeded: true, mission2_attempts: 2 },
+      life: { score: 1, out_of: 3, hits: 1, false_positives: 0 }
+    },
+    {
+      unit: 2, title: "Loops", completed_at: "2026-08-25", xp_earned: 74,
+      coding: { concept_score: 1, concept_out_of: 2,
+                mission1_succeeded: true, mission1_attempts: 4,
+                mission2_succeeded: true, mission2_attempts: 1 },
+      life: { score: 1, out_of: 3, hits: 1, false_positives: 0 }
+    }
+    // Next entry: Unit 3, once it's built and played through.
   ]
 };
 

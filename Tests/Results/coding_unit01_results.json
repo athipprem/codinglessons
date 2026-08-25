@@ -1,0 +1,40 @@
+{
+  "unit_number": 1,
+  "unit_title": "Sequence",
+  "stage": 1,
+  "cadet_name": "Prem",
+  "completed_at": "2026-08-25T10:50:56.178Z",
+  "xp_earned": 84,
+  "auto_stats": {
+    "calibration_solved": true,
+    "calibration_attempts": 8,
+    "mission_1": {
+      "succeeded": true,
+      "attempts": 1
+    },
+    "mission_2": {
+      "succeeded": true,
+      "attempts": 2
+    }
+  },
+  "quiz": {
+    "concept_score": 2,
+    "concept_out_of": 2,
+    "q1_correct": true,
+    "q2_correct": true,
+    "transfer_check": {
+      "score": 1,
+      "out_of": 3,
+      "hits": 1,
+      "false_positives": 0,
+      "selected": [
+        4
+      ],
+      "correct_set": [
+        0,
+        2,
+        4
+      ]
+    }
+  }
+}

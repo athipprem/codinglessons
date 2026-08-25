@@ -1,0 +1,42 @@
+{
+  "unit_number": 2,
+  "unit_title": "Loops (Code Cadet)",
+  "stage": 1,
+  "cadet_name": "Prem",
+  "completed_at": "2026-08-25T11:27:36.702Z",
+  "xp_earned": 74,
+  "auto_stats": {
+    "calibration_solved": true,
+    "calibration_attempts": 1,
+    "mission_1": {
+      "succeeded": true,
+      "attempts": 4,
+      "used_repeat_block": true
+    },
+    "mission_2": {
+      "succeeded": true,
+      "attempts": 1,
+      "used_repeat_block": true
+    }
+  },
+  "quiz": {
+    "concept_score": 1,
+    "concept_out_of": 2,
+    "q1_correct": true,
+    "q2_correct": false,
+    "transfer_check": {
+      "score": 1,
+      "out_of": 3,
+      "hits": 1,
+      "false_positives": 0,
+      "selected": [
+        0
+      ],
+      "correct_set": [
+        0,
+        2,
+        4
+      ]
+    }
+  }
+}
