@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Rover-7 spaceship — nose points straight up (0deg = North). Do not re-angle the art; the lesson pages rotate this whole file to show direction. -->
+
+  <!-- engine flame -->
+  <polygon points="41,86 50,99 59,86" fill="#FFC24B"/>
+  <polygon points="45,84 50,93 55,84" fill="#FFE9B8"/>
+
+  <!-- left fin -->
+  <polygon points="34,54 14,80 22,82 38,68" fill="#1D8A55" stroke="#0B2A1C" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- right fin -->
+  <polygon points="66,54 86,80 78,82 62,68" fill="#1D8A55" stroke="#0B2A1C" stroke-width="1.5" stroke-linejoin="round"/>
+
+  <!-- hull -->
+  <path d="M50,3
+           C61,17 67,34 66,54
+           C65,68 62,80 50,90
+           C38,80 35,68 34,54
+           C33,34 39,17 50,3 Z"
+        fill="#38E6EE" stroke="#0B2A1C" stroke-width="2.5" stroke-linejoin="round"/>
+
+  <!-- hull shading (starboard side, subtle) -->
+  <path d="M50,3 C61,17 67,34 66,54 C65,68 62,80 50,90 L50,3 Z" fill="#1FB8C2" opacity="0.55"/>
+
+  <!-- cockpit window -->
+  <circle cx="50" cy="40" r="10" fill="#0A0E1E" stroke="#38E6EE" stroke-width="2.5"/>
+  <circle cx="47.5" cy="37.5" r="3.5" fill="#BFF6FA"/>
+
+  <!-- hull stripe -->
+  <rect x="38" y="63" width="24" height="5" rx="2.5" fill="#FFC24B"/>
+</svg>

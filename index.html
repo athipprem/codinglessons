@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prem's Coding Lessons</title>
+<link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42; --sidebar-bg: #0D1128;
+    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+    --amber: #FFC24B; --amber-tint: #3A2B0E;
+    --danger: #FF6B7F; --danger-tint: #3A1620;
+    --success: #4BE39A; --success-tint: #113526;
+    --locked-bg: #10152C; --locked-text: #5C6390;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
+      --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
+      --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
+      --amber: #A9660A; --amber-tint: #FBE9CC;
+      --danger: #C23652; --danger-tint: #FBDEE2;
+      --success: #1D8A55; --success-tint: #DBF2E5;
+      --locked-bg: #E7E9F5; --locked-text: #9099BC;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
+    --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
+    --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
+    --amber: #A9660A; --amber-tint: #FBE9CC;
+    --danger: #C23652; --danger-tint: #FBDEE2;
+    --success: #1D8A55; --success-tint: #DBF2E5;
+    --locked-bg: #E7E9F5; --locked-text: #9099BC;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
+  h1, h2, h3 { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; margin: 0; text-wrap: balance; }
+  #app { display: flex; height: 100vh; overflow: hidden; }
+
+  #sidebar { width: 68px; background: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding: 14px 0; gap: 4px; flex-shrink: 0; }
+  .sb-logo { width: 42px; height: 42px; border-radius: 12px; background: rgba(56,230,238,0.14); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+  .sb-btn { width: 50px; height: 50px; border-radius: 10px; border: none; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(233,236,255,0.5); text-decoration: none; }
+  .sb-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .sb-btn.active { background: rgba(56,230,238,0.16); color: var(--cyan); }
+  .sb-icon { font-size: 18px; line-height: 1; } .sb-lbl { font-size: 8px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .sb-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.14); margin: 6px 0; }
+
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #topbar { background: var(--bg-raised); border-bottom: 1px solid var(--line); padding: 0 20px; height: 54px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  #topbar-title { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+  #topbar-sub { font-size: 11px; color: var(--ink-soft); margin-left: 10px; }
+  .tb-badge { border-radius: 20px; padding: 4px 12px; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--line); }
+  .tb-cyan { background: var(--cyan-tint); border-color: var(--cyan); color: var(--cyan); }
+
+  #hero { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 14px 20px; background: var(--bg-raised); border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .hero-box { background: var(--bg-panel); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line); }
+  .hero-val { font-family: "Orbitron", sans-serif; font-size: 21px; font-weight: 800; line-height: 1.1; color: var(--cyan); }
+  .hero-lbl { font-size: 10px; color: var(--ink-soft); margin-top: 3px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+  .hero-sub { font-size: 10px; font-weight: 600; margin-top: 1px; color: var(--ink-soft); }
+  .hero-axis { font-size: 9px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--amber); margin-bottom: 2px; }
+
+  #content { flex: 1; overflow-y: auto; padding: 20px; }
+  .panel { display: none; } .panel.active { display: block; }
+  .sec-div { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); padding: 6px 0 10px; }
+
+  .pattern { background: var(--bg-raised); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; }
+  .pattern .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--cyan); }
+  .pattern p { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+
+  .unit-list { display: flex; flex-direction: column; gap: 10px; }
+  .unit-card { display: flex; align-items: center; gap: 14px; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; text-decoration: none; color: var(--ink); }
+  .unit-card:hover { border-color: var(--cyan); }
+  .unit-card.locked { background: var(--locked-bg); color: var(--locked-text); cursor: default; pointer-events: none; }
+  .unit-num { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 14px; width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--cyan-tint); color: var(--cyan); }
+  .unit-card.locked .unit-num { background: var(--locked-bg); color: var(--locked-text); border: 1px dashed var(--line); }
+  .unit-card.done .unit-num { background: var(--success-tint); color: var(--success); }
+  .unit-title { font-weight: 700; font-size: 15px; }
+  .unit-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+  .locked .unit-sub, .locked .unit-title { color: var(--locked-text); }
+  .unit-status { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; text-align: right; }
+  .unit-status.active { color: var(--amber); }
+  .unit-status.done { color: var(--success); }
+  .unit-score { display: block; font-size: 10px; color: var(--ink-soft); margin-top: 2px; }
+
+  .empty { color: var(--ink-soft); font-size: 12.5px; padding: 26px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; }
+
+  #pw-overlay { position: fixed; inset: 0; background: rgba(6,9,22,0.94); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+  #pw-overlay.hidden { display: none; }
+  .pw-box { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 36px 32px 30px; width: 320px; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+  .pw-box h2 { font-size: 1.15rem; color: var(--cyan); margin-bottom: 6px; }
+  .pw-box p { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 20px; font-family: "Atkinson Hyperlegible", sans-serif; }
+  .pw-input { width: 100%; padding: 11px 14px; border: 2px solid var(--line); background: var(--bg-panel); color: var(--ink); border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 10px; }
+  .pw-input:focus { border-color: var(--cyan); }
+  .pw-btn { width: 100%; padding: 11px; background: var(--cyan); color: var(--cyan-ink); border: none; border-radius: 10px; font-family: "Orbitron", sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+  .pw-error { font-size: 0.8rem; color: var(--danger); margin-top: 8px; min-height: 16px; }
+</style>
+</head>
+<body>
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div style="font-size:2.2rem;margin-bottom:10px">🚀</div>
+    <h2>Prem's Coding Lessons</h2>
+    <p>Enter the password to continue</p>
+    <input class="pw-input" id="pw-input" type="password" placeholder="Password" inputmode="numeric"
+           onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="pw-btn" onclick="checkPassword()">Unlock &#8594;</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+<div id="app">
+  <nav id="sidebar">
+    <div class="sb-logo">🚀</div>
+    <button class="sb-btn active" onclick="showPanel('unit',this)"><span class="sb-icon">📘</span><span class="sb-lbl">Unit</span></button>
+    <button class="sb-btn" onclick="showPanel('done',this)"><span class="sb-icon">✅</span><span class="sb-lbl">Done</span></button>
+    <div class="sb-divider"></div>
+    <button class="sb-btn" onclick="openDashboard()"><span class="sb-icon">📊</span><span class="sb-lbl">Board</span></button>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openMath()" title="Math Lessons"><span class="sb-icon" style="font-weight:700">M</span><span class="sb-lbl">Math</span></a>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openEnglish()" title="English Lessons"><span class="sb-icon" style="font-weight:700">E</span><span class="sb-lbl">English</span></a>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openScience()" title="Science Lessons"><span class="sb-icon" style="font-weight:700">S</span><span class="sb-lbl">Sci</span></a>
+    <a class="sb-btn" href="https://athipprem.github.io/scigame/" target="_blank" rel="noopener" title="Science Quest"><span class="sb-icon"><img src="https://athipprem.github.io/scigame/favicon.svg" alt="Science Quest" style="width:18px;height:18px;display:block"></span><span class="sb-lbl">Quest</span></a>
+  </nav>
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex;align-items:baseline">
+        <span id="topbar-title">Code Cadet Academy</span>
+        <span id="topbar-sub">&nbsp;&mdash;&nbsp;Stage 1 · Fundamentals &nbsp;|&nbsp; Coach: Claude</span>
+      </div>
+      <div style="display:flex;gap:10px">
+        <span class="tb-badge tb-cyan" id="tb-unit">Unit &mdash;</span>
+      </div>
+    </div>
+    <div id="hero">
+      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-unit">&mdash;</div><div class="hero-lbl">Current unit</div><div class="hero-sub" id="h-unit-sub">&mdash;</div></div>
+      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-done">&mdash;</div><div class="hero-lbl">Checkpoints complete</div><div class="hero-sub">of 10 units + Milestone 1</div></div>
+      <div class="hero-box"><div class="hero-axis">Coding</div><div class="hero-val" id="h-coding">&mdash;</div><div class="hero-lbl">Coding mastery avg</div><div class="hero-sub">concept quiz score</div></div>
+      <div class="hero-box"><div class="hero-axis">Life</div><div class="hero-val" id="h-life">&mdash;</div><div class="hero-lbl">Apply-to-life avg</div><div class="hero-sub">transfer check score</div></div>
+    </div>
+    <div id="content">
+      <div class="panel active" id="panel-unit">
+        <div class="sec-div">Stage 1 Roadmap &middot; Fundamentals</div>
+        <div class="unit-list" id="roadmap-list"></div>
+        <div class="pattern" id="pattern-box"></div>
+      </div>
+      <div class="panel" id="panel-done">
+        <div class="sec-div">Completed</div>
+        <div class="unit-list" id="done-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="prem_coding_data.js"></script>
+<script>
+  var PW_HASH = 2088511772;
+  function djb2(str){ var h=5381; for(var i=0;i<str.length;i++){ h=(((h<<5)+h)+str.charCodeAt(i))>>>0; } return h; }
+  var hubToken = new URLSearchParams(window.location.search).get('hub');
+  var tokenValid = hubToken && (Date.now() - parseInt(hubToken, 10)) < 15000;
+  if (sessionStorage.getItem('unlocked')==='yes' || tokenValid){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
+  else { document.getElementById('pw-input').focus(); }
+  function checkPassword(){
+    var e=document.getElementById('pw-input').value;
+    if (djb2(e)===PW_HASH){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
+    else { document.getElementById('pw-error').textContent='Wrong password. Try again!'; document.getElementById('pw-input').value=''; document.getElementById('pw-input').focus(); }
+  }
+  function showPanel(id, btn){
+    var ps=document.querySelectorAll('.panel'); for(var i=0;i<ps.length;i++) ps[i].classList.remove('active');
+    document.getElementById('panel-'+id).classList.add('active');
+    var bs=document.querySelectorAll('.sb-btn'); for(var j=0;j<bs.length;j++) bs[j].classList.remove('active');
+    if(btn) btn.classList.add('active');
+  }
+  function withHub(url){ return sessionStorage.getItem('unlocked')==='yes' ? url + '?hub=' + Date.now() : url; }
+  function openDashboard(){ window.location.href = withHub('Prems_Coding_Dashboard.html'); }
+  function openMath(){ window.location.href = withHub('https://athipprem.github.io/mathlessons/'); }
+  function openEnglish(){ window.location.href = withHub('https://athipprem.github.io/englessons/'); }
+  function openScience(){ window.location.href = withHub('https://athipprem.github.io/scilessons/'); }
+
+  var D = PREM_CODING_DATA;
+  var roadmap = computeCodingRoadmap(D);
+
+  function pct(score, outOf){ return outOf ? Math.round(score/outOf*100) : null; }
+
+  // Build results-by-unit lookup
+  var resultByUnit = {};
+  D.results.forEach(function(r){ resultByUnit[r.unit] = r; });
+
+  // Header stats
+  var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
+  var doneCount = roadmap.filter(function(u){ return u.status === 'done'; }).length;
+  document.getElementById('h-unit').textContent = current ? ('U'+current.n) : 'All done';
+  document.getElementById('h-unit-sub').textContent = current ? current.title : 'Stage 1 complete';
+  document.getElementById('tb-unit').textContent = current ? ('Unit '+current.n+' · '+current.title) : 'Stage 1 complete';
+  document.getElementById('h-done').textContent = doneCount + ' / ' + roadmap.length;
+
+  if (D.results.length){
+    var codingSum=0, codingOut=0, lifeSum=0, lifeOut=0;
+    D.results.forEach(function(r){
+      codingSum += r.coding.concept_score; codingOut += r.coding.concept_out_of;
+      lifeSum += r.life.score; lifeOut += r.life.out_of;
+    });
+    document.getElementById('h-coding').textContent = pct(codingSum, codingOut) + '%';
+    document.getElementById('h-life').textContent = pct(lifeSum, lifeOut) + '%';
+  } else {
+    document.getElementById('h-coding').textContent = '—';
+    document.getElementById('h-life').textContent = '—';
+  }
+
+  // Roadmap list (Unit panel)
+  var roadmapHtml = '';
+  roadmap.forEach(function(u, idx){
+    var r = resultByUnit[u.n];
+    var statusLabel = u.status === 'done' ? 'Done' : (u.status === 'in_progress' ? 'In progress' : 'Locked');
+    var cardClass = 'unit-card' + (u.status === 'locked' ? ' locked' : '') + (u.status === 'done' ? ' done' : '');
+    var statusClass = u.status === 'done' ? 'done' : (u.status === 'in_progress' ? 'active' : '');
+    var scoreLine = '';
+    if (r) {
+      scoreLine = '<span class="unit-score">Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '%</span>';
+    }
+    var subText = u.concept;
+    if (u.status === 'locked') {
+      var prevUnit = roadmap[idx - 1];
+      subText = prevUnit ? ('Unlocks after Unit ' + prevUnit.n) : u.concept;
+    }
+    var inner =
+      '<div class="unit-num">' + u.n + '</div>' +
+      '<div><div class="unit-title">' + u.title + '</div><div class="unit-sub">' + subText + '</div></div>' +
+      '<div class="unit-status ' + statusClass + '">' + statusLabel + scoreLine + '</div>';
+    if (u.status !== 'locked' && u.file) {
+      roadmapHtml += '<a class="' + cardClass + '" href="' + u.file + '">' + inner + '</a>';
+    } else {
+      roadmapHtml += '<div class="' + cardClass + '">' + inner + '</div>';
+    }
+  });
+  document.getElementById('roadmap-list').innerHTML = roadmapHtml;
+
+  // Life-connection callout for the current unit
+  if (current) {
+    document.getElementById('pattern-box').innerHTML =
+      '<div class="lbl">Apply to life &mdash; Unit ' + current.n + '</div><p>' + current.life + '</p>';
+  }
+
+  // Done panel
+  var doneUnits = roadmap.filter(function(u){ return u.status === 'done'; });
+  if (!doneUnits.length) {
+    document.getElementById('done-list').innerHTML = '<div class="empty">No units completed yet &mdash; finish Unit 1 to see it show up here.</div>';
+  } else {
+    var doneHtml = '';
+    doneUnits.forEach(function(u){
+      var r = resultByUnit[u.n];
+      var scoreLine = r ? ('<span class="unit-score">Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '% &middot; ' + r.completed_at + '</span>') : '';
+      doneHtml += '<a class="unit-card done" href="' + (u.file || '#') + '">' +
+        '<div class="unit-num">' + u.n + '</div>' +
+        '<div><div class="unit-title">' + u.title + '</div><div class="unit-sub">' + u.life + '</div></div>' +
+        '<div class="unit-status done">Done' + scoreLine + '</div></a>';
+    });
+    document.getElementById('done-list').innerHTML = doneHtml;
+  }
+</script>
+</body>
+</html>

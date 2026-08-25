@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prem's Coding Dashboard</title>
+<link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42; --sidebar-bg: #0D1128;
+    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+    --amber: #FFC24B; --amber-tint: #3A2B0E;
+    --danger: #FF6B7F; --danger-tint: #3A1620;
+    --success: #4BE39A; --success-tint: #113526;
+    --locked-bg: #10152C; --locked-text: #5C6390;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
+      --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
+      --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
+      --amber: #A9660A; --amber-tint: #FBE9CC;
+      --danger: #C23652; --danger-tint: #FBDEE2;
+      --success: #1D8A55; --success-tint: #DBF2E5;
+      --locked-bg: #E7E9F5; --locked-text: #9099BC;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
+    --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
+    --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
+    --amber: #A9660A; --amber-tint: #FBE9CC;
+    --danger: #C23652; --danger-tint: #FBDEE2;
+    --success: #1D8A55; --success-tint: #DBF2E5;
+    --locked-bg: #E7E9F5; --locked-text: #9099BC;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
+  h1, h2, h3 { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; margin: 0; text-wrap: balance; }
+  #app { display: flex; height: 100vh; overflow: hidden; }
+
+  #sidebar { width: 68px; background: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding: 14px 0; gap: 4px; flex-shrink: 0; }
+  .sb-logo { width: 42px; height: 42px; border-radius: 12px; background: rgba(56,230,238,0.14); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+  .sb-btn { width: 50px; height: 50px; border-radius: 10px; border: none; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(233,236,255,0.5); text-decoration: none; }
+  .sb-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .sb-btn.active { background: rgba(56,230,238,0.16); color: var(--cyan); }
+  .sb-icon { font-size: 18px; line-height: 1; } .sb-lbl { font-size: 8px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .sb-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.14); margin: 6px 0; }
+
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #topbar { background: var(--bg-raised); border-bottom: 1px solid var(--line); padding: 0 20px; height: 54px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  #topbar-title { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+  #topbar-sub { font-size: 11px; color: var(--ink-soft); margin-left: 10px; }
+  .tb-badge { border-radius: 20px; padding: 4px 12px; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--line); }
+  .tb-cyan { background: var(--cyan-tint); border-color: var(--cyan); color: var(--cyan); }
+
+  #hero { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 14px 20px; background: var(--bg-raised); border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .hero-box { background: var(--bg-panel); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line); }
+  .hero-val { font-family: "Orbitron", sans-serif; font-size: 21px; font-weight: 800; line-height: 1.1; color: var(--cyan); }
+  .hero-lbl { font-size: 10px; color: var(--ink-soft); margin-top: 3px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
+  .hero-sub { font-size: 10px; font-weight: 600; margin-top: 1px; color: var(--ink-soft); }
+  .hero-axis { font-size: 9px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--amber); margin-bottom: 2px; }
+
+  #content { flex: 1; overflow-y: auto; padding: 20px; }
+  .panel { display: none; } .panel.active { display: block; }
+  .sec-div { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); padding: 6px 0 10px; }
+
+  .card { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+  .card h3 { font-size: 13px; margin-bottom: 4px; }
+  .card .sub { font-size: 11.5px; color: var(--ink-soft); margin-bottom: 12px; }
+  .legend { display: flex; gap: 16px; font-size: 11px; font-family: "JetBrains Mono", monospace; margin-bottom: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .roadmap-mini { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rm-chip { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 12px; border: 1px solid var(--line); }
+  .rm-chip.done { background: var(--success-tint); color: var(--success); border-color: var(--success); }
+  .rm-chip.in_progress { background: var(--amber-tint); color: var(--amber); border-color: var(--amber); }
+  .rm-chip.locked { background: var(--locked-bg); color: var(--locked-text); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-family: "JetBrains Mono", monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-soft); }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700; }
+  .pill.good { background: var(--success-tint); color: var(--success); }
+  .pill.mid { background: var(--amber-tint); color: var(--amber); }
+  .pill.low { background: var(--danger-tint); color: var(--danger); }
+
+  .empty { color: var(--ink-soft); font-size: 12.5px; padding: 26px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; }
+
+  #pw-overlay { position: fixed; inset: 0; background: rgba(6,9,22,0.94); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
+  #pw-overlay.hidden { display: none; }
+  .pw-box { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 36px 32px 30px; width: 320px; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+  .pw-box h2 { font-size: 1.15rem; color: var(--cyan); margin-bottom: 6px; }
+  .pw-box p { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 20px; font-family: "Atkinson Hyperlegible", sans-serif; }
+  .pw-input { width: 100%; padding: 11px 14px; border: 2px solid var(--line); background: var(--bg-panel); color: var(--ink); border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 10px; }
+  .pw-input:focus { border-color: var(--cyan); }
+  .pw-btn { width: 100%; padding: 11px; background: var(--cyan); color: var(--cyan-ink); border: none; border-radius: 10px; font-family: "Orbitron", sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+  .pw-error { font-size: 0.8rem; color: var(--danger); margin-top: 8px; min-height: 16px; }
+</style>
+</head>
+<body>
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div style="font-size:2.2rem;margin-bottom:10px">🚀</div>
+    <h2>Prem's Coding Dashboard</h2>
+    <p>Enter the password to continue</p>
+    <input class="pw-input" id="pw-input" type="password" placeholder="Password" inputmode="numeric"
+           onkeydown="if(event.key==='Enter') checkPassword()">
+    <button class="pw-btn" onclick="checkPassword()">Unlock &#8594;</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+<div id="app">
+  <nav id="sidebar">
+    <div class="sb-logo">🚀</div>
+    <button class="sb-btn" onclick="openIndex()"><span class="sb-icon">📘</span><span class="sb-lbl">Unit</span></button>
+    <button class="sb-btn active" onclick="showPanel('overview',this)"><span class="sb-icon">📊</span><span class="sb-lbl">Board</span></button>
+    <button class="sb-btn" onclick="showPanel('log',this)"><span class="sb-icon">📋</span><span class="sb-lbl">Log</span></button>
+    <div class="sb-divider"></div>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openMath()" title="Math Lessons"><span class="sb-icon" style="font-weight:700">M</span><span class="sb-lbl">Math</span></a>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openEnglish()" title="English Lessons"><span class="sb-icon" style="font-weight:700">E</span><span class="sb-lbl">English</span></a>
+    <a class="sb-btn" href="javascript:void(0)" onclick="openScience()" title="Science Lessons"><span class="sb-icon" style="font-weight:700">S</span><span class="sb-lbl">Sci</span></a>
+    <a class="sb-btn" href="https://athipprem.github.io/scigame/" target="_blank" rel="noopener" title="Science Quest"><span class="sb-icon"><img src="https://athipprem.github.io/scigame/favicon.svg" alt="Science Quest" style="width:18px;height:18px;display:block"></span><span class="sb-lbl">Quest</span></a>
+  </nav>
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex;align-items:baseline">
+        <span id="topbar-title">Coding Dashboard</span>
+        <span id="topbar-sub">&nbsp;&mdash;&nbsp;Tracking two things: Curriculum Structure &amp; Apply-to-Life</span>
+      </div>
+      <div style="display:flex;gap:10px">
+        <span class="tb-badge tb-cyan" id="tb-unit">Unit &mdash;</span>
+      </div>
+    </div>
+    <div id="hero">
+      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-unit">&mdash;</div><div class="hero-lbl">Current unit</div><div class="hero-sub" id="h-unit-sub">&mdash;</div></div>
+      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-done">&mdash;</div><div class="hero-lbl">Checkpoints complete</div><div class="hero-sub">of 10 units + Milestone 1</div></div>
+      <div class="hero-box"><div class="hero-axis">Coding</div><div class="hero-val" id="h-coding">&mdash;</div><div class="hero-lbl">Coding mastery avg</div><div class="hero-sub">concept quiz score</div></div>
+      <div class="hero-box"><div class="hero-axis">Life</div><div class="hero-val" id="h-life">&mdash;</div><div class="hero-lbl">Apply-to-life avg</div><div class="hero-sub">transfer check score</div></div>
+    </div>
+    <div id="content">
+      <div class="panel active" id="panel-overview">
+        <div class="card">
+          <h3>Curriculum Structure</h3>
+          <div class="sub">Stage 1 roadmap — 10 units + Milestone Test 1. Green = done, amber = in progress, dim = locked.</div>
+          <div class="roadmap-mini" id="roadmap-mini"></div>
+        </div>
+        <div class="card">
+          <h3>Coding vs. Apply-to-Life, per completed unit</h3>
+          <div class="sub">Two lines: how well the concept quiz landed (Coding) vs. how well the transfer check showed he can apply it beyond the screen (Life).</div>
+          <div class="legend">
+            <span><span class="dot" style="background:var(--cyan)"></span>Coding</span>
+            <span><span class="dot" style="background:var(--amber)"></span>Life</span>
+          </div>
+          <div id="chart-holder"></div>
+        </div>
+      </div>
+      <div class="panel" id="panel-log">
+        <div class="sec-div">Unit Log</div>
+        <div id="log-holder"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="prem_coding_data.js"></script>
+<script>
+  var PW_HASH = 2088511772;
+  function djb2(str){ var h=5381; for(var i=0;i<str.length;i++){ h=(((h<<5)+h)+str.charCodeAt(i))>>>0; } return h; }
+  var hubToken = new URLSearchParams(window.location.search).get('hub');
+  var tokenValid = hubToken && (Date.now() - parseInt(hubToken, 10)) < 15000;
+  if (sessionStorage.getItem('unlocked')==='yes' || tokenValid){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
+  else { document.getElementById('pw-input').focus(); }
+  function checkPassword(){
+    var e=document.getElementById('pw-input').value;
+    if (djb2(e)===PW_HASH){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
+    else { document.getElementById('pw-error').textContent='Wrong password. Try again!'; document.getElementById('pw-input').value=''; document.getElementById('pw-input').focus(); }
+  }
+  function showPanel(id, btn){
+    var ps=document.querySelectorAll('.panel'); for(var i=0;i<ps.length;i++) ps[i].classList.remove('active');
+    document.getElementById('panel-'+id).classList.add('active');
+    var bs=document.querySelectorAll('.sb-btn'); for(var j=0;j<bs.length;j++) bs[j].classList.remove('active');
+    if(btn) btn.classList.add('active');
+  }
+  function withHub(url){ return sessionStorage.getItem('unlocked')==='yes' ? url + '?hub=' + Date.now() : url; }
+  function openIndex(){ window.location.href = withHub('index.html'); }
+  function openMath(){ window.location.href = withHub('https://athipprem.github.io/mathlessons/'); }
+  function openEnglish(){ window.location.href = withHub('https://athipprem.github.io/englessons/'); }
+  function openScience(){ window.location.href = withHub('https://athipprem.github.io/scilessons/'); }
+
+  var D = PREM_CODING_DATA;
+  var roadmap = computeCodingRoadmap(D);
+  function pct(score, outOf){ return outOf ? Math.round(score/outOf*100) : null; }
+
+  var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
+  var doneCount = roadmap.filter(function(u){ return u.status === 'done'; }).length;
+  document.getElementById('h-unit').textContent = current ? ('U'+current.n) : 'All done';
+  document.getElementById('h-unit-sub').textContent = current ? current.title : 'Stage 1 complete';
+  document.getElementById('tb-unit').textContent = current ? ('Unit '+current.n+' · '+current.title) : 'Stage 1 complete';
+  document.getElementById('h-done').textContent = doneCount + ' / ' + roadmap.length;
+
+  if (D.results.length){
+    var codingSum=0, codingOut=0, lifeSum=0, lifeOut=0;
+    D.results.forEach(function(r){
+      codingSum += r.coding.concept_score; codingOut += r.coding.concept_out_of;
+      lifeSum += r.life.score; lifeOut += r.life.out_of;
+    });
+    document.getElementById('h-coding').textContent = pct(codingSum, codingOut) + '%';
+    document.getElementById('h-life').textContent = pct(lifeSum, lifeOut) + '%';
+  } else {
+    document.getElementById('h-coding').textContent = '—';
+    document.getElementById('h-life').textContent = '—';
+  }
+
+  // Roadmap mini chips
+  var miniHtml = '';
+  roadmap.forEach(function(u){
+    miniHtml += '<div class="rm-chip ' + u.status + '" title="' + u.title + '">' + u.n + '</div>';
+  });
+  document.getElementById('roadmap-mini').innerHTML = miniHtml;
+
+  // Coding-vs-Life dual line chart, hand-built inline SVG (no charting library)
+  function buildDualChart(){
+    var results = D.results;
+    if (!results.length){
+      return '<div class="empty">No completed units yet &mdash; this chart fills in as Prem finishes units, plotting concept-quiz score against transfer-check score side by side.</div>';
+    }
+    var W = 640, H = 200, padL = 34, padR = 16, padT = 14, padB = 30;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var n = results.length;
+    var stepX = n > 1 ? plotW / (n - 1) : 0;
+    function y(val){ return padT + plotH - (val/100)*plotH; }
+    function x(i){ return padL + (n > 1 ? i*stepX : plotW/2); }
+    var grid = '';
+    [0,50,80,100].forEach(function(v){
+      grid += '<line x1="'+padL+'" y1="'+y(v)+'" x2="'+(W-padR)+'" y2="'+y(v)+'" stroke="#2B3560" stroke-width="1" stroke-dasharray="3,3"/>';
+      grid += '<text x="'+(padL-6)+'" y="'+(y(v)+3)+'" font-size="9" fill="#9AA3CC" text-anchor="end" font-family="JetBrains Mono, monospace">'+v+'%</text>';
+    });
+    var codingPts = results.map(function(r,i){ return x(i)+','+y(pct(r.coding.concept_score, r.coding.concept_out_of)); }).join(' ');
+    var lifePts = results.map(function(r,i){ return x(i)+','+y(pct(r.life.score, r.life.out_of)); }).join(' ');
+    var dots = '';
+    results.forEach(function(r,i){
+      var cy = y(pct(r.coding.concept_score, r.coding.concept_out_of));
+      var ly = y(pct(r.life.score, r.life.out_of));
+      dots += '<circle cx="'+x(i)+'" cy="'+cy+'" r="4" fill="#38E6EE"/>';
+      dots += '<circle cx="'+x(i)+'" cy="'+ly+'" r="4" fill="#FFC24B"/>';
+      dots += '<text x="'+x(i)+'" y="'+(H-8)+'" font-size="9" fill="#9AA3CC" text-anchor="middle" font-family="JetBrains Mono, monospace">U'+r.unit+'</text>';
+    });
+    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;max-width:'+W+'px">' +
+      grid +
+      '<polyline points="'+codingPts+'" fill="none" stroke="#38E6EE" stroke-width="2"/>' +
+      '<polyline points="'+lifePts+'" fill="none" stroke="#FFC24B" stroke-width="2"/>' +
+      dots +
+      '</svg>';
+  }
+  document.getElementById('chart-holder').innerHTML = buildDualChart();
+
+  // Unit log table
+  function buildLog(){
+    if (!D.results.length){
+      return '<div class="empty">No results filed yet. Once Prem finishes a unit and its coding_unitNN_results.json lands in Lessons/Results/, it shows up here with its coding and life scores.</div>';
+    }
+    var rows = D.results.slice().sort(function(a,b){ return b.unit - a.unit; }).map(function(r){
+      var cp = pct(r.coding.concept_score, r.coding.concept_out_of);
+      var lp = pct(r.life.score, r.life.out_of);
+      function pillClass(p){ return p >= 80 ? 'good' : (p >= 50 ? 'mid' : 'low'); }
+      return '<tr>' +
+        '<td>Unit ' + r.unit + '</td>' +
+        '<td>' + r.title + '</td>' +
+        '<td>' + r.completed_at + '</td>' +
+        '<td><span class="pill ' + pillClass(cp) + '">' + r.coding.concept_score + '/' + r.coding.concept_out_of + ' (' + cp + '%)</span></td>' +
+        '<td><span class="pill ' + pillClass(lp) + '">' + r.life.hits + ' hit / ' + r.life.false_positives + ' fp (' + lp + '%)</span></td>' +
+        '<td>' + (r.coding.mission1_succeeded ? '✅' : '—') + ' / ' + (r.coding.mission2_succeeded ? '✅' : '—') + '</td>' +
+        '<td>' + r.xp_earned + '</td>' +
+      '</tr>';
+    }).join('');
+    return '<table><thead><tr><th>Unit</th><th>Title</th><th>Completed</th><th>Coding</th><th>Life transfer</th><th>Missions 1/2</th><th>XP</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  }
+  document.getElementById('log-holder').innerHTML = buildLog();
+</script>
+</body>
+</html>
