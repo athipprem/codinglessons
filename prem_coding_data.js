@@ -23,7 +23,7 @@ var PREM_CODING_DATA = {
       file: "unit_02_loops.html" },
     { n: 3,  title: "Nested Loops",   concept: "A loop inside a loop",
       life: "A weekly routine (outer) containing a daily routine (inner)",
-      file: null },
+      file: "unit_03_nested_loops.html" },
     { n: 4,  title: "Events",         concept: "“When X happens, do Y” — reacting, not deciding",
       life: "Reflexes — when the alarm goes off, you get up",
       file: null },

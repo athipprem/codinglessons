@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Cadet — Unit 2: Loop Protocol</title>
+<title>Code Cadet — Unit 3: Nested Loop Protocol</title>
 <link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,7 +143,7 @@
   .repeat-move-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
   .repeat-move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .repeat-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; }
-  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; }
+  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; padding-left: 14px; border-left: 2px dashed var(--line); }
   .repeat-done-btn { align-self: flex-start; font-family: "Orbitron", sans-serif; font-weight: 600; font-size: 11.5px; background: var(--success); color: #06281B; border: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
 
   .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -225,10 +225,10 @@
   <!-- BOOT -->
   <section class="screen active" id="scr-boot">
     <div class="boot-card">
-      <div class="logo">🔁</div>
+      <div class="logo">🪆</div>
       <h1>CODE CADET ACADEMY</h1>
-      <div class="tagline">Training Program · Unit 02 · Loop Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Rover-7 has a new job: patrol routes that repeat. Writing every step by hand would flood its command memory — Command Control needs you to teach it the REPEAT protocol.</p>
+      <div class="tagline">Training Program · Unit 03 · Nested Loop Protocol</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Rover-7's patrols now span whole sectors — routines that repeat, made of smaller routines that repeat inside them. One flat REPEAT isn't enough anymore. Command Control needs you to master the NESTED LOOP: a REPEAT living inside another REPEAT.</p>
       <label for="cadetName">What should we call you, Cadet?</label>
       <input type="text" id="cadetName" placeholder="Your name" maxlength="20">
       <button class="primary" id="beginBtn">Begin Training →</button>
@@ -241,14 +241,14 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Sequence Protocol, Cadet. Here's the next problem: Rover-7's patrol route repeats the same pattern over and over. Writing "Forward, Turn Right, Forward, Turn Right..." by hand, every single time, wastes command memory it needs for the mission ahead.</p>
-        <p>You already do this without thinking — brushing your teeth is the same steps repeated each night. You don't invent new steps every time, you just repeat the routine. A <strong>REPEAT</strong> block does exactly that: run a set of steps multiple times without writing them out each time.</p>
+        <p><strong>COMMANDER:</strong> Nice work mastering the REPEAT block, Cadet. But some routines aren't just "repeat this move a few times" — they're "repeat this whole repeating routine, several times over." Think of your school week: you repeat the same 3-day study routine, and then that whole week repeats itself for a month. That's a REPEAT... inside a REPEAT.</p>
+        <p>A <strong>NESTED LOOP</strong> is exactly that: one REPEAT block placed inside another. The inner loop runs its full count, every single time, before the outer loop moves on to its next repeat.</p>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Calibration Test: Spot the Loop</h2>
-      <p class="sub">Rover-7's old patrol log reads: <code>Forward, Turn Right, Forward, Turn Right, Forward, Turn Right, Forward, Turn Right</code>. Which REPEAT block produces the exact same path?</p>
+      <h2>Calibration Test: Spot the Nested Loop</h2>
+      <p class="sub">Rover-7's patrol log reads: <code>Forward, Forward, Turn Right, Forward, Forward, Turn Right, Forward, Forward, Turn Right, Turn Left, Forward, Forward, Turn Right, Forward, Forward, Turn Right, Forward, Forward, Turn Right, Turn Left</code>. Which nested REPEAT block produces the exact same path?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -257,11 +257,12 @@
     </div>
 
     <div class="field-manual" id="fieldManual" style="display:none;">
-      <h3>📖 Field Manual: REPEAT</h3>
-      <p>A <strong>REPEAT</strong> block runs the same steps multiple times without you writing them out each time. Two rules to remember:</p>
+      <h3>📖 Field Manual: NESTED LOOPS</h3>
+      <p>A <strong>NESTED LOOP</strong> is a REPEAT block placed inside another REPEAT block. Three rules to remember:</p>
       <ol>
-        <li><strong>Everything inside the loop happens every single time it repeats.</strong></li>
-        <li><strong>Order inside the loop still matters</strong> — just like a regular sequence. A loop repeats your steps exactly as written; it doesn't fix a wrong order.</li>
+        <li><strong>The inner loop always finishes completely</strong> before the outer loop moves to its next repeat.</li>
+        <li><strong>Order still matters at both levels</strong> — inside the inner loop, and among everything inside the outer loop (including where the inner loop itself sits).</li>
+        <li><strong>Think of it like a weekly routine:</strong> the outer loop is "do this for 2 weeks," and the inner loop is the daily routine ("3 days of practice") that happens inside each week.</li>
       </ol>
     </div>
 
@@ -275,11 +276,11 @@
     <div class="transmission-tag">Transmission 2 of 3</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Time to use the real tool. Click "Add Repeat," set how many times it runs, then add commands — they'll go inside the loop until you hit Done. Patrol Platform Charlie and reach the flag.</p></div>
+      <div><p><strong>COMMANDER:</strong> Time to build one for real. Click "Add Repeat" to start your outer loop — then, while it's still open, click "Add Repeat" again to nest a second loop inside it. Command Control won't accept this route unless there's a real loop inside a loop. Patrol Platform Echo and reach the flag.</p></div>
     </div>
 
     <div class="panel">
-      <h2>Mission 1 · Platform Charlie</h2>
+      <h2>Mission 1 · Platform Echo</h2>
       <div class="cmd-palette" id="palette1">
         <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
         <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
@@ -306,11 +307,11 @@
     <div class="transmission-tag">Transmission 3 of 3</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Delta has a barrier down, and the route isn't purely repeating — you'll need some individual commands plus at least one loop. Mix them however gets Rover-7 there.</p></div>
+      <div><p><strong>COMMANDER:</strong> Platform Foxtrot has a barrier, and the route isn't purely one repeating shape — mix individual commands with a nested loop however gets Rover-7 there. Just remember: a real loop inside a loop is still required.</p></div>
     </div>
 
     <div class="panel">
-      <h2>Mission 2 · Platform Delta</h2>
+      <h2>Mission 2 · Platform Foxtrot</h2>
       <div class="cmd-palette" id="palette2">
         <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
         <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
@@ -337,7 +338,7 @@
     <div class="transmission-tag">Final Systems Check</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Last step, Cadet. Command Control needs to confirm this is locked in before the mission gets logged as complete.</p></div>
+      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Nested Loop Protocol as mastered.</p></div>
     </div>
 
     <div class="panel">
@@ -345,28 +346,28 @@
       <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. What does a REPEAT block do? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q1" value="0">Runs a set of steps once, very carefully</label>
-        <label class="choice"><input type="radio" name="q1" value="1">Runs the same set of steps multiple times without you writing them out each time</label>
-        <label class="choice"><input type="radio" name="q1" value="2">Skips steps it doesn't like</label>
-        <label class="choice"><input type="radio" name="q1" value="3">Only works with Turn commands</label>
+        <div class="qtext">1. What is a NESTED LOOP? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">A loop that runs twice as fast as a normal loop</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A REPEAT block placed inside another REPEAT block — the inner one finishes completely every time before the outer one moves on</label>
+        <label class="choice"><input type="radio" name="q1" value="2">Two separate loops that are not connected in any way</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A loop that automatically skips some of its steps</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet writes <code>Repeat 3 [Turn Right, Forward]</code> instead of <code>Repeat 3 [Forward, Turn Right]</code>. What happens? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">Nothing changes — the loop still ends up in the same place</label>
-        <label class="choice"><input type="radio" name="q2" value="1">The rover ends up somewhere totally different, because the order inside the loop still matters, just like a normal sequence</label>
-        <label class="choice"><input type="radio" name="q2" value="2">The loop won't run at all</label>
-        <label class="choice"><input type="radio" name="q2" value="3">The rover ignores the Turn Right command</label>
+        <div class="qtext">2. A cadet means to build <code>Repeat 2 [ Repeat 3 [Forward, Turn Right] ]</code> but accidentally swaps the numbers, building <code>Repeat 3 [ Repeat 2 [Forward, Turn Right] ]</code> instead. What happens? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">Nothing changes — swapping which number is outer vs. inner doesn't affect the result</label>
+        <label class="choice"><input type="radio" name="q2" value="1">The rover ends up somewhere different — the outer count controls how many times the whole inner pattern repeats, while the inner count controls how many times the small step repeats each time</label>
+        <label class="choice"><input type="radio" name="q2" value="2">The inner loop won't run at all if the counts are swapped</label>
+        <label class="choice"><input type="radio" name="q2" value="3">The rover only turns, and never moves forward</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really a LOOP — the same steps, repeated many times? Answer YES or NO for each one — more than one can be YES.</div>
-        <div class="yn-row" data-idx="0"><div class="yn-text">Doing 20 jumping jacks in a row</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="1"><div class="yn-text">Choosing your favorite ice cream flavor</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="2"><div class="yn-text">Practicing the same multiplication fact every day this week</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="3"><div class="yn-text">Picking a birthday present for a friend</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="4"><div class="yn-text">Shuffling a deck, cutting it, shuffling again, cutting it again</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really a NESTED LOOP — a repeating routine that itself contains another repeating routine inside it? Answer YES or NO for each one — more than one can be YES.</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Every day this week, doing 3 sets of 10 jumping jacks</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">Doing 10 jumping jacks in a row</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Deciding what to have for breakfast</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Every week this month, practicing your times tables on 3 different days</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Tying your shoelaces once before you leave</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -383,7 +384,7 @@
     </div>
   </section>
 
-  <footer>Stage 1 · Unit 2 of 10 · Code Cadet</footer>
+  <footer>Stage 1 · Unit 3 of 10 · Code Cadet</footer>
 </main>
 
 <script>
@@ -405,9 +406,10 @@
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / ...) is deliberately NOT
+  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat) is deliberately NOT
   // shuffled — it's a fixed toolbar, same order every load and every unit, so cadets build muscle memory
-  // for the tool itself instead of re-reading button positions each time. Keep this order standing for future units.
+  // for the tool itself instead of re-reading button positions each time. No new base command is
+  // introduced in this unit — nesting extends the existing Repeat tool rather than adding a new button.
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -428,12 +430,12 @@
     showScreen('scr-t1');
   });
 
-  // ================= Calibration: Spot the Loop =================
+  // ================= Calibration: Spot the Nested Loop =================
   const CAL_CHOICES = [
-    { id: 0, label: 'Repeat 4 [ Forward, Turn Right ]', correct: true },
-    { id: 1, label: 'Repeat 2 [ Forward, Forward, Turn Right ]', correct: false },
-    { id: 2, label: 'Repeat 8 [ Forward ]', correct: false },
-    { id: 3, label: 'Repeat 4 [ Turn Right, Forward ]', correct: false },
+    { id: 0, label: 'Repeat 2 [ Repeat 3 [ Forward, Forward, Turn Right ], Turn Left ]', correct: true },
+    { id: 1, label: 'Repeat 6 [ Forward, Forward, Turn Right ]', correct: false },
+    { id: 2, label: 'Repeat 3 [ Repeat 2 [ Forward, Forward, Turn Right ], Turn Left ]', correct: false },
+    { id: 3, label: 'Repeat 2 [ Repeat 3 [ Forward, Turn Right, Forward ], Turn Left ]', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -474,13 +476,19 @@
     });
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. That loop produces the exact same patrol path.';
+      msg.textContent = '✅ Correct. That\'s a loop inside a loop — 3 reps of the small move, wrapped in 2 reps of the whole thing plus the turn.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
+    } else if (choice.id === 1) {
+      msg.textContent = '🤖 That\'s a single flat loop — no nested loop, and it\'s missing the Turn Left steps entirely. Compare the totals carefully.';
+      msg.className = 'puzzle-msg bad';
+    } else if (choice.id === 2) {
+      msg.textContent = '🤖 Close — but the outer and inner counts are swapped. That changes how many total moves happen and where the rover ends up.';
+      msg.className = 'puzzle-msg bad';
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 Close — same steps, wrong order inside the loop. That turns first every time, which is a different path.';
+      msg.textContent = '🤖 Close — same counts, but the order inside the inner loop is different, which sends the rover on a different path.';
       msg.className = 'puzzle-msg bad';
     } else {
       msg.textContent = 'Not quite — expand it step by step and compare to the patrol log.';
@@ -501,7 +509,7 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ REPEAT support =================
+  // ================= Rover engine w/ NESTED REPEAT support =================
   const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
   const ROT = { N: 0, E: 90, S: 180, W: 270 };
   const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
@@ -542,13 +550,18 @@
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    let program = []; // items: {type:'cmd', cmd} | {type:'repeat', count, children:[{cmd}]}
-    let openRepeatIdx = null;
+    // program is a tree: items are {type:'cmd', cmd} or {type:'repeat', count, children:[...items]}.
+    // A repeat's children can themselves contain another repeat item — that's the nested loop this
+    // unit introduces. openStack tracks which repeat(s) are currently open for editing, outermost
+    // first; only the last (innermost) entry accepts new commands/nested repeats, and the UI caps
+    // openStack at length 2 so the tree never grows past one level of nesting.
+    let program = [];
+    let openStack = [];
     let state = { ...mission.start };
     let running = false;
     let succeeded = false;
     let attempts = 0;
-    let usedRepeat = false;
+    let usedNestedRepeat = false;
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
@@ -581,20 +594,25 @@
     }
 
     function updateAddRepeatBtn() {
-      cfg.addRepeatBtn.disabled = (openRepeatIdx !== null) || running;
+      cfg.addRepeatBtn.disabled = running || openStack.length >= 2;
     }
 
-    function renderProgram() {
-      cfg.programListEl.innerHTML = '';
-      if (program.length === 0) {
+    function currentTarget() {
+      return openStack.length ? openStack[openStack.length - 1].children : program;
+    }
+
+    function renderItems(items, containerEl, hintMode) {
+      containerEl.innerHTML = '';
+      if (items.length === 0) {
         const span = document.createElement('span');
         span.className = 'empty-hint';
-        span.textContent = 'Add commands (or a Repeat block) from the panel above.';
-        cfg.programListEl.appendChild(span);
-        updateAddRepeatBtn();
+        span.textContent = hintMode === 'top'
+          ? 'Add commands (or a Repeat block) from the panel above.'
+          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+        containerEl.appendChild(span);
         return;
       }
-      program.forEach((item, i) => {
+      items.forEach((item, i) => {
         if (item.type === 'cmd') {
           const row = document.createElement('div');
           row.className = 'order-row';
@@ -610,28 +628,30 @@
           upBtn.disabled = running || i === 0;
           upBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i - 1], program[i]] = [program[i], program[i - 1]];
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
             renderProgram();
           });
           const downBtn = document.createElement('button');
           downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === program.length - 1;
+          downBtn.disabled = running || i === items.length - 1;
           downBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i + 1], program[i]] = [program[i], program[i + 1]];
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
             renderProgram();
           });
           const rmBtn = document.createElement('button');
           rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
           rmBtn.disabled = running;
-          rmBtn.addEventListener('click', () => { if (running) return; program.splice(i, 1); renderProgram(); });
+          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
 
           btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
           row.appendChild(btns);
-          cfg.programListEl.appendChild(row);
+          containerEl.appendChild(row);
         } else {
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
           const card = document.createElement('div');
-          card.className = 'repeat-card' + (openRepeatIdx === i ? ' open' : '');
+          card.className = 'repeat-card' + (isOpen ? ' open' : '');
           const head = document.createElement('div');
           head.className = 'repeat-head';
           const minus = document.createElement('button');
@@ -652,15 +672,15 @@
           upBtn.disabled = running || i === 0;
           upBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i - 1], program[i]] = [program[i], program[i - 1]];
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
             renderProgram();
           });
           const downBtn = document.createElement('button');
           downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === program.length - 1;
+          downBtn.disabled = running || i === items.length - 1;
           downBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i + 1], program[i]] = [program[i], program[i + 1]];
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
             renderProgram();
           });
           const remove = document.createElement('button');
@@ -668,92 +688,57 @@
           remove.disabled = running;
           remove.addEventListener('click', () => {
             if (running) return;
-            program.splice(i, 1);
-            if (openRepeatIdx === i) openRepeatIdx = null;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
             renderProgram();
           });
           actions.append(upBtn, downBtn, remove);
           head.append(minus, label, plus, actions);
           card.appendChild(head);
 
-          const children = document.createElement('div');
-          children.className = 'repeat-children';
-          if (item.children.length === 0) {
-            const hint = document.createElement('span');
-            hint.className = 'empty-hint';
-            hint.textContent = openRepeatIdx === i ? 'Click commands above — they’ll go in here.' : '(empty)';
-            children.appendChild(hint);
-          }
-          item.children.forEach((child, ci) => {
-            const crow = document.createElement('div');
-            crow.className = 'order-row';
-            const clabel = document.createElement('span');
-            clabel.className = 'order-label';
-            clabel.innerHTML = '<span class="num">' + (ci + 1) + '.</span>' + CMD_LABEL[child.cmd];
-            crow.appendChild(clabel);
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
 
-            const cbtns = document.createElement('div');
-            cbtns.className = 'order-btns';
-            const cUp = document.createElement('button');
-            cUp.type = 'button'; cUp.textContent = '▲'; cUp.setAttribute('aria-label', 'Move up');
-            cUp.disabled = running || ci === 0;
-            cUp.addEventListener('click', () => {
-              if (running) return;
-              [item.children[ci - 1], item.children[ci]] = [item.children[ci], item.children[ci - 1]];
-              renderProgram();
-            });
-            const cDown = document.createElement('button');
-            cDown.type = 'button'; cDown.textContent = '▼'; cDown.setAttribute('aria-label', 'Move down');
-            cDown.disabled = running || ci === item.children.length - 1;
-            cDown.addEventListener('click', () => {
-              if (running) return;
-              [item.children[ci + 1], item.children[ci]] = [item.children[ci], item.children[ci + 1]];
-              renderProgram();
-            });
-            const cRm = document.createElement('button');
-            cRm.type = 'button'; cRm.className = 'remove'; cRm.textContent = '✕'; cRm.setAttribute('aria-label', 'Remove');
-            cRm.disabled = running;
-            cRm.addEventListener('click', () => { if (running) return; item.children.splice(ci, 1); renderProgram(); });
-
-            cbtns.appendChild(cUp); cbtns.appendChild(cDown); cbtns.appendChild(cRm);
-            crow.appendChild(cbtns);
-            children.appendChild(crow);
-          });
-          card.appendChild(children);
-
-          if (openRepeatIdx === i) {
+          if (isInnermostOpen) {
             const done = document.createElement('button');
             done.type = 'button';
             done.className = 'repeat-done-btn';
             done.textContent = '✅ Done adding to this loop';
-            done.addEventListener('click', () => { openRepeatIdx = null; renderProgram(); });
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
             card.appendChild(done);
           }
-          cfg.programListEl.appendChild(card);
+          containerEl.appendChild(card);
         }
       });
+    }
+
+    function renderProgram() {
+      renderItems(program, cfg.programListEl, 'top');
       updateAddRepeatBtn();
     }
 
     cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (running) return;
-        if (openRepeatIdx !== null) program[openRepeatIdx].children.push({ cmd: btn.dataset.cmd });
-        else program.push({ type: 'cmd', cmd: btn.dataset.cmd });
+        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
         renderProgram();
       });
     });
 
     cfg.addRepeatBtn.addEventListener('click', () => {
-      if (running || openRepeatIdx !== null) return;
-      program.push({ type: 'repeat', count: 2, children: [] });
-      openRepeatIdx = program.length - 1;
+      if (running || openStack.length >= 2) return;
+      const newRepeat = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(newRepeat);
+      openStack.push(newRepeat);
       renderProgram();
     });
 
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openRepeatIdx = null;
+      program = []; openStack = [];
       renderProgram();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
@@ -779,11 +764,35 @@
       await wait(400);
     }
 
+    async function runItems(items) {
+      for (const item of items) {
+        if (item.type === 'cmd') {
+          await executeOne(item.cmd);
+        } else {
+          for (let n = 0; n < item.count; n++) {
+            await runItems(item.children);
+          }
+        }
+      }
+    }
+
+    // True only when some repeat block's children contain another repeat block, anywhere in the
+    // tree — a genuine loop inside a loop, not just one loop, and not two loops sitting side by side.
+    function containsNestedRepeat(items) {
+      for (const item of items) {
+        if (item.type === 'repeat') {
+          if (item.children.some(c => c.type === 'repeat')) return true;
+          if (containsNestedRepeat(item.children)) return true;
+        }
+      }
+      return false;
+    }
+
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
       running = true;
       attempts++;
-      usedRepeat = program.some(item => item.type === 'repeat');
+      usedNestedRepeat = containsNestedRepeat(program);
       cfg.runBtn.disabled = true;
       updateAddRepeatBtn();
       state = { ...mission.start };
@@ -792,26 +801,16 @@
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
-        for (const item of program) {
-          if (item.type === 'cmd') {
-            await executeOne(item.cmd);
-          } else {
-            for (let n = 0; n < item.count; n++) {
-              for (const child of item.children) {
-                await executeOne(child.cmd);
-              }
-            }
-          }
-        }
+        await runItems(program);
         if (state.r === mission.goal.r && state.c === mission.goal.c) {
-          if (cfg.requireRepeat && !usedRepeat) {
-            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT block. Rebuild this route using at least one Repeat, then run it again.';
+          if (cfg.requireNestedRepeat && !usedNestedRepeat) {
+            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can nest a REPEAT inside another REPEAT — not just use one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
             cfg.msgEl.className = 'mission-msg bad';
           } else {
             succeeded = true;
             cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
             cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess(usedRepeat);
+            if (cfg.onSuccess) cfg.onSuccess(usedNestedRepeat);
           }
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
@@ -836,7 +835,7 @@
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
-      get usedRepeatOnSuccess() { return succeeded && usedRepeat; }
+      get usedNestedRepeatOnSuccess() { return succeeded && usedNestedRepeat; }
     };
   }
 
@@ -849,11 +848,11 @@
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
     addRepeatBtn: document.getElementById('addRepeat1'),
     mission: mission1Def,
-    requireRepeat: true,
+    requireNestedRepeat: true,
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 0 }] };
+  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 2 }] };
   mission2Def.goal = randomizeGoal(mission2Def, 3);
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
@@ -862,53 +861,53 @@
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
     addRepeatBtn: document.getElementById('addRepeat2'),
     mission: mission2Def,
-    requireRepeat: true,
+    requireNestedRepeat: true,
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
 
   // ================= Finish / Debrief =================
   const QUIZ_ANSWERS = { q1: 1, q2: 1 };
-  const Q3_CORRECT = [0, 2, 4];
+  const Q3_CORRECT = [0, 3];
   const Q3_ALL = [0, 1, 2, 3, 4];
 
   const Q_EXPLAIN = {
     q1: {
       correct: 1,
       why: {
-        0: "Running steps once, carefully, is just a sequence — nothing repeats, so that's not what a REPEAT block is for.",
-        1: "Exactly right. A REPEAT block runs the same steps multiple times so you never have to write them out again and again.",
-        2: "A REPEAT block doesn't judge or skip steps — it faithfully replays whatever you put inside it, every single time.",
-        3: "REPEAT works with any command inside it — Forward, Turn Left, Turn Right, even other blocks — not just Turns."
+        0: "Nesting isn't about speed — it's about structure: one REPEAT block living inside another.",
+        1: "Exactly right. A nested loop means one REPEAT sits inside another — the inner block completes fully, every single time, before the outer one takes its next turn.",
+        2: "If they're not connected, that's just two separate loops next to each other — not nesting. Nesting means one is placed inside the other.",
+        3: "A loop never skips its own steps — nested or not, every step inside runs every time it's supposed to."
       },
-      codeLife: "Why it matters for coding: loops are how real programs handle anything repetitive — printing a list, checking every player's score, animating every frame — without copy-pasting the same line hundreds of times. Why it matters in life: practicing piano scales, doing 20 push-ups, reviewing the same flashcards every day — you repeat one routine instead of inventing a new one each time."
+      codeLife: "Why it matters for coding: nested loops are everywhere once programs get real — checking every row AND every column of a grid, going through every player AND every item they're holding. Why it matters in life: a school year (outer) made of weeks (inner), or a workout month (outer) made of daily routines (inner) — one repeating pattern living inside another."
     },
     q2: {
       correct: 1,
       why: {
-        0: "It's not the same path — turning first and moving second, every time, traces a different route than moving first and turning second.",
-        1: "Right. A loop repeats exactly what's inside it, in that exact order, on every pass — order still matters just like a normal sequence.",
-        2: "The loop still runs fine — the count and the commands are both valid. Only the resulting path changes when you swap the order.",
-        3: "Every command inside a loop runs every time it repeats — a loop never quietly ignores one of them."
+        0: "It's not the same — the outer and inner counts control different things, so swapping them changes how many total steps happen and where the rover ends up.",
+        1: "Right. The outer number says how many times the whole inner pattern repeats; the inner number says how many times the small step repeats inside each pass. Swap them and the total path changes.",
+        2: "The inner loop still runs fine with a swapped count — it just runs a different number of times than intended, which changes the path.",
+        3: "Both loops still run whatever commands are inside them — Forward included — swapping counts doesn't disable any command."
       },
-      codeLife: "Why it matters for coding: a loop is a sequence that repeats — inside it, the order rules from Unit 1 still fully apply. Why it matters in life: repeating a mixed-up recipe step (like adding sugar after it's already baked) 10 times just gives you 10 bad results, not one good one."
+      codeLife: "Why it matters for coding: mixing up which loop is 'outer' and which is 'inner' is one of the most common real bugs — like checking every column for each row instead of every row for each column. Why it matters in life: doing 2 weeks of a 3-day routine is very different from doing 3 weeks of a 2-day routine — same two numbers, different result, because of which one is the outer count."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal,
   // so the two never contradict each other.
   const Q3_EXPLAIN = {
-    0: "20 jumping jacks in a row is the same movement repeated 20 times — that's a loop.",
-    1: "choosing a flavor is a one-time decision, not a repeated action.",
-    2: "the same practice repeated once a day, every day this week, is a loop (repeat 7 times).",
-    3: "picking a present is a single choice, not a set of steps that repeat.",
-    4: "shuffle-then-cut is being repeated as a pair, over and over — that's a loop, even though the deck looks a little different each time."
+    0: "doing the same day-routine (3 sets of jumping jacks) repeated every day this week is a loop inside a loop — the day repeats, and inside each day the sets repeat.",
+    1: "10 jumping jacks in a row is one loop, not a loop inside a loop — there's only one repeating layer here.",
+    2: "deciding what to eat is a one-time choice, not a repeated routine at all.",
+    3: "practicing on 3 days is a loop, and doing that same 3-day pattern every week this month is another loop wrapped around it — that's a loop inside a loop.",
+    4: "tying your shoelaces once is a single action, not something repeating."
   };
 
-  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — a cadet who just
-  // answered 1 and 2 by picking one best radio option was defaulting into "pick one" here too when
-  // it was a checkbox list. Every item now requires an explicit click before debriefing is allowed,
-  // which also resolves the old ambiguity of "was leaving it unchecked a real answer or just unsure?"
-  // — there's no more unanswered state possible once every row has a recorded YES or NO.
+  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — this keeps the
+  // interaction mode consistent with Q1/Q2 (both single-best-choice) by making the *difference*
+  // explicit instead of silently switching from radio buttons to checkboxes. Every item now
+  // requires an explicit click before debriefing is allowed, which also removes any ambiguity
+  // about whether leaving an item unanswered was a real "no" or just an unfinished click.
   const q3Answers = {};
   document.querySelector('.quiz-q[data-qid="q3"]').addEventListener('click', (e) => {
     const btn = e.target.closest('.yn-btn');
@@ -942,7 +941,7 @@
       });
     });
 
-    // Every item is now definitively right or wrong — no ambiguous "left blank" case anymore.
+    // Every item is definitively right or wrong — no ambiguous "left blank" case is possible.
     let q3Hits = 0, q3Misses = 0, q3FalsePositives = 0, q3CorrectRejections = 0;
     Q3_ALL.forEach(i => {
       const truthYes = Q3_CORRECT.includes(i);
@@ -976,18 +975,18 @@
       + '<br><br>' + Q_EXPLAIN.q2.codeLife;
     q2Box.classList.add('show');
 
-    // Grouped by what the question actually asks — every real loop first (with whether you caught
-    // it), then every non-loop after — instead of the shuffled on-screen order, so this review reads
-    // as one clear pass rather than jumping around to match scrambled choices.
+    // Grouped by what the question actually asks — every real nested loop first (with whether you
+    // caught it), then every non-nested item after — instead of the shuffled on-screen order, so
+    // this review reads as one clear pass rather than jumping around to match scrambled choices.
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE loops — YES is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE nested loops — YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
       const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT loops — NO is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT nested loops — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
       const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
@@ -998,8 +997,8 @@
     q3Box.classList.add('show');
 
     const payload = {
-      unit_number: 2,
-      unit_title: 'Loops (Code Cadet)',
+      unit_number: 3,
+      unit_title: 'Nested Loops (Code Cadet)',
       stage: 1,
       cadet_name: cadetName,
       completed_at: new Date().toISOString(),
@@ -1007,8 +1006,8 @@
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_repeat_block: mission1.usedRepeatOnSuccess },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_repeat_block: mission2.usedRepeatOnSuccess }
+        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_nested_repeat_block: mission1.usedNestedRepeatOnSuccess },
+        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_nested_repeat_block: mission2.usedNestedRepeatOnSuccess }
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
@@ -1017,7 +1016,7 @@
     };
 
     msg.textContent = ''; msg.className = '';
-    const filename = 'coding_unit02_results.json';
+    const filename = 'coding_unit03_results.json';
     const box = document.getElementById('resultBox');
     box.classList.add('show');
     box.innerHTML = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
@@ -1026,8 +1025,8 @@
       + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
       + '<br><br>A file called <code>' + filename + '</code> is downloading now. Save it into the <code>Lessons/Results</code> folder so your coach can see how it went.';
 
-    const PREV_UNIT_FILE = 'unit_01_code_cadet.html';
-    const NEXT_UNIT_FILE = 'unit_03_nested_loops.html';
+    const PREV_UNIT_FILE = 'unit_02_loops.html';
+    const NEXT_UNIT_FILE = null;
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');
