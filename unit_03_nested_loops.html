@@ -896,10 +896,10 @@
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal,
   // so the two never contradict each other.
   const Q3_EXPLAIN = {
-    0: "doing the same day-routine (3 sets of jumping jacks) repeated every day this week is a loop inside a loop — the day repeats, and inside each day the sets repeat.",
+    0: "the <strong>outer loop</strong> is every day this week (repeats 7 times), and the <strong>inner loop</strong> is the 3 sets of jumping jacks inside each day (repeats 3 times) — a loop inside a loop, exactly like <code>Repeat 7 [ Repeat 3 [...] ]</code>.",
     1: "10 jumping jacks in a row is one loop, not a loop inside a loop — there's only one repeating layer here.",
     2: "deciding what to eat is a one-time choice, not a repeated routine at all.",
-    3: "practicing on 3 days is a loop, and doing that same 3-day pattern every week this month is another loop wrapped around it — that's a loop inside a loop.",
+    3: "the <strong>outer loop</strong> is every week this month (repeats across the weeks), and the <strong>inner loop</strong> is practicing on 3 different days inside each week (repeats 3 times) — a loop inside a loop, exactly like <code>Repeat weeks [ Repeat 3 [...] ]</code>.",
     4: "tying your shoelaces once is a single action, not something repeating."
   };
 
@@ -1026,7 +1026,7 @@
       + '<br><br>A file called <code>' + filename + '</code> is downloading now. Save it into the <code>Lessons/Results</code> folder so your coach can see how it went.';
 
     const PREV_UNIT_FILE = 'unit_02_loops.html';
-    const NEXT_UNIT_FILE = null;
+    const NEXT_UNIT_FILE = 'unit_04_events.html';
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');

@@ -314,6 +314,24 @@
   .choice input { margin-top: 3px; accent-color: var(--cyan); }
   .choice.correct { border-color: var(--success); background: var(--success-tint); }
   .choice.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel);
+  }
+  .yn-text { flex: 1; }
+  .yn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .yn-btn {
+    font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.03em;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: transparent;
+    color: var(--ink-soft); cursor: pointer;
+  }
+  .yn-btn:hover { border-color: var(--cyan); color: var(--ink); }
+  .yn-btn.selected-yes { border-color: var(--cyan); background: var(--cyan-tint); color: var(--cyan); }
+  .yn-btn.selected-no { border-color: var(--ink-soft); background: var(--bg-raised); color: var(--ink); }
+  .yn-row.correct { border-color: var(--success); background: var(--success-tint); }
+  .yn-row.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row.correct .yn-btn.selected-yes, .yn-row.correct .yn-btn.selected-no { border-color: var(--success); background: transparent; color: var(--success); }
+  .yn-row.incorrect .yn-btn.selected-yes, .yn-row.incorrect .yn-btn.selected-no { border-color: var(--danger); background: transparent; color: var(--danger); }
   .check-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
   .check-row:first-of-type { border-top: none; }
   .check-row input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--success); flex-shrink: 0; }
@@ -460,31 +478,31 @@
 
     <div class="panel">
       <h2>Final Systems Check</h2>
-      <p class="sub">Nothing is checked until you click Debrief — pick your best answer for each.</p>
+      <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. What is a "sequence"?</div>
-        <label class="choice"><input type="radio" name="q1" value="0">A list of steps done in any order you like</label>
-        <label class="choice"><input type="radio" name="q1" value="1">A list of exact steps, done in a specific order</label>
-        <label class="choice"><input type="radio" name="q1" value="2">A special kind of loop</label>
-        <label class="choice"><input type="radio" name="q1" value="3">A word that only applies to Scratch</label>
+        <div class="qtext">1. In coding, what does SEQUENCE mean? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">Steps you can do in whatever order feels right</label>
+        <label class="choice"><input type="radio" name="q1" value="1">Exact steps, done one after another in a specific order</label>
+        <label class="choice"><input type="radio" name="q1" value="2">A block that repeats the same steps over and over</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A word that only means something inside Scratch</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. Someone commands Rover-7: 1) Press ignition 2) Insert fuel cell 3) Close hatch. What happens?</div>
-        <label class="choice"><input type="radio" name="q2" value="0">A perfect launch — all the right steps are there</label>
-        <label class="choice"><input type="radio" name="q2" value="1">The rover ignites with the hatch open — mission aborts, because ignition happened before the hatch was even closed</label>
+        <div class="qtext">2. Someone commands Rover-7: 1) Lower the wheels 2) Exit the landing pod 3) Unlock the hatch. What happens? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">A smooth exit — the order doesn't matter here</label>
+        <label class="choice"><input type="radio" name="q2" value="1">Rover-7 tries to exit through a hatch that's still locked, with the wheels not even down yet — the sequence fails</label>
         <label class="choice"><input type="radio" name="q2" value="2">Nothing changes — order never actually matters</label>
-        <label class="choice"><input type="radio" name="q2" value="3">The rover skips step 1 automatically</label>
+        <label class="choice"><input type="radio" name="q2" value="3">The rover automatically fixes the order by itself</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">3. Check every situation below where doing the steps in the WRONG order would actually cause a problem:</div>
-        <label class="choice"><input type="checkbox" name="q3" value="0">Crossing your laces before pulling them tight, instead of after</label>
-        <label class="choice"><input type="checkbox" name="q3" value="1">Choosing a red backpack instead of a blue one</label>
-        <label class="choice"><input type="checkbox" name="q3" value="2">Typing your username before your password to log into a game</label>
-        <label class="choice"><input type="checkbox" name="q3" value="3">Picking which pencil to use for homework</label>
-        <label class="choice"><input type="checkbox" name="q3" value="4">In a math competition, reading the whole question before choosing your method</label>
+        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: if you did these steps in the WRONG order, would it actually cause a real problem? Answer YES or NO for each one — more than one can be YES.</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Putting on your socks before your shoes</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">Choosing which color marker to use first when coloring a picture</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Saving your game before turning off the console</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Deciding whether to pet the cat or the dog first when you get home</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Preheating the oven before putting in the cookies</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -536,7 +554,7 @@
     items.forEach(el => container.insertBefore(el, anchor || null));
   }
   document.querySelectorAll('.quiz-q').forEach(q => {
-    shuffleDomChildren(q, '.choice', q.querySelector('.debrief-note'));
+    shuffleDomChildren(q, '.choice, .yn-row', q.querySelector('.debrief-note'));
   });
 
   // ================= Boot =================
@@ -942,41 +960,58 @@
       correct: 1,
       why: {
         0: "Order isn't optional to a computer — swap two steps and Rover-7 (or your code) does something completely different, or breaks outright.",
-        1: "Exactly right. A sequence is exact steps, done in a specific order — nothing skipped, nothing assumed.",
-        2: "A loop repeats steps over and over. A sequence is just steps in order, once each — no repeating involved.",
+        1: "Exactly right. A sequence is exact steps, done one after another in a specific order — nothing skipped, nothing assumed.",
+        2: "That's a loop, not a sequence — a loop repeats the same steps; a sequence is just steps in order, once each.",
         3: "Sequence isn't a Scratch-only word — it's a universal coding idea. Real Python, and every other language, runs code top to bottom the exact same way."
       },
-      codeLife: "Why it matters for coding: almost every bug a beginner writes is really an order bug — a step that ran too early or too late. Why it matters in life: recipes, math methods, even getting dressed — change the order and you get a different (or broken) result."
+      codeLife: "Why it matters for coding: almost every beginner bug is really an order bug — a step that ran too early or too late. Why it matters in life: recipes, science experiments, even getting dressed — change the order and you get a different (or broken) result."
     },
     q2: {
       correct: 1,
       why: {
-        0: "Look at the order again: ignition (step 1) happens before the hatch is closed (step 3). That's not a perfect launch — it's a disaster waiting to happen.",
-        1: "Right. Command Control follows the exact order it's given — ignition before the hatch is closed means the rover fires with the hatch wide open. Mission aborts.",
+        0: "Look at the order again: exiting the pod (step 2) happens before the hatch is even unlocked (step 3). That's not smooth — it's stuck.",
+        1: "Right. Command Control follows the exact order it's given — trying to exit before the hatch is unlocked and the wheels are down means the sequence fails right where it's out of order.",
         2: "Order always matters to a computer. It never quietly reorders your steps to make them safe.",
-        3: "Computers don't skip steps on their own — every instruction you give actually runs, even the ones you didn't mean to run first.",
+        3: "Computers don't fix your order for you — every instruction you give actually runs, in the order you gave it, even a broken one.",
       },
-      codeLife: "Why it matters for coding: a computer never 'figures out what you meant' — it does exactly what's written, in that order, every time. Why it matters in life: turning on the shower before checking the water temperature, or hitting send before proofreading — the wrong order causes the exact problem you were trying to avoid."
+      codeLife: "Why it matters for coding: a computer never 'figures out what you meant' — it does exactly what's written, in that order, every time. Why it matters in life: pouring the batter before turning on the oven, or hitting send before proofreading — the wrong order causes the exact problem you were trying to avoid."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal,
   // so the two never contradict each other.
   const Q3_EXPLAIN = {
-    0: "crossing your laces before pulling them tight, and they won't tie properly — the order of the steps changes the outcome, just like in code.",
-    1: "backpack color doesn't depend on order at all — pick red first or blue first, you end up with the same backpack either way.",
-    2: "typing your password before your username on most logins just fails — the order is built into how the system checks you.",
-    3: "picking a pencil isn't a multi-step process with steps that could happen out of order — there's no sequence to break here.",
-    4: "reading the whole question first, then choosing your method — do it backwards and you might solve a problem you were never asked."
+    0: "shoes go on after socks for a reason — swap the order and the shoe won't fit right, or the sock ends up bunched and useless.",
+    1: "marker color doesn't depend on order at all — pick the red one first or the blue one first, the picture turns out the same either way.",
+    2: "turning off the console before saving loses your progress — the order here decides whether your work is kept or wiped.",
+    3: "petting the cat or the dog first isn't a multi-step process with steps that could happen out of order — there's no sequence to break here.",
+    4: "skip preheating and the cookies go into a cold oven — same recipe, worse result, because a step ran out of order."
   };
+
+  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — a cadet who just
+  // answered 1 and 2 by picking one best radio option was defaulting into "pick one" here too when
+  // it was a checkbox list. Every item now requires an explicit click before debriefing is allowed,
+  // which also resolves the old ambiguity of "was leaving it unchecked a real answer or just unsure?"
+  // — there's no more unanswered state possible once every row has a recorded YES or NO.
+  const q3Answers = {};
+  document.querySelector('.quiz-q[data-qid="q3"]').addEventListener('click', (e) => {
+    const btn = e.target.closest('.yn-btn');
+    if (!btn) return;
+    const row = btn.closest('.yn-row');
+    const idx = Number(row.dataset.idx);
+    q3Answers[idx] = btn.dataset.val;
+    row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+    btn.classList.add(btn.dataset.val === 'yes' ? 'selected-yes' : 'selected-no');
+  });
 
   document.getElementById('finishBtn').addEventListener('click', () => {
     const msg = document.getElementById('finishMsg');
     const q1 = document.querySelector('input[name="q1"]:checked');
     const q2 = document.querySelector('input[name="q2"]:checked');
+    const q3AnsweredCount = Q3_ALL.filter(i => q3Answers[i] !== undefined).length;
 
-    if (!q1 || !q2) {
-      msg.textContent = 'Answer questions 1 and 2 before debriefing.';
+    if (!q1 || !q2 || q3AnsweredCount < Q3_ALL.length) {
+      msg.textContent = 'Answer questions 1 and 2, and YES or NO for every situation in #3, before debriefing.';
       msg.className = 'puzzle-msg bad';
       return;
     }
@@ -991,22 +1026,21 @@
       });
     });
 
-    const q3Selected = Q3_ALL.filter(i => document.querySelector(`input[name="q3"][value="${i}"]`).checked);
-    // Scoring philosophy: only an actively-checked correct answer earns credit (green). Leaving a
-    // decoy unchecked is ambiguous — it could mean "I know this doesn't apply" or just "I wasn't sure" —
-    // so it's neutral, not rewarded. Missing a real answer, or checking a decoy, are both unambiguous
-    // mistakes, so both get flagged red.
+    // Every item is now definitively right or wrong — no ambiguous "left blank" case anymore.
+    let q3Hits = 0, q3Misses = 0, q3FalsePositives = 0, q3CorrectRejections = 0;
     Q3_ALL.forEach(i => {
-      const input = document.querySelector(`input[name="q3"][value="${i}"]`);
-      const label = input.closest('.choice');
-      const shouldBeChecked = Q3_CORRECT.includes(i);
-      if (input.checked && shouldBeChecked) label.classList.add('correct');
-      else if (input.checked !== shouldBeChecked) label.classList.add('incorrect');
-      // else: correctly left unchecked — no highlight, not scored either way
+      const truthYes = Q3_CORRECT.includes(i);
+      const said = q3Answers[i];
+      const row = document.querySelector(`.yn-row[data-idx="${i}"]`);
+      const correct = (truthYes && said === 'yes') || (!truthYes && said === 'no');
+      row.classList.add(correct ? 'correct' : 'incorrect');
+      if (truthYes && said === 'yes') q3Hits++;
+      else if (truthYes && said === 'no') q3Misses++;
+      else if (!truthYes && said === 'yes') q3FalsePositives++;
+      else q3CorrectRejections++;
     });
-    const q3Hits = Q3_CORRECT.filter(i => q3Selected.includes(i)).length;
-    const q3FalsePositives = q3Selected.filter(i => !Q3_CORRECT.includes(i)).length;
-    const q3Score = Math.max(0, q3Hits - q3FalsePositives);
+    const q3Score = q3Hits + q3CorrectRejections;
+    const q3OutOf = Q3_ALL.length;
 
     const q1Correct = q1.value === String(QUIZ_ANSWERS.q1);
     const q2Correct = q2.value === String(QUIZ_ANSWERS.q2);
@@ -1030,18 +1064,16 @@
     // whether you caught it), then every non-issue after — instead of the shuffled on-screen order,
     // so this review reads as one clear pass rather than jumping around to match scrambled choices.
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These situations ARE order-sensitive — checking them is what earns points:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These situations ARE order-sensitive — YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
-      const wasChecked = q3Selected.includes(i);
-      const lead = wasChecked ? '✅ You caught it — ' : '❌ You missed this one — ';
+      const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT order-sensitive — best left unchecked:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT order-sensitive — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
-      const wasChecked = q3Selected.includes(i);
-      const lead = wasChecked ? '❌ Not quite — you checked this one, but ' : '⚪ Correctly left unchecked — ';
+      const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
@@ -1067,7 +1099,7 @@
         concept_out_of: 2,
         q1_correct: q1Correct,
         q2_correct: q2Correct,
-        transfer_check: { score: q3Score, out_of: Q3_CORRECT.length, hits: q3Hits, false_positives: q3FalsePositives, selected: q3Selected, correct_set: Q3_CORRECT }
+        transfer_check: { score: q3Score, out_of: q3OutOf, hits: q3Hits, misses: q3Misses, false_positives: q3FalsePositives, correct_rejections: q3CorrectRejections, answers: q3Answers, correct_set: Q3_CORRECT }
       }
     };
 
@@ -1078,7 +1110,7 @@
     const box = document.getElementById('resultBox');
     box.classList.add('show');
     box.innerHTML = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
-      + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + Q3_CORRECT.length
+      + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
       + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
       + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
       + '<br><br>A file called <code>' + filename + '</code> is downloading now. Save it into the <code>Lessons/Results</code> folder so your coach can see how it went.';

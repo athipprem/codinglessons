@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Cadet — Unit 2: Loop Protocol</title>
+<title>Code Cadet — Unit 4: Event Protocol</title>
 <link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -137,13 +137,15 @@
 
   .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
   .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
+  .repeat-card.event-card { border-color: var(--cyan); background: var(--cyan-tint); }
+  .repeat-card.event-card.open { box-shadow: 0 0 0 2px var(--cyan); }
   .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
   .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
   .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
   .repeat-move-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
   .repeat-move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .repeat-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; }
-  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; }
+  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; padding-left: 14px; border-left: 2px dashed var(--line); }
   .repeat-done-btn { align-self: flex-start; font-family: "Orbitron", sans-serif; font-weight: 600; font-size: 11.5px; background: var(--success); color: #06281B; border: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
 
   .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -152,12 +154,16 @@
   .cmd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .cmd-btn.repeat-btn { border-color: var(--amber); }
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .cmd-btn.event-btn { border-color: var(--cyan); }
+  .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
 
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
   .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
+  .cell.beacon { background: var(--cyan-tint); }
+  .cell.beacon::after { content: "📡"; font-size: 16px; }
   .cell.goal { background: var(--success-tint); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
@@ -225,10 +231,10 @@
   <!-- BOOT -->
   <section class="screen active" id="scr-boot">
     <div class="boot-card">
-      <div class="logo">🔁</div>
+      <div class="logo">📡</div>
       <h1>CODE CADET ACADEMY</h1>
-      <div class="tagline">Training Program · Unit 02 · Loop Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Rover-7 has a new job: patrol routes that repeat. Writing every step by hand would flood its command memory — Command Control needs you to teach it the REPEAT protocol.</p>
+      <div class="tagline">Training Program · Unit 04 · Event Protocol</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Not every mission can be planned start-to-finish in advance — some things happen when they happen, not on schedule. Rover-7 needs to react in the moment, not just follow a fixed plan. Command Control needs you to master the EVENT block: code that waits, then reacts.</p>
       <label for="cadetName">What should we call you, Cadet?</label>
       <input type="text" id="cadetName" placeholder="Your name" maxlength="20">
       <button class="primary" id="beginBtn">Begin Training →</button>
@@ -241,14 +247,14 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Sequence Protocol, Cadet. Here's the next problem: Rover-7's patrol route repeats the same pattern over and over. Writing "Forward, Turn Right, Forward, Turn Right..." by hand, every single time, wastes command memory it needs for the mission ahead.</p>
-        <p>You already do this without thinking — brushing your teeth is the same steps repeated each night. You don't invent new steps every time, you just repeat the routine. A <strong>REPEAT</strong> block does exactly that: run a set of steps multiple times without writing them out each time.</p>
+        <p><strong>COMMANDER:</strong> Good work on Nested Loop Protocol, Cadet. Everything so far — sequences, loops, nested loops — runs the moment you hit "Run" and follows a plan you wrote in advance. But Rover-7's sensors just picked up a signal beacon out on patrol, and nobody knows exactly when it'll matter during the run. You can't pre-plan around something you don't control the timing of.</p>
+        <p>That's what an <strong>EVENT</strong> block is for: "When X happens, do Y." You don't decide *when* it fires — the mission does. You only decide *what happens* when it does. Real reflexes work the same way: an alarm goes off, then you get up. You don't schedule the alarm's exact ring time into your morning plan — you just react whenever it actually rings.</p>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Calibration Test: Spot the Loop</h2>
-      <p class="sub">Rover-7's old patrol log reads: <code>Forward, Turn Right, Forward, Turn Right, Forward, Turn Right, Forward, Turn Right</code>. Which REPEAT block produces the exact same path?</p>
+      <h2>Calibration Test: Spot the Event</h2>
+      <p class="sub">Real reflexes are simple: something happens, then you react. Which one of these actually reacts to something happening, instead of running on a fixed schedule decided in advance?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -257,11 +263,12 @@
     </div>
 
     <div class="field-manual" id="fieldManual" style="display:none;">
-      <h3>📖 Field Manual: REPEAT</h3>
-      <p>A <strong>REPEAT</strong> block runs the same steps multiple times without you writing them out each time. Two rules to remember:</p>
+      <h3>📖 Field Manual: EVENTS</h3>
+      <p>An <strong>EVENT</strong> block only runs its steps when its trigger actually happens. Three rules to remember:</p>
       <ol>
-        <li><strong>Everything inside the loop happens every single time it repeats.</strong></li>
-        <li><strong>Order inside the loop still matters</strong> — just like a regular sequence. A loop repeats your steps exactly as written; it doesn't fix a wrong order.</li>
+        <li><strong>It doesn't run on a fixed schedule</strong> — not a set number of times, and not just because the program started. It waits.</li>
+        <li><strong>You don't control WHEN it fires</strong> — the mission does. You only decide WHAT happens when it does.</li>
+        <li><strong>It can go anywhere in your program</strong> — it isn't a step in your sequence. It's "listening" the whole time the mission runs, no matter where you place it in your program list.</li>
       </ol>
     </div>
 
@@ -275,16 +282,17 @@
     <div class="transmission-tag">Transmission 2 of 3</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Time to use the real tool. Click "Add Repeat," set how many times it runs, then add commands — they'll go inside the loop until you hit Done. Patrol Platform Charlie and reach the flag.</p></div>
+      <div><p><strong>COMMANDER:</strong> Time to wire one up for real. Click "🔔 Add Event" to place an ON SIGNAL BEACON block anywhere in your program, then add the steps you want Rover-7 to react with. Command Control won't accept this route unless that event actually fires during the run — so your path needs to genuinely pass over the beacon (📡). Patrol Platform Golf and reach the flag.</p></div>
     </div>
 
     <div class="panel">
-      <h2>Mission 1 · Platform Charlie</h2>
+      <h2>Mission 1 · Platform Golf</h2>
       <div class="cmd-palette" id="palette1">
         <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
         <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
         <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
         <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent1">🔔 Add Event</button>
       </div>
       <div class="chip-order" id="prog1"></div>
       <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
@@ -306,16 +314,17 @@
     <div class="transmission-tag">Transmission 3 of 3</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Delta has a barrier down, and the route isn't purely repeating — you'll need some individual commands plus at least one loop. Mix them however gets Rover-7 there.</p></div>
+      <div><p><strong>COMMANDER:</strong> Platform Hotel has a barrier, and there's another signal beacon out there too. Mix individual commands, loops, and your event handler however gets Rover-7 to the flag — but that event still has to actually fire.</p></div>
     </div>
 
     <div class="panel">
-      <h2>Mission 2 · Platform Delta</h2>
+      <h2>Mission 2 · Platform Hotel</h2>
       <div class="cmd-palette" id="palette2">
         <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
         <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
         <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
         <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Event</button>
       </div>
       <div class="chip-order" id="prog2"></div>
       <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
@@ -337,7 +346,7 @@
     <div class="transmission-tag">Final Systems Check</div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Last step, Cadet. Command Control needs to confirm this is locked in before the mission gets logged as complete.</p></div>
+      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Event Protocol as mastered.</p></div>
     </div>
 
     <div class="panel">
@@ -345,28 +354,28 @@
       <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. In Code Cadet, what's the whole point of a REPEAT block? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q1" value="0">It lets the rover move faster than normal</label>
-        <label class="choice"><input type="radio" name="q1" value="1">It runs the same set of steps multiple times without you writing them out again and again</label>
-        <label class="choice"><input type="radio" name="q1" value="2">It automatically fixes mistakes in your program</label>
-        <label class="choice"><input type="radio" name="q1" value="3">It only works with the Forward command</label>
+        <div class="qtext">1. What is an EVENT block? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">A block that runs a fixed number of times, decided in advance</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A block that only runs its steps when a specific trigger actually happens, whenever that turns out to be</label>
+        <label class="choice"><input type="radio" name="q1" value="2">A block that runs once, right when the mission begins, no matter what</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A block that skips running if nothing else is happening</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet means to write <code>Repeat 4 [Forward, Turn Right]</code> but accidentally writes <code>Repeat 4 [Turn Right, Forward]</code> instead. What happens? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">Nothing changes — the loop still ends up in the same place</label>
-        <label class="choice"><input type="radio" name="q2" value="1">The rover ends up somewhere totally different, because the order inside the loop still matters, just like a normal sequence</label>
-        <label class="choice"><input type="radio" name="q2" value="2">The loop won't run at all</label>
-        <label class="choice"><input type="radio" name="q2" value="3">The rover ignores the Turn Right command</label>
+        <div class="qtext">2. A cadet wants Rover-7 to swerve around a hazard that could appear at any random moment during patrol. They write a fixed sequence — <code>Forward, Forward, Turn Right, Forward</code> — hoping the swerve lines up with when the hazard shows up. What's the problem? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">There's no problem — a fixed sequence always reacts correctly no matter when the hazard appears</label>
+        <label class="choice"><input type="radio" name="q2" value="1">The swerve only happens at that one exact point in the sequence — if the hazard appears at a different moment, the fixed plan won't react to it at all</label>
+        <label class="choice"><input type="radio" name="q2" value="2">The sequence will refuse to run at all</label>
+        <label class="choice"><input type="radio" name="q2" value="3">Rover-7 automatically converts the sequence into an event for you</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really a LOOP — the same steps, repeated multiple times? Answer YES or NO for each one — more than one can be YES.</div>
-        <div class="yn-row" data-idx="0"><div class="yn-text">Doing the same 5 stretches before every basketball practice this month</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="1"><div class="yn-text">Picking which book to read first from the shelf</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="2"><div class="yn-text">Feeding the class hamster the same way every morning before school</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="3"><div class="yn-text">Choosing a seat when you get on the bus</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="4"><div class="yn-text">Recharging your tablet every night before bed</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really an EVENT — reacting to a trigger you don't control the timing of — or is it decided in advance? Answer YES or NO for each one — more than one can be YES.</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Your phone buzzing when a message arrives, then you check it</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">Brushing your teeth for two minutes every morning</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">A smoke alarm going off, so you leave the house</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Doing the same 10 minutes of reading every night before bed</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Choosing your favorite topping on pizza night</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -383,7 +392,7 @@
     </div>
   </section>
 
-  <footer>Stage 1 · Unit 2 of 10 · Code Cadet</footer>
+  <footer>Stage 1 · Unit 4 of 10 · Code Cadet</footer>
 </main>
 
 <script>
@@ -405,9 +414,10 @@
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / ...) is deliberately NOT
-  // shuffled — it's a fixed toolbar, same order every load and every unit, so cadets build muscle memory
-  // for the tool itself instead of re-reading button positions each time. Keep this order standing for future units.
+  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event) is
+  // deliberately NOT shuffled — it's a fixed toolbar, same order every load and every unit, so
+  // cadets build muscle memory for the tool itself instead of re-reading button positions each
+  // time. Add Event is appended after Add Repeat since it's this unit's new block, in teaching order.
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -428,12 +438,12 @@
     showScreen('scr-t1');
   });
 
-  // ================= Calibration: Spot the Loop =================
+  // ================= Calibration: Spot the Event =================
   const CAL_CHOICES = [
-    { id: 0, label: 'Repeat 4 [ Forward, Turn Right ]', correct: true },
-    { id: 1, label: 'Repeat 2 [ Forward, Forward, Turn Right ]', correct: false },
-    { id: 2, label: 'Repeat 8 [ Forward ]', correct: false },
-    { id: 3, label: 'Repeat 4 [ Turn Right, Forward ]', correct: false },
+    { id: 0, label: '🔔 On Signal Beacon → Turn Right', correct: true },
+    { id: 1, label: 'Repeat 4 [ Turn Right ]', correct: false },
+    { id: 2, label: 'Forward, Forward, Turn Right', correct: false },
+    { id: 3, label: '▶ When the mission begins → Turn Right', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -474,16 +484,22 @@
     });
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. That loop produces the exact same patrol path.';
+      msg.textContent = '✅ Correct. That\'s a real event — it only runs when the beacon signal actually happens, not on a fixed schedule.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
+    } else if (choice.id === 1) {
+      msg.textContent = '🤖 That\'s a loop — it runs a fixed number of times no matter what happens. An event only fires when its trigger actually occurs.';
+      msg.className = 'puzzle-msg bad';
+    } else if (choice.id === 2) {
+      msg.textContent = '🤖 That\'s a plain sequence — it always runs the same way, with nothing to react to.';
+      msg.className = 'puzzle-msg bad';
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 Close — same steps, wrong order inside the loop. That turns first every time, which is a different path.';
+      msg.textContent = '🤖 Close — but "when the mission begins" is still decided in advance, the same every single run. A real event reacts to something that happens DURING the mission, which might not even occur at the same moment twice.';
       msg.className = 'puzzle-msg bad';
     } else {
-      msg.textContent = 'Not quite — expand it step by step and compare to the patrol log.';
+      msg.textContent = 'Not quite — think about which one waits for something to happen, versus running on its own schedule.';
       msg.className = 'puzzle-msg bad';
     }
   });
@@ -501,7 +517,7 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ REPEAT support =================
+  // ================= Rover engine w/ REPEAT + EVENT support =================
   const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
   const ROT = { N: 0, E: 90, S: 180, W: 270 };
   const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
@@ -511,8 +527,9 @@
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
 
-  // Reshuffle each mission's destination cell on every load (walls/start stay put — only the goal moves),
-  // so the flag isn't always in the same corner from a past run. BFS guarantees the new goal is reachable.
+  // Reshuffle each mission's destination cell on every load (walls/beacon/start stay put — only the
+  // goal moves), so the flag isn't always in the same corner from a past run. BFS guarantees the new
+  // goal is reachable, and never lands on the beacon cell.
   function bfsReachable(mission) {
     const key = (r, c) => r + ',' + c;
     const visited = new Set([key(mission.start.r, mission.start.c)]);
@@ -534,6 +551,7 @@
     reachable.forEach(k => {
       const [r, c] = k.split(',').map(Number);
       if (r === mission.start.r && c === mission.start.c) return;
+      if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) return;
       if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
       candidates.push({ r, c });
     });
@@ -542,13 +560,21 @@
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    let program = []; // items: {type:'cmd', cmd} | {type:'repeat', count, children:[{cmd}]}
-    let openRepeatIdx = null;
+    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
+    // or {type:'event', trigger, children}. A repeat's children can hold cmd or another repeat (one
+    // level of nesting, from Unit 3). An event's children only ever hold flat cmd items -- events
+    // can't nest inside a repeat and a repeat can't nest inside an event, so openStack (the currently
+    // "open for editing" container chain) is capped by container-specific rules in updateContainerBtns.
+    // Crucially, an 'event' item is a HANDLER REGISTRATION, not an inline step: it doesn't execute in
+    // its position in the list. It's collected once per run and fires whenever its trigger condition
+    // (the rover's position matching mission.beacon after a Forward move) actually occurs.
+    let program = [];
+    let openStack = [];
     let state = { ...mission.start };
     let running = false;
     let succeeded = false;
     let attempts = 0;
-    let usedRepeat = false;
+    let eventTriggered = false;
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
@@ -562,6 +588,7 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
+          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
           if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
         }
@@ -580,21 +607,28 @@
       cfg.roverEl.style.transform = `rotate(${ROT[state.dir]}deg)`;
     }
 
-    function updateAddRepeatBtn() {
-      cfg.addRepeatBtn.disabled = (openRepeatIdx !== null) || running;
+    function updateContainerBtns() {
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
+      cfg.addEventBtn.disabled = running || openStack.length !== 0;
     }
 
-    function renderProgram() {
-      cfg.programListEl.innerHTML = '';
-      if (program.length === 0) {
+    function currentTarget() {
+      return openStack.length ? openStack[openStack.length - 1].children : program;
+    }
+
+    function renderItems(items, containerEl, hintMode) {
+      containerEl.innerHTML = '';
+      if (items.length === 0) {
         const span = document.createElement('span');
         span.className = 'empty-hint';
-        span.textContent = 'Add commands (or a Repeat block) from the panel above.';
-        cfg.programListEl.appendChild(span);
-        updateAddRepeatBtn();
+        span.textContent = hintMode === 'top'
+          ? 'Add commands (or a Repeat / Event block) from the panel above.'
+          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+        containerEl.appendChild(span);
         return;
       }
-      program.forEach((item, i) => {
+      items.forEach((item, i) => {
         if (item.type === 'cmd') {
           const row = document.createElement('div');
           row.className = 'order-row';
@@ -610,40 +644,51 @@
           upBtn.disabled = running || i === 0;
           upBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i - 1], program[i]] = [program[i], program[i - 1]];
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
             renderProgram();
           });
           const downBtn = document.createElement('button');
           downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === program.length - 1;
+          downBtn.disabled = running || i === items.length - 1;
           downBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i + 1], program[i]] = [program[i], program[i + 1]];
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
             renderProgram();
           });
           const rmBtn = document.createElement('button');
           rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
           rmBtn.disabled = running;
-          rmBtn.addEventListener('click', () => { if (running) return; program.splice(i, 1); renderProgram(); });
+          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
 
           btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
           row.appendChild(btns);
-          cfg.programListEl.appendChild(row);
+          containerEl.appendChild(row);
         } else {
+          const isRepeat = item.type === 'repeat';
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
           const card = document.createElement('div');
-          card.className = 'repeat-card' + (openRepeatIdx === i ? ' open' : '');
+          card.className = 'repeat-card' + (isRepeat ? '' : ' event-card') + (isOpen ? ' open' : '');
           const head = document.createElement('div');
           head.className = 'repeat-head';
-          const minus = document.createElement('button');
-          minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
-          minus.disabled = running;
-          minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
-          const plus = document.createElement('button');
-          plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
-          plus.disabled = running;
-          plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
-          const label = document.createElement('span');
-          label.textContent = '🔁 Repeat × ' + item.count;
+
+          if (isRepeat) {
+            const minus = document.createElement('button');
+            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
+            minus.disabled = running;
+            minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
+            const plus = document.createElement('button');
+            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
+            plus.disabled = running;
+            plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
+            const label = document.createElement('span');
+            label.textContent = '🔁 Repeat × ' + item.count;
+            head.append(minus, label, plus);
+          } else {
+            const label = document.createElement('span');
+            label.textContent = '🔔 On Signal Beacon';
+            head.append(label);
+          }
 
           const actions = document.createElement('div');
           actions.className = 'repeat-head-actions';
@@ -652,108 +697,82 @@
           upBtn.disabled = running || i === 0;
           upBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i - 1], program[i]] = [program[i], program[i - 1]];
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
             renderProgram();
           });
           const downBtn = document.createElement('button');
           downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === program.length - 1;
+          downBtn.disabled = running || i === items.length - 1;
           downBtn.addEventListener('click', () => {
             if (running) return;
-            [program[i + 1], program[i]] = [program[i], program[i + 1]];
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
             renderProgram();
           });
           const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove loop');
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', isRepeat ? 'Remove loop' : 'Remove event');
           remove.disabled = running;
           remove.addEventListener('click', () => {
             if (running) return;
-            program.splice(i, 1);
-            if (openRepeatIdx === i) openRepeatIdx = null;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
             renderProgram();
           });
           actions.append(upBtn, downBtn, remove);
-          head.append(minus, label, plus, actions);
+          head.appendChild(actions);
           card.appendChild(head);
 
-          const children = document.createElement('div');
-          children.className = 'repeat-children';
-          if (item.children.length === 0) {
-            const hint = document.createElement('span');
-            hint.className = 'empty-hint';
-            hint.textContent = openRepeatIdx === i ? 'Click commands above — they’ll go in here.' : '(empty)';
-            children.appendChild(hint);
-          }
-          item.children.forEach((child, ci) => {
-            const crow = document.createElement('div');
-            crow.className = 'order-row';
-            const clabel = document.createElement('span');
-            clabel.className = 'order-label';
-            clabel.innerHTML = '<span class="num">' + (ci + 1) + '.</span>' + CMD_LABEL[child.cmd];
-            crow.appendChild(clabel);
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
 
-            const cbtns = document.createElement('div');
-            cbtns.className = 'order-btns';
-            const cUp = document.createElement('button');
-            cUp.type = 'button'; cUp.textContent = '▲'; cUp.setAttribute('aria-label', 'Move up');
-            cUp.disabled = running || ci === 0;
-            cUp.addEventListener('click', () => {
-              if (running) return;
-              [item.children[ci - 1], item.children[ci]] = [item.children[ci], item.children[ci - 1]];
-              renderProgram();
-            });
-            const cDown = document.createElement('button');
-            cDown.type = 'button'; cDown.textContent = '▼'; cDown.setAttribute('aria-label', 'Move down');
-            cDown.disabled = running || ci === item.children.length - 1;
-            cDown.addEventListener('click', () => {
-              if (running) return;
-              [item.children[ci + 1], item.children[ci]] = [item.children[ci], item.children[ci + 1]];
-              renderProgram();
-            });
-            const cRm = document.createElement('button');
-            cRm.type = 'button'; cRm.className = 'remove'; cRm.textContent = '✕'; cRm.setAttribute('aria-label', 'Remove');
-            cRm.disabled = running;
-            cRm.addEventListener('click', () => { if (running) return; item.children.splice(ci, 1); renderProgram(); });
-
-            cbtns.appendChild(cUp); cbtns.appendChild(cDown); cbtns.appendChild(cRm);
-            crow.appendChild(cbtns);
-            children.appendChild(crow);
-          });
-          card.appendChild(children);
-
-          if (openRepeatIdx === i) {
+          if (isInnermostOpen) {
             const done = document.createElement('button');
             done.type = 'button';
             done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this loop';
-            done.addEventListener('click', () => { openRepeatIdx = null; renderProgram(); });
+            done.textContent = '✅ Done adding to this ' + (isRepeat ? 'loop' : 'event');
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
             card.appendChild(done);
           }
-          cfg.programListEl.appendChild(card);
+          containerEl.appendChild(card);
         }
       });
-      updateAddRepeatBtn();
+    }
+
+    function renderProgram() {
+      renderItems(program, cfg.programListEl, 'top');
+      updateContainerBtns();
     }
 
     cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (running) return;
-        if (openRepeatIdx !== null) program[openRepeatIdx].children.push({ cmd: btn.dataset.cmd });
-        else program.push({ type: 'cmd', cmd: btn.dataset.cmd });
+        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
         renderProgram();
       });
     });
 
     cfg.addRepeatBtn.addEventListener('click', () => {
-      if (running || openRepeatIdx !== null) return;
-      program.push({ type: 'repeat', count: 2, children: [] });
-      openRepeatIdx = program.length - 1;
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
+      const newRepeat = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(newRepeat);
+      openStack.push(newRepeat);
+      renderProgram();
+    });
+
+    cfg.addEventBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0) return;
+      const newEvent = { type: 'event', trigger: 'signal', children: [] };
+      currentTarget().push(newEvent);
+      openStack.push(newEvent);
       renderProgram();
     });
 
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openRepeatIdx = null;
+      program = []; openStack = [];
       renderProgram();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
@@ -765,7 +784,21 @@
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
-    async function executeOne(cmd) {
+    // Collects top-level 'event' items into a trigger -> [handler,...] map. Events aren't tied to
+    // their position in the program -- wherever they sit in the list, they're "listening" for the
+    // whole run, per the Field Manual.
+    function collectHandlers(items) {
+      const handlers = {};
+      items.forEach(item => {
+        if (item.type === 'event') {
+          handlers[item.trigger] = handlers[item.trigger] || [];
+          handlers[item.trigger].push(item);
+        }
+      });
+      return handlers;
+    }
+
+    async function executeOne(cmd, handlers, inHandler) {
       if (cmd === 'L') state.dir = TURN_L[state.dir];
       else if (cmd === 'R') state.dir = TURN_R[state.dir];
       else if (cmd === 'F') {
@@ -777,41 +810,60 @@
       }
       updateRoverPosition(true);
       await wait(400);
+
+      // Trigger check: only after an actual move, only outside of a handler's own reaction (so a
+      // handler that itself steps onto the beacon can't re-fire itself), and only if a handler for
+      // this beacon's trigger is actually registered in the program.
+      if (!inHandler && cmd === 'F' && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
+        const list = (handlers && handlers['signal']) || [];
+        if (list.length) {
+          eventTriggered = true;
+          for (const handler of list) {
+            for (const child of handler.children) {
+              await executeOne(child.cmd, handlers, true);
+            }
+          }
+        }
+      }
+    }
+
+    async function runItems(items, handlers, inHandler) {
+      for (const item of items) {
+        if (item.type === 'cmd') {
+          await executeOne(item.cmd, handlers, inHandler);
+        } else if (item.type === 'repeat') {
+          for (let n = 0; n < item.count; n++) {
+            await runItems(item.children, handlers, inHandler);
+          }
+        }
+        // 'event' items are handler declarations, not inline steps -- skipped here on purpose.
+      }
     }
 
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
       running = true;
       attempts++;
-      usedRepeat = program.some(item => item.type === 'repeat');
+      const handlers = collectHandlers(program);
+      eventTriggered = false;
       cfg.runBtn.disabled = true;
-      updateAddRepeatBtn();
+      updateContainerBtns();
       state = { ...mission.start };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
-        for (const item of program) {
-          if (item.type === 'cmd') {
-            await executeOne(item.cmd);
-          } else {
-            for (let n = 0; n < item.count; n++) {
-              for (const child of item.children) {
-                await executeOne(child.cmd);
-              }
-            }
-          }
-        }
+        await runItems(program, handlers, false);
         if (state.r === mission.goal.r && state.c === mission.goal.c) {
-          if (cfg.requireRepeat && !usedRepeat) {
-            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT block. Rebuild this route using at least one Repeat, then run it again.';
+          if (cfg.requireEventUsed && !eventTriggered) {
+            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can react to a real EVENT: wire up an ON SIGNAL BEACON handler and make sure your route genuinely passes over the beacon (📡) so it actually fires, then run it again.';
             cfg.msgEl.className = 'mission-msg bad';
           } else {
             succeeded = true;
             cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
             cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess(usedRepeat);
+            if (cfg.onSuccess) cfg.onSuccess(eventTriggered);
           }
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
@@ -825,7 +877,7 @@
       } finally {
         running = false;
         cfg.runBtn.disabled = false;
-        updateAddRepeatBtn();
+        updateContainerBtns();
       }
     });
 
@@ -836,79 +888,78 @@
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
-      get usedRepeatOnSuccess() { return succeeded && usedRepeat; }
+      get usedEventOnSuccess() { return succeeded && eventTriggered; }
     };
   }
 
-  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, goal: { r: 4, c: 3 }, walls: [] };
+  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: { r: 2, c: 2 }, goal: { r: 0, c: 2 }, walls: [] };
   mission1Def.goal = randomizeGoal(mission1Def, 3);
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
-    addRepeatBtn: document.getElementById('addRepeat1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
     mission: mission1Def,
-    requireRepeat: true,
+    requireEventUsed: true,
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 0 }] };
+  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, beacon: { r: 2, c: 0 }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 2 }] };
   mission2Def.goal = randomizeGoal(mission2Def, 3);
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
-    addRepeatBtn: document.getElementById('addRepeat2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
     mission: mission2Def,
-    requireRepeat: true,
+    requireEventUsed: true,
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
 
   // ================= Finish / Debrief =================
   const QUIZ_ANSWERS = { q1: 1, q2: 1 };
-  const Q3_CORRECT = [0, 2, 4];
+  const Q3_CORRECT = [0, 2];
   const Q3_ALL = [0, 1, 2, 3, 4];
 
   const Q_EXPLAIN = {
     q1: {
       correct: 1,
       why: {
-        0: "A REPEAT block doesn't make the rover move any faster — it just replays the same steps, at the same speed, without you retyping them.",
-        1: "Exactly right. A REPEAT block runs the same steps multiple times so you never have to write them out again and again.",
-        2: "A REPEAT block doesn't judge or fix anything — it faithfully replays whatever you put inside it, mistakes included, every single time.",
-        3: "REPEAT works with any command inside it — Forward, Turn Left, Turn Right, even other blocks — not just Forward."
+        0: "That describes a REPEAT loop — a fixed number of runs decided ahead of time. An event doesn't run on a schedule; it waits for its trigger.",
+        1: "Exactly right. An event only fires when its trigger condition actually happens — you don't control when, only what happens in response.",
+        2: "That's closer to a 'run at start' step — still decided in advance, the same every time. This unit's event reacts to something happening during the mission, whose timing isn't fixed.",
+        3: "An event isn't about whether other things are busy or idle — it's about whether its own trigger has happened yet."
       },
-      codeLife: "Why it matters for coding: loops are how real programs handle anything repetitive — printing a list, checking every player's score, animating every frame — without copy-pasting the same line hundreds of times. Why it matters in life: practicing piano scales, doing 20 push-ups, reviewing the same flashcards every day — you repeat one routine instead of inventing a new one each time."
+      codeLife: "Why it matters for coding: almost every real program is event-driven somewhere — a button click, a message arriving, a timer running out — code that waits and reacts instead of running top-to-bottom on a fixed plan. Why it matters in life: a smoke alarm going off, your phone buzzing, a friend waving at you — you don't schedule these, you react when they happen."
     },
     q2: {
       correct: 1,
       why: {
-        0: "It's not the same path — turning first and moving second, every time, traces a different route than moving first and turning second.",
-        1: "Right. A loop repeats exactly what's inside it, in that exact order, on every pass — order still matters just like a normal sequence.",
-        2: "The loop still runs fine — the count and the commands are both valid. Only the resulting path changes when you swap the order.",
-        3: "Every command inside a loop runs every time it repeats — a loop never quietly ignores one of them."
+        0: "A fixed sequence runs the same steps in the same order every time — it can't adjust to when something unpredictable actually happens.",
+        1: "Right. A pre-planned sequence swerves at one fixed point, no matter when the real hazard shows up — if the timing doesn't match, it just doesn't react. An event fires exactly when its trigger happens, whenever that turns out to be.",
+        2: "The sequence still runs fine command-by-command — it's just not actually reacting to the hazard, whether or not the timing happens to line up.",
+        3: "Nothing converts a sequence into an event automatically — that's exactly why this unit's ON SIGNAL block exists as its own separate tool."
       },
-      codeLife: "Why it matters for coding: a loop is a sequence that repeats — inside it, the order rules from Unit 1 still fully apply. Why it matters in life: repeating a mixed-up recipe step (like adding sugar after it's already baked) 10 times just gives you 10 bad results, not one good one."
+      codeLife: "Why it matters for coding: this is why event listeners exist instead of just guessing when to check for input — a fixed schedule can't handle something whose timing you don't control. Why it matters in life: setting an alarm for a fixed time doesn't help if you need to react to the doorbell — you need to actually listen for it, whenever it rings."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal,
-  // so the two never contradict each other.
+  // so the two never contradict each other. Per Lui's feedback on Unit 3's YES explanations, every
+  // real-event item names its trigger and reaction explicitly, not just "this is an event."
   const Q3_EXPLAIN = {
-    0: "the same 5 stretches, repeated before every practice this month, is the same routine running over and over — that's a loop.",
-    1: "picking a book off the shelf is a one-time decision, not a repeated action.",
-    2: "feeding the hamster the same way every morning before school is the same steps repeating once a day — that's a loop.",
-    3: "choosing a seat is a single choice made on the spot, not a set of steps that repeat.",
-    4: "recharging the tablet every night before bed is the same routine repeating night after night — that's a loop."
+    0: "the <strong>trigger</strong> is the message arriving, and the <strong>reaction</strong> is checking your phone — you don't know exactly when it'll buzz, you just react when it does. That's a real event.",
+    1: "brushing your teeth every morning happens on a fixed schedule you decide in advance — there's no unpredictable trigger you're reacting to.",
+    2: "the <strong>trigger</strong> is the alarm sound, and the <strong>reaction</strong> is leaving the house — you don't control when the alarm goes off, only what you do once it does. That's a real event.",
+    3: "reading every night before bed is a fixed routine decided ahead of time, not a reaction to something happening.",
+    4: "choosing a pizza topping is a one-time decision — there's no trigger being reacted to at all."
   };
 
-  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — a cadet who just
-  // answered 1 and 2 by picking one best radio option was defaulting into "pick one" here too when
-  // it was a checkbox list. Every item now requires an explicit click before debriefing is allowed,
-  // which also resolves the old ambiguity of "was leaving it unchecked a real answer or just unsure?"
-  // — there's no more unanswered state possible once every row has a recorded YES or NO.
+  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — keeps the interaction
+  // mode consistent with Q1/Q2 (both single-best-choice) by making the *difference* explicit instead
+  // of silently switching formats. Every item requires an explicit click before debriefing is allowed.
   const q3Answers = {};
   document.querySelector('.quiz-q[data-qid="q3"]').addEventListener('click', (e) => {
     const btn = e.target.closest('.yn-btn');
@@ -942,7 +993,6 @@
       });
     });
 
-    // Every item is now definitively right or wrong — no ambiguous "left blank" case anymore.
     let q3Hits = 0, q3Misses = 0, q3FalsePositives = 0, q3CorrectRejections = 0;
     Q3_ALL.forEach(i => {
       const truthYes = Q3_CORRECT.includes(i);
@@ -976,18 +1026,15 @@
       + '<br><br>' + Q_EXPLAIN.q2.codeLife;
     q2Box.classList.add('show');
 
-    // Grouped by what the question actually asks — every real loop first (with whether you caught
-    // it), then every non-loop after — instead of the shuffled on-screen order, so this review reads
-    // as one clear pass rather than jumping around to match scrambled choices.
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE loops — YES is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE events — YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
       const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT loops — NO is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT events — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
       const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
@@ -998,8 +1045,8 @@
     q3Box.classList.add('show');
 
     const payload = {
-      unit_number: 2,
-      unit_title: 'Loops (Code Cadet)',
+      unit_number: 4,
+      unit_title: 'Events (Code Cadet)',
       stage: 1,
       cadet_name: cadetName,
       completed_at: new Date().toISOString(),
@@ -1007,8 +1054,8 @@
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_repeat_block: mission1.usedRepeatOnSuccess },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_repeat_block: mission2.usedRepeatOnSuccess }
+        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_event_block: mission1.usedEventOnSuccess },
+        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_event_block: mission2.usedEventOnSuccess }
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
@@ -1017,7 +1064,7 @@
     };
 
     msg.textContent = ''; msg.className = '';
-    const filename = 'coding_unit02_results.json';
+    const filename = 'coding_unit04_results.json';
     const box = document.getElementById('resultBox');
     box.classList.add('show');
     box.innerHTML = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
@@ -1026,8 +1073,8 @@
       + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
       + '<br><br>A file called <code>' + filename + '</code> is downloading now. Save it into the <code>Lessons/Results</code> folder so your coach can see how it went.';
 
-    const PREV_UNIT_FILE = 'unit_01_code_cadet.html';
-    const NEXT_UNIT_FILE = 'unit_03_nested_loops.html';
+    const PREV_UNIT_FILE = 'unit_03_nested_loops.html';
+    const NEXT_UNIT_FILE = null;
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');

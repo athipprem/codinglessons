@@ -26,7 +26,7 @@ var PREM_CODING_DATA = {
       file: "unit_03_nested_loops.html" },
     { n: 4,  title: "Events",         concept: "“When X happens, do Y” — reacting, not deciding",
       life: "Reflexes — when the alarm goes off, you get up",
-      file: null },
+      file: "unit_04_events.html" },
     { n: 5,  title: "Conditions",     concept: "Branching logic, including combined AND/OR conditions",
       life: "Decisions — “if it's raining AND I don't have an umbrella, take the bus”",
       file: null },
@@ -68,8 +68,15 @@ var PREM_CODING_DATA = {
                 mission1_succeeded: true, mission1_attempts: 4,
                 mission2_succeeded: true, mission2_attempts: 1 },
       life: { score: 1, out_of: 3, hits: 1, false_positives: 0 }
+    },
+    {
+      unit: 3, title: "Nested Loops", completed_at: "2026-08-26", xp_earned: 96,
+      coding: { concept_score: 2, concept_out_of: 2,
+                mission1_succeeded: true, mission1_attempts: 8,
+                mission2_succeeded: true, mission2_attempts: 2 },
+      life: { score: 4, out_of: 5, hits: 2, false_positives: 1 }
     }
-    // Next entry: Unit 3, once it's built and played through.
+    // Next entry: Unit 4, once it's played through.
   ]
 };
 
