@@ -46,8 +46,10 @@ a { color: inherit; }
 #acct-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.85rem; flex-shrink:0; }
 #acct-menu { display:none; position:absolute; top:48px; right:0; background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px; min-width: 190px; box-shadow: 0 10px 30px #0009; z-index: 50; }
 #acct-menu.open { display:block; }
-#acct-menu button { display:block; width:100%; text-align:left; background:none; border:none; color: var(--ink); font-size:.82rem; font-weight:700; padding:9px 10px; border-radius:9px; cursor:pointer; font-family: inherit; }
+#acct-menu button { display:flex; align-items:center; gap:11px; width:100%; text-align:left; background:none; border:none; color: var(--ink); font-size:.82rem; font-weight:700; padding:9px 10px; border-radius:9px; cursor:pointer; font-family: inherit; }
 #acct-menu button:hover { background: var(--bg-raised); }
+#acct-menu button svg { flex-shrink:0; color: var(--cyan); }
+#acct-menu button.signout svg { color: var(--danger); }
 
 /* ---------------- unit sign-in gate note (coding-auth.js adds this next to a disabled #beginBtn) ---------------- */
 .unit-lock-note { font-size: 13px; color: var(--ink-soft); margin-top: -6px; }

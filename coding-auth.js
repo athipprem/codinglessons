@@ -85,6 +85,13 @@
   }
   function initials(name){ return name ? name.trim().slice(0, 1).toUpperCase() : '?'; }
 
+  /* ---------------- account menu icons — terminal/code-flavored line icons (picked over
+     plain emoji, which read as dated on a coding-focused site) ---------------- */
+  var ICON_TERMINAL = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="16" height="14" rx="2"/><polyline points="6 8 9 10.5 6 13"/><line x1="10.5" y1="13" x2="14" y2="13"/></svg>';
+  var ICON_ACTIVITY = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="2 12 6 12 8 6 12 16 14 9 16 12 18 12"/></svg>';
+  var ICON_CODE = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 5 2.5 10 7 15"/><polyline points="13 5 17.5 10 13 15"/></svg>';
+  var ICON_POWER = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6"/><path d="M5.3 5.5a7 7 0 1 0 9.4 0"/></svg>';
+
   /* ---------------- account widget (always shows — signed-out state included) ---------------- */
   function renderWidget(){
     var btn = document.getElementById('acct-btn');
@@ -94,14 +101,14 @@
       var name = displayName(state.user);
       btn.innerHTML = '<span id="acct-avatar">' + initials(name) + '</span><span>' + name + '</span>';
       btn.onclick = function(){ menu.classList.toggle('open'); };
-      var items = '<button id="menu-progress">&#128202; My Progress</button>';
-      items += '<button id="menu-profile">&#9881;&#65039; My Profile</button>';
-      items += '<button id="menu-home">&#127968; Mission Control</button>';
-      items += '<button id="menu-signout">&#128682; Sign Out</button>';
+      var items = '<button id="menu-home">' + ICON_TERMINAL + 'Mission Control</button>';
+      items += '<button id="menu-progress">' + ICON_ACTIVITY + 'My Progress</button>';
+      items += '<button id="menu-profile">' + ICON_CODE + 'My Profile</button>';
+      items += '<button id="menu-signout" class="signout">' + ICON_POWER + 'Sign Out</button>';
       menu.innerHTML = items;
+      document.getElementById('menu-home').onclick = function(){ menu.classList.remove('open'); location.href = BASE + 'index.html'; };
       document.getElementById('menu-progress').onclick = function(){ menu.classList.remove('open'); location.href = BASE + 'my-progress.html'; };
       document.getElementById('menu-profile').onclick = function(){ menu.classList.remove('open'); openProfileSettings(); };
-      document.getElementById('menu-home').onclick = function(){ menu.classList.remove('open'); location.href = BASE + 'index.html'; };
       document.getElementById('menu-signout').onclick = function(){
         menu.classList.remove('open');
         sb.auth.signOut();
