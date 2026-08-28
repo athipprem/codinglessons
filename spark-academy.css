@@ -15,6 +15,48 @@
   --nova: #C77DFF; --nova-tint: #241238;
   --locked-bg: #10152C; --locked-text: #5C6390;
 }
+
+/* ---------------- LIGHT MODE (preview) ----------------
+   Every page's own <style> block re-declares a dark-mode :root with the same variable names
+   (spark-academy.css can't reach into each unit's inline colors any other way, since each unit
+   is a self-contained file). A plain `:root` selector and this `html[data-theme="light"]`
+   selector target the SAME root element, so normal CSS specificity decides the winner --
+   [data-theme="light"] (0,1,1) beats a bare :root (0,1,0) regardless of which file declared it
+   or what order the stylesheets load in. That means this one block re-themes every page that
+   links spark-academy.css -- index, the-loop, my-progress, and every unit -- without needing to
+   touch each unit's own inline CSS at all. A page only actually switches when something sets
+   <html data-theme="light"> (see the theme-toggle script each page adds next to its account
+   widget); until then this block is inert and every page renders exactly as before. */
+html[data-theme="light"] {
+  --bg: #F5F7FD; --bg-raised: #FFFFFF; --bg-panel: #ECF0FA;
+  --ink: #161B33; --ink-soft: #5C6489; --line: #D7DDF0;
+  --cyan: #0C8A93; --cyan-ink: #FFFFFF; --cyan-tint: #E3F7F8;
+  --amber: #A8650A; --amber-tint: #FFF2DC;
+  --success: #16875A; --success-tint: #E3F7EC;
+  --danger: #D23B57; --danger-tint: #FDE5EA;
+  --nova: #8A3FD1; --nova-tint: #F3E9FE;
+  --locked-bg: #EEF1FA; --locked-text: #8890B5;
+  /* only ever used inline inside each unit's own body background / grid CSS, not declared
+     anywhere in this shared file -- still overridden here for the same specificity reason above */
+  --wall-bg: #FBDEE3; --star: rgba(30,35,70,0.12);
+}
+/* the starfield speckle pattern below is hardcoded (not var-driven) since it predates the
+   theme system -- needs its own light-mode swap so specks read as faint dark grain on a light
+   page instead of near-invisible white-on-white */
+html[data-theme="light"] body {
+  background-image:
+    radial-gradient(1.6px 1.6px at 8% 12%, #1a1f3a22, transparent),
+    radial-gradient(1.3px 1.3px at 22% 38%, #1a1f3a1a, transparent),
+    radial-gradient(1.8px 1.8px at 68% 8%, #1a1f3a22, transparent),
+    radial-gradient(1.4px 1.4px at 82% 44%, #1a1f3a1a, transparent),
+    radial-gradient(1.5px 1.5px at 45% 68%, #1a1f3a1a, transparent),
+    radial-gradient(1.7px 1.7px at 92% 78%, #1a1f3a22, transparent),
+    radial-gradient(1.3px 1.3px at 12% 82%, #1a1f3a1a, transparent);
+}
+
+/* ---------------- theme toggle button (each page adds #theme-toggle next to its account widget) ---------------- */
+#theme-toggle { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor:pointer; padding:0; flex-shrink:0; }
+#theme-toggle:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
