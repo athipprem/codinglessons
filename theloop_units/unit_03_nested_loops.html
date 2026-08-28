@@ -354,7 +354,7 @@
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really a NESTED LOOP — a repeating routine that itself contains another repeating routine inside it? Answer YES or NO for each one — more than one can be YES.</div>
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really a NESTED LOOP — a repeating routine that itself contains another repeating routine inside it?</div>
         <div class="yn-row" data-idx="0"><div class="yn-text">Every day this week, doing 3 sets of 10 jumping jacks</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="yn-row" data-idx="1"><div class="yn-text">Doing 10 jumping jacks in a row</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="yn-row" data-idx="2"><div class="yn-text">Deciding what to have for breakfast</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
@@ -565,7 +565,7 @@
     // openStack at length 2 so the tree never grows past one level of nesting.
     let program = [];
     let openStack = [];
-    let state = { ...mission.start };
+    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
     let running = false;
     let succeeded = false;
     let attempts = 0;
@@ -598,7 +598,7 @@
       cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${ROT[state.dir]}deg)`;
+      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
     }
 
     function updateAddRepeatBtn() {
@@ -753,14 +753,14 @@
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start };
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
       updateRoverPosition(true);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
     async function executeOne(cmd) {
-      if (cmd === 'L') state.dir = TURN_L[state.dir];
-      else if (cmd === 'R') state.dir = TURN_R[state.dir];
+      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
+      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
       else if (cmd === 'F') {
         const d = DELTA[state.dir];
         const nr = state.r + d.dr, nc = state.c + d.dc;
@@ -803,7 +803,7 @@
       usedNestedRepeat = containsNestedRepeat(program);
       cfg.runBtn.disabled = true;
       updateAddRepeatBtn();
-      state = { ...mission.start };
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';

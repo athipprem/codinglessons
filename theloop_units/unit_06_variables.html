@@ -382,7 +382,7 @@
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">3. This one's different from 1 and 2 — there's no single best answer here. Go through every situation below and decide: is this really a value being tracked, that changes over time — or is it something else? Answer YES or NO for each one — more than one can be YES.</div>
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really a value being tracked, that changes over time — or is it something else?</div>
         <div class="yn-row" data-idx="0"><div class="yn-text">Keeping a running tally of how many books you've read this year</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="yn-row" data-idx="1"><div class="yn-text">The number of days in a week (always 7)</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="yn-row" data-idx="2"><div class="yn-text">A no-skipped-breakfast streak that goes up each day you don't skip it, and resets to 0 if you do</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
@@ -597,7 +597,7 @@
     // inside a repeat, inside an event's or condition's flat children) with no new container rules.
     let program = [];
     let openStack = [];
-    let state = { ...mission.start };
+    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
     let score = cfg.initialScore || 0;
     let running = false;
     let succeeded = false;
@@ -652,7 +652,7 @@
       cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${ROT[state.dir]}deg)`;
+      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
     }
 
     function updateContainerBtns() {
@@ -932,7 +932,7 @@
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start };
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
       score = cfg.initialScore || 0;
       updateScoreDisplay();
       updateRoverPosition(true);
@@ -955,8 +955,8 @@
     }
 
     async function executeOne(cmd, handlers, inHandler) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; updateRoverPosition(true); await wait(400); }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; updateRoverPosition(true); await wait(400); }
+      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; updateRoverPosition(true); await wait(400); }
+      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; updateRoverPosition(true); await wait(400); }
       else if (cmd === 'F') {
         const d = DELTA[state.dir];
         const nr = state.r + d.dr, nc = state.c + d.dc;
@@ -1025,7 +1025,7 @@
       updateScoreDisplay();
       cfg.runBtn.disabled = true;
       updateContainerBtns();
-      state = { ...mission.start };
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
