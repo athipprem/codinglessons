@@ -404,6 +404,7 @@
   // ================= State =================
   let cadetName = 'Cadet';
   let xp = 0;
+  let debriefed = false;
   const XP_TARGET = 100;
 
   function addXp(n) {
@@ -989,6 +990,12 @@
       msg.className = 'puzzle-msg bad';
       return;
     }
+    // Guard against repeated clicks re-scoring/re-adding XP/re-saving: once a valid debrief has
+    // been processed once, lock it. Without this, mashing the button kept stacking XP and firing
+    // duplicate saves to Supabase on every extra click.
+    if (debriefed) return;
+    debriefed = true;
+    document.getElementById('finishBtn').disabled = true;
 
     ['q1', 'q2'].forEach(qid => {
       const chosen = document.querySelector('input[name="' + qid + '"]:checked');
@@ -1101,7 +1108,7 @@
     });
 
     const PREV_UNIT_FILE = 'unit_03_nested_loops.html';
-    const NEXT_UNIT_FILE = null;
+    const NEXT_UNIT_FILE = 'unit_05_conditions.html';
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');

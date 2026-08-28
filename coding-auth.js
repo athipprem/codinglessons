@@ -30,6 +30,10 @@
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwa2hnaGdqZmlweG9vcXprZXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NzYxOTMsImV4cCI6MjEwMzQ1MjE5M30.ICVbolTG7JRxdlNSkEDeVo6N2VwDv0GnpDrU5IcToqI";
   var BASE = window.SPARK_BASE || '';
   var PENDING_KEY = 'spark_pending_coding_result';
+  // Signed-out account badge icon — terminal prompt ("> _"), same line-icon family as the
+  // account menu's icons below. Declared up here (not with the others further down) because the
+  // no-Supabase fallback branch immediately below needs it too, before it would otherwise be defined.
+  var ICON_SIGNIN = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 5 9 10 4 15"/><line x1="11" y1="15" x2="16" y2="15"/></svg>';
 
   if (!window.supabase || !window.supabase.createClient){
     console.error('coding-auth.js: Supabase client script did not load (offline, or the CDN was blocked) — accounts are unavailable this session.');
@@ -45,7 +49,7 @@
     var btn = document.getElementById('acct-btn');
     var menu = document.getElementById('acct-menu');
     if (btn){
-      btn.innerHTML = '<span id="acct-avatar">&#128273;</span><span>Sign In</span>';
+      btn.innerHTML = '<span id="acct-avatar">' + ICON_SIGNIN + '</span><span>Sign In</span>';
       btn.onclick = fallbackOpenAuth;
     }
     if (menu) menu.innerHTML = '';
@@ -114,7 +118,7 @@
         sb.auth.signOut();
       };
     } else {
-      btn.innerHTML = '<span id="acct-avatar">&#128273;</span><span>Sign In</span>';
+      btn.innerHTML = '<span id="acct-avatar">' + ICON_SIGNIN + '</span><span>Sign In</span>';
       btn.onclick = function(){ openAuth('signin'); };
       menu.classList.remove('open');
       menu.innerHTML = '';
