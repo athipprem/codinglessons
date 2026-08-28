@@ -129,23 +129,24 @@
   <div class="modal" id="modal-content"></div>
 </div>
 
-<script src="../Lessons/prem_coding_data.js"></script>
+<script src="spark_coding_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="coding-auth.js"></script>
 <script>
-  /* ============== live data (unit status + rank) ============== */
-  var D = PREM_CODING_DATA;
-  var roadmap = computeCodingRoadmap(D);
-  var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
-  var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
-  var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
-  var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
+  /* ============== modal plumbing shared with coding-auth.js — defined FIRST, before any
+     data-dependent code below, so the close button / modal system stays alive even if
+     something later in this script throws (defensive: this is exactly what broke the ×
+     button and the planets/badges rendering when this page still pointed at the old,
+     now-absent ../Lessons/prem_coding_data.js file). ============== */
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
 
-  document.getElementById('hero-mission-line').textContent = current
-    ? ('Currently on The Loop · Unit ' + current.n + ': ' + current.title)
-    : (stage1Done ? 'The Loop cleared — awaiting your next planet.' : 'All Stage 1 missions complete.');
-
-  /* ============== hero banner carousel — switches between the 2 hero banners ============== */
+  /* ============== hero banner carousel — switches between the 2 hero banners. Wired up
+     right after modal plumbing and BEFORE any data-dependent code, so a future data/roadmap
+     problem can never again silently take the carousel down with it (this is the same class
+     of bug that broke it on the live GitHub Pages site). ============== */
   (function(){
     var slides = document.querySelectorAll('.hero-bg-slide');
     var dots = document.querySelectorAll('.hero-dot');
@@ -163,6 +164,19 @@
     });
     if (slides.length > 1) startAuto();
   })();
+
+  /* ============== live data (unit status + rank) — App Dev's own project data
+     (spark_coding_data.js), same source the-loop.html already uses. ============== */
+  var D = SPARK_CODING_DATA;
+  var roadmap = computeSparkRoadmap(D);
+  var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
+  var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
+  var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
+  var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
+
+  document.getElementById('hero-mission-line').textContent = current
+    ? ('Currently on The Loop · Unit ' + current.n + ': ' + current.title)
+    : (stage1Done ? 'The Loop cleared — awaiting your next planet.' : 'All Stage 1 missions complete.');
 
   /* ============== rank strip ============== */
   var RANKS = [
@@ -262,7 +276,7 @@
       rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
       missionLog.style.display = 'inline-block';
       signinBtn.textContent = '📊 View My Progress';
-      signinBtn.onclick = function(){ openProgressDemo(); };
+      signinBtn.onclick = function(){ location.href = 'my-progress.html'; };
     } else {
       rankEl.textContent = 'CADET';
       missionLog.style.display = 'none';
@@ -271,52 +285,6 @@
     }
   }
   CodingAuth.onChange(updateHeroForAuth);
-
-  /* ============== modal plumbing shared with coding-auth.js ============== */
-  var modalBg = document.getElementById('modal-bg');
-  var modalContent = document.getElementById('modal-content');
-  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
-  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
-
-  function openProgressDemo(){
-    var resultByUnit = {};
-    D.results.forEach(function(r){ resultByUnit[r.unit] = r; });
-    function pct(s,o){ return o ? Math.round(s/o*100) : null; }
-    var rows = roadmap.map(function(u){
-      var r = resultByUnit[u.n];
-      var line = r ? ('Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '%') : 'Not attempted yet';
-      return '<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:.82rem">' +
-        '<span><b>U' + u.n + '</b> ' + u.title + '</span><span style="color:var(--ink-soft)">' + line + '</span></div>';
-    }).join('');
-    modalContent.innerHTML =
-      '<button class="modal-close" onclick="closeModal()">&times;</button>' +
-      '<h2>My Progress</h2><p class="sub">Real curriculum data — this becomes its own page reading live from Supabase later.</p>' + rows;
-    modalBg.classList.add('open');
-  }
-  function openProfileDemo(){
-    var name = (window.CodingAuth && CodingAuth.user) ? CodingAuth.displayName : 'Prem';
-    var email = (window.CodingAuth && CodingAuth.user) ? CodingAuth.user.email : '';
-    modalContent.innerHTML =
-      '<button class="modal-close" onclick="closeModal()">&times;</button>' +
-      '<h2>My Profile</h2><p class="sub">' + (email ? 'Signed in as ' + email : 'Preview only.') + '</p>' +
-      '<div class="field"><label>Display Name</label><input type="text" id="profile-name" value="' + name.replace(/"/g,'&quot;') + '"></div>' +
-      '<button class="btn-primary" id="profile-save">Save Name</button>' +
-      '<div class="auth-status" id="profile-status"></div>' +
-      '<div class="demo-note">Password changes and account deletion will live here too.</div>';
-    modalBg.classList.add('open');
-    document.getElementById('profile-save').onclick = function(){
-      var newName = document.getElementById('profile-name').value.trim();
-      var statusEl = document.getElementById('profile-status');
-      var btn = document.getElementById('profile-save');
-      if (!newName){ statusEl.textContent = 'Display name cannot be empty.'; statusEl.className = 'auth-status err'; return; }
-      btn.disabled = true; statusEl.textContent = 'Saving...'; statusEl.className = 'auth-status';
-      CodingAuth.updateDisplayName(newName).then(function(res){
-        if (res.error){ statusEl.textContent = res.error.message; statusEl.className = 'auth-status err'; }
-        else { statusEl.textContent = 'Saved!'; statusEl.className = 'auth-status ok'; }
-        btn.disabled = false;
-      });
-    };
-  }
 </script>
 </body>
 </html>

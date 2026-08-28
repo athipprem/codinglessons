@@ -120,3 +120,16 @@ footer a.foot-link { color: var(--cyan); text-decoration:none; font-weight:700; 
 .auth-status { font-size: .78rem; text-align:center; margin-top: 10px; min-height: 16px; color: var(--ink-soft); }
 .auth-status.err { color: var(--danger); }
 .auth-status.ok { color: var(--success); }
+
+/* ---------------- password show/hide + My Profile modal (auth modal + coding-auth.js's
+   openProfileSettings) ---------------- */
+.pwd-wrap { position: relative; }
+.pwd-wrap input { padding-right: 38px; }
+.eye-btn { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color: var(--ink-soft); cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center; border-radius:6px; }
+.eye-btn:hover { color: var(--cyan); }
+.field-hint { font-size:.7rem; color: var(--ink-soft); margin-top:5px; line-height:1.4; }
+.section-title { font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color: var(--ink-soft); font-weight:800; margin: 20px 0 10px; font-family: "Orbitron", sans-serif; }
+.section-title:first-of-type { margin-top: 4px; }
+.btn-danger { background: linear-gradient(135deg, #ff8a8a, var(--danger)); color: #2A0810; }
+.danger-box { border: 1.5px solid var(--danger-tint); background: var(--danger-tint); border-radius: 12px; padding: 14px; margin-top: 10px; }
+.danger-box p { font-size:.78rem; color: var(--ink-soft); margin: 0 0 10px; line-height:1.5; }
