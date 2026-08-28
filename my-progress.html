@@ -25,6 +25,17 @@
   #gate { text-align: center; padding: 70px 20px; color: var(--ink-soft); }
   #gate button { margin-top: 16px; border: none; border-radius: 999px; padding: 12px 26px; font-weight: 800; font-size: .9rem; cursor: pointer; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); font-family: "Orbitron", sans-serif; }
 
+  .rank-card { display: flex; align-items: center; gap: 18px; background: var(--bg-raised); border: 1.5px solid var(--line); border-radius: 18px; padding: 18px 22px; margin-bottom: 20px; }
+  .rank-badge { width: 68px; height: 68px; border-radius: 50%; background: var(--locked-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 0 3px #38e6ee22; }
+  .rank-badge img { width: 80%; height: 80%; object-fit: contain; }
+  .rank-info { min-width: 0; }
+  .rank-eyebrow { font-family: "JetBrains Mono", monospace; font-size: .68rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .rank-name { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1.25rem; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 3px; }
+  .rank-blurb { color: var(--ink-soft); font-size: .84rem; line-height: 1.5; }
+  .rank-next { font-size: .76rem; color: var(--ink-soft); margin-top: 6px; }
+  .rank-next b { color: var(--ink); }
+  @media (max-width: 560px) { .rank-card { flex-direction: column; text-align: center; } }
+
   .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
   @media (max-width: 720px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
   .stat-card { background: var(--bg-raised); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px 18px; text-align: center; }
@@ -41,6 +52,40 @@
   tr:last-child td { border-bottom: none; }
   .pct-chip { font-weight: 800; }
   .unit-tag { font-family: "JetBrains Mono", monospace; font-size: .72rem; color: var(--ink-soft); }
+
+  /* ---------------- performance by planet — expandable bar-list rows (Option B) ---------------- */
+  .planet-perf { display: flex; flex-direction: column; gap: 10px; }
+  .planet-row { background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .planet-head { display: flex; align-items: center; gap: 14px; padding: 12px 16px; cursor: pointer; background: none; border: none; width: 100%; text-align: left; font-family: inherit; color: inherit; }
+  .planet-head:hover { background: var(--bg-raised); }
+  .planet-icon { width: 38px; height: 38px; border-radius: 50%; background: var(--locked-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+  .planet-icon img { width: 100%; height: 100%; object-fit: cover; }
+  .planet-row.locked .planet-icon img { opacity: .35; filter: grayscale(1); }
+  .planet-name { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: .85rem; width: 128px; flex-shrink: 0; }
+  .planet-row.locked .planet-name { color: var(--locked-text); }
+  .planet-bar-wrap { flex: 1; min-width: 70px; }
+  .planet-bar-track { background: var(--locked-bg); border-radius: 999px; height: 8px; overflow: hidden; }
+  .planet-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--cyan), var(--amber)); transition: width .4s ease; }
+  .planet-stat { width: 200px; flex-shrink: 0; text-align: right; font-size: .76rem; color: var(--ink-soft); }
+  .planet-stat b { color: var(--ink); }
+  .planet-row.locked .planet-stat { color: var(--locked-text); }
+  .planet-chevron { width: 16px; flex-shrink: 0; text-align: center; color: var(--ink-soft); font-size: .7rem; transition: transform .2s ease; }
+  .planet-row.expanded .planet-chevron { transform: rotate(90deg); }
+  @media (max-width: 640px) { .planet-head { flex-wrap: wrap; } .planet-name { width: auto; } .planet-stat { width: auto; text-align: left; } .planet-bar-wrap { order: 3; flex-basis: 100%; } }
+
+  .planet-detail { display: none; border-top: 1px solid var(--line); padding: 4px 16px 12px; }
+  .planet-row.expanded .planet-detail { display: block; }
+  .unit-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; font-size: .8rem; border-bottom: 1px solid #ffffff0a; }
+  .unit-row:last-child { border-bottom: none; }
+  .unit-row-tag { font-family: "JetBrains Mono", monospace; font-size: .68rem; color: var(--ink-soft); width: 76px; flex-shrink: 0; }
+  .unit-row-title { flex: 1; min-width: 0; }
+  .unit-row-status { font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; flex-shrink: 0; }
+  .unit-row-status.done { background: var(--success-tint); color: var(--success); }
+  .unit-row-status.in_progress { background: var(--cyan-tint); color: var(--cyan); }
+  .unit-row-status.locked { background: var(--locked-bg); color: var(--locked-text); }
+  .unit-row-scores { width: 190px; flex-shrink: 0; text-align: right; font-size: .74rem; color: var(--ink-soft); }
+  @media (max-width: 640px) { .unit-row { flex-wrap: wrap; } .unit-row-scores { width: auto; text-align: left; flex-basis: 100%; padding-left: 86px; } }
+  .planet-detail-empty { color: var(--ink-soft); font-size: .82rem; padding: 10px 4px; }
 </style>
 </head>
 <body>
@@ -63,11 +108,26 @@
   <div id="gate">Loading…</div>
 
   <div id="content" style="display:none">
+    <div class="rank-card">
+      <div class="rank-badge"><img id="rank-badge-img" src="" alt=""></div>
+      <div class="rank-info">
+        <div class="rank-eyebrow">Current Rank</div>
+        <div class="rank-name" id="rank-name">Cadet</div>
+        <div class="rank-blurb" id="rank-blurb"></div>
+        <div class="rank-next" id="rank-next"></div>
+      </div>
+    </div>
+
     <div class="stat-row">
       <div class="stat-card"><div class="stat-num" id="stat-units">0/11</div><div class="stat-label">Units Complete</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-coding">—</div><div class="stat-label">Coding Avg</div></div>
       <div class="stat-card"><div class="stat-num" id="stat-life">—</div><div class="stat-label">Life Avg</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Performance by Planet</h2>
+      <div class="planet-perf" id="planet-perf-wrap"></div>
     </div>
 
     <div class="card">
@@ -82,6 +142,7 @@
 </div>
 
 <script>window.SPARK_BASE = '';</script>
+<script src="spark_coding_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="coding-auth.js"></script>
 <script>
@@ -100,6 +161,115 @@
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }
   function unitLabel(key){ return key === 'M1' ? 'Milestone 1' : 'Unit ' + key; }
+
+  /* ---------------- current rank + badge — same 5-rank ladder as index.html's Chain of
+     Command strip. Only ranks 0 (Cadet) and 1 (Ensign) are reachable right now since Stages
+     2-4 (The Core / PyCraft / Nova) don't exist yet — this stays in sync automatically once
+     they do, the same way index.html's version does. ---------------- */
+  var RANKS = [
+    { name:'Cadet',      icon:'assets/badge_cadet.png',      blurb:'Starting rank. Follows exact instructions — the whole point of The Loop.' },
+    { name:'Ensign',     icon:'assets/badge_ensign.png',     blurb:'Earned by clearing The Loop (Milestone Test 1 passed).' },
+    { name:'Lieutenant', icon:'assets/badge_lieutenant.png', blurb:'Earned by clearing The Core — fluent in real Python.' },
+    { name:'Commander',  icon:'assets/badge_commander.png',  blurb:'Earned by clearing PyCraft Planet — same rank as your Commander now.' },
+    { name:'Captain',    icon:'assets/badge_captain.png',    blurb:'Earned by clearing Nova Planet — full graduation. Your own missions from here.' }
+  ];
+
+  function renderRank(rows){
+    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
+    var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
+    var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0;
+    var rank = RANKS[currentRankIdx];
+    document.getElementById('rank-badge-img').src = rank.icon;
+    document.getElementById('rank-badge-img').alt = rank.name + ' badge';
+    document.getElementById('rank-name').textContent = rank.name;
+    document.getElementById('rank-blurb').textContent = rank.blurb;
+    var next = RANKS[currentRankIdx + 1];
+    document.getElementById('rank-next').innerHTML = next ? ('Next: <b>' + next.name + '</b> — ' + next.blurb) : 'Top rank in Stage 1 — more ranks unlock as later planets ship.';
+  }
+
+  /* "Best" attempt per unit (highest XP) — shared by the summary stats and the planet
+     breakdown, so both agree on what counts as "your score" for a unit that's been replayed. */
+  function bestAttempts(rows){
+    var bestByUnit = {};
+    rows.forEach(function(r){
+      var existing = bestByUnit[r.unit_key];
+      if (!existing || r.xp_earned > existing.xp_earned) bestByUnit[r.unit_key] = r;
+    });
+    return bestByUnit;
+  }
+
+  /* ---------------- performance by planet — expandable rows, each opening to a per-unit
+     breakdown. Only The Loop has real units right now (Stage 1); the other 3 planets have no
+     roadmap yet, so they render a locked header and an empty-state note when opened. ---------------- */
+  var PLANETS = [
+    { key: 'loop',  name: 'The Loop',      icon: 'assets/planet_theloop.png',  active: true },
+    { key: 'core',  name: 'The Core',      icon: 'assets/planet_thecore.png',  active: false },
+    { key: 'craft', name: 'PyCraft Planet', icon: 'assets/planet_pycraft.png', active: false },
+    { key: 'nova',  name: 'Nova Planet',   icon: 'assets/planet_nova.png',     active: false }
+  ];
+
+  function unitDetailRows(roadmap, bestByUnit){
+    return roadmap.map(function(u){
+      var r = bestByUnit[u.n];
+      var codingPct = r && r.concept_out_of ? Math.round(r.concept_score / r.concept_out_of * 100) : null;
+      var lifePct = r && r.life_out_of ? Math.round(r.life_score / r.life_out_of * 100) : null;
+      var statusLabel = u.status === 'done' ? 'Done' : u.status === 'in_progress' ? 'Current' : 'Locked';
+      var scores = r
+        ? (r.xp_earned + ' XP &middot; Coding ' + (codingPct === null ? '—' : codingPct + '%') + ' &middot; Life ' + (lifePct === null ? '—' : lifePct + '%'))
+        : (u.status === 'locked' ? '—' : 'Not attempted yet');
+      return '<div class="unit-row">' +
+        '<span class="unit-row-tag">' + unitLabel(u.n) + '</span>' +
+        '<span class="unit-row-title">' + u.title + '</span>' +
+        '<span class="unit-row-status ' + u.status + '">' + statusLabel + '</span>' +
+        '<span class="unit-row-scores">' + scores + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderPlanetPerf(rows){
+    var bestByUnit = bestAttempts(rows);
+    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
+
+    var html = PLANETS.map(function(p, i){
+      var rowId = 'planet-row-' + p.key;
+      var headHtml, detailHtml;
+
+      if (p.active){
+        var total = roadmap.length;
+        var done = roadmap.filter(function(u){ return u.status === 'done'; }).length;
+        var pct = Math.round(done / total * 100);
+        var codingVals = Object.values(bestByUnit).filter(function(r){ return r.concept_out_of; }).map(function(r){ return r.concept_score / r.concept_out_of * 100; });
+        var avgCoding = codingVals.length ? Math.round(codingVals.reduce(function(a,b){return a+b;},0) / codingVals.length) : null;
+        headHtml =
+          '<div class="planet-icon"><img src="' + p.icon + '" alt=""></div>' +
+          '<div class="planet-name">' + p.name + '</div>' +
+          '<div class="planet-bar-wrap"><div class="planet-bar-track"><div class="planet-bar-fill" style="width:' + pct + '%"></div></div></div>' +
+          '<div class="planet-stat"><b>' + done + '/' + total + ' units</b>' + (avgCoding === null ? '' : ' &middot; ' + avgCoding + '% avg') + '</div>' +
+          '<div class="planet-chevron">&#9656;</div>';
+        detailHtml = unitDetailRows(roadmap, bestByUnit);
+      } else {
+        headHtml =
+          '<div class="planet-icon"><img src="' + p.icon + '" alt=""></div>' +
+          '<div class="planet-name">' + p.name + '</div>' +
+          '<div class="planet-bar-wrap"><div class="planet-bar-track"><div class="planet-bar-fill" style="width:0%"></div></div></div>' +
+          '<div class="planet-stat">&#128274; Not chartered yet</div>' +
+          '<div class="planet-chevron">&#9656;</div>';
+        detailHtml = '<div class="planet-detail-empty">No missions here yet — ' + p.name + ' unlocks once The Loop is cleared.</div>';
+      }
+
+      return '<div class="planet-row' + (p.active ? '' : ' locked') + '" id="' + rowId + '">' +
+        '<button class="planet-head" data-row="' + rowId + '">' + headHtml + '</button>' +
+        '<div class="planet-detail">' + detailHtml + '</div>' +
+      '</div>';
+    }).join('');
+
+    document.getElementById('planet-perf-wrap').innerHTML = html;
+    document.querySelectorAll('.planet-head').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.getElementById(btn.dataset.row).classList.toggle('expanded');
+      });
+    });
+  }
 
   function renderResults(rows){
     if (!rows.length){
@@ -124,12 +294,7 @@
   function renderStats(rows){
     // "Best" attempt per unit (highest XP) drives the summary stats, so replaying a unit for
     // fun doesn't inflate totals — matches the same "best attempt" model Science Quest uses.
-    var bestByUnit = {};
-    rows.forEach(function(r){
-      var existing = bestByUnit[r.unit_key];
-      if (!existing || r.xp_earned > existing.xp_earned) bestByUnit[r.unit_key] = r;
-    });
-    var best = Object.values(bestByUnit);
+    var best = Object.values(bestAttempts(rows));
     document.getElementById('stat-units').textContent = best.length + '/11';
     document.getElementById('stat-xp').textContent = best.reduce(function(s, r){ return s + (r.xp_earned || 0); }, 0);
 
@@ -141,7 +306,9 @@
 
   function loadProgress(){
     CodingAuth.fetchResults().then(function(rows){
+      renderRank(rows);
       renderStats(rows);
+      renderPlanetPerf(rows);
       renderResults(rows);
       document.getElementById('gate').style.display = 'none';
       document.getElementById('content').style.display = 'block';
