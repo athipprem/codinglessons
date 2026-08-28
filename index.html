@@ -275,7 +275,7 @@
     if (state.user){
       rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
       missionLog.style.display = 'inline-block';
-      signinBtn.textContent = '📊 View My Progress';
+      signinBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="2 12 6 12 8 6 12 16 14 9 16 12 18 12"/></svg>View My Progress';
       signinBtn.onclick = function(){ location.href = 'my-progress.html'; };
     } else {
       rankEl.textContent = 'CADET';
