@@ -242,14 +242,17 @@
   /* ============== planets grid ============== */
   var PLANETS = [
     { key:'loop', name:'The Loop', img:'assets/planet_theloop.png', pc:'#38E6EE', blurb:'Logic fundamentals — sequence, loops, events, debugging.', active:true, href:'the-loop.html' },
-    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false },
-    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false },
-    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false }
+    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false, unlocksAfter:'The Loop' },
+    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false, unlocksAfter:'The Core' },
+    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false, unlocksAfter:'PyCraft Planet' }
   ];
   document.getElementById('planets-grid').innerHTML = PLANETS.map(function(p){
+    // Each locked planet names the ONE planet directly before it in the real unlock chain
+    // (Loop -> Core -> PyCraft -> Nova), not always "The Loop" -- PyCraft opens after The Core
+    // clears, and Nova opens after PyCraft clears, not straight off The Loop.
     var missionLine = p.key === 'loop'
       ? (current ? ('Unit ' + current.n + ' of 10 &middot; ' + current.title) : (stage1Done ? 'All missions cleared!' : ''))
-      : 'Charts open once The Loop is cleared';
+      : 'Charts open once ' + p.unlocksAfter + ' is cleared';
     var cta = p.active
       ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
       : '<span class="planet-cta cta-locked">&#128274; Coming Soon</span>';
