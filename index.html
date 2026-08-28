@@ -3,262 +3,319 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prem's Coding Lessons</title>
-<link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
+<title>Spark Academy — Mission Control</title>
+<link rel="icon" type="image/png" href="assets/spark_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spark-academy.css">
 <style>
-  :root {
-    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42; --sidebar-bg: #0D1128;
-    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
-    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
-    --amber: #FFC24B; --amber-tint: #3A2B0E;
-    --danger: #FF6B7F; --danger-tint: #3A1620;
-    --success: #4BE39A; --success-tint: #113526;
-    --locked-bg: #10152C; --locked-text: #5C6390;
+  /* ---------------- rank strip — peek carousel: center rank in focus, neighbors peeking left/right ---------------- */
+  #rank-section { margin-bottom: 30px; }
+
+  #rank-carousel { position:relative; max-width: 760px; margin: 0 auto; }
+  #rank-viewport { overflow:hidden; }
+  #rank-track { display:flex; transition: transform .35s ease; will-change: transform; }
+  .rank-slide { flex: 0 0 auto; box-sizing:border-box; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 24px; padding: 24px 18px; display:flex; flex-direction:column; align-items:center; text-align:center; gap: 8px; cursor:pointer; font-family:inherit; color:inherit; opacity:.4; filter: grayscale(.55); transform: scale(.9); transition: opacity .3s ease, filter .3s ease, transform .3s ease, border-color .3s ease; }
+  .rank-slide.focused { opacity:1; filter:none; transform:scale(1); }
+  .rank-slide.focused.current { border-color: var(--cyan); box-shadow: 0 0 0 4px #38e6ee22, 0 10px 26px #0007; }
+  .rank-slide.focused.done { border-color: var(--success); }
+  .rank-slide-badge { width: 105px; height: 105px; border-radius:50%; background: var(--locked-bg); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+  .rank-slide-badge img { width:85%; height:85%; object-fit:contain; }
+  .rank-slide-name { font-family:"Orbitron",sans-serif; font-weight:800; font-size: 1.25rem; }
+  .rank-slide.focused.current .rank-slide-name { color: var(--cyan); }
+  .rank-slide.focused.done .rank-slide-name { color: var(--success); }
+  .rank-slide-blurb { font-size: .92rem; line-height:1.5; color: var(--ink-soft); }
+  .rank-slide-tag { font-family:"JetBrains Mono",monospace; font-weight:700; font-size: .74rem; padding: 5px 14px; border-radius: 999px; letter-spacing:.03em; margin-top:2px; }
+  .tag-current { background: var(--cyan-tint); color: var(--cyan); border: 1px solid var(--cyan); }
+  .tag-done { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
+  .tag-locked { background: var(--locked-bg); color: var(--locked-text); border: 1px dashed var(--line); }
+
+  .rank-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:42px; height:42px; border-radius:50%; background: var(--bg-panel); border:1.5px solid var(--line); color: var(--ink); font-size:1.1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: border-color .15s, color .15s, opacity .15s; }
+  .rank-arrow:hover { border-color: var(--cyan); color: var(--cyan); }
+  .rank-arrow:disabled { opacity:.3; cursor:default; }
+  #rank-prev { left: 2px; }
+  #rank-next { right: 2px; }
+
+  #rank-dots { display:flex; justify-content:center; gap: 9px; margin-top: 16px; }
+  .rank-dot { width:9px; height:9px; padding:0; border-radius:50%; border:1.5px solid var(--line); background: var(--locked-bg); cursor:pointer; transition: background .2s, border-color .2s, transform .2s; }
+  .rank-dot.active { background: var(--cyan); border-color: var(--cyan); transform: scale(1.2); }
+
+  @media (max-width: 560px) {
+    .rank-slide-blurb { font-size: .84rem; }
+    .rank-arrow { width:36px; height:36px; }
   }
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
-      --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
-      --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
-      --amber: #A9660A; --amber-tint: #FBE9CC;
-      --danger: #C23652; --danger-tint: #FBDEE2;
-      --success: #1D8A55; --success-tint: #DBF2E5;
-      --locked-bg: #E7E9F5; --locked-text: #9099BC;
-    }
-  }
-  :root[data-theme="light"] {
-    --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD; --sidebar-bg: #1B2350;
-    --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
-    --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
-    --amber: #A9660A; --amber-tint: #FBE9CC;
-    --danger: #C23652; --danger-tint: #FBDEE2;
-    --success: #1D8A55; --success-tint: #DBF2E5;
-    --locked-bg: #E7E9F5; --locked-text: #9099BC;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; overflow: hidden; }
-  body { background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
-  h1, h2, h3 { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; margin: 0; text-wrap: balance; }
-  #app { display: flex; height: 100vh; overflow: hidden; }
 
-  #sidebar { width: 68px; background: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding: 14px 0; gap: 4px; flex-shrink: 0; }
-  .sb-logo { width: 42px; height: 42px; border-radius: 12px; background: rgba(56,230,238,0.14); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
-  .sb-btn { width: 50px; height: 50px; border-radius: 10px; border: none; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(233,236,255,0.5); text-decoration: none; }
-  .sb-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-  .sb-btn.active { background: rgba(56,230,238,0.16); color: var(--cyan); }
-  .sb-icon { font-size: 18px; line-height: 1; } .sb-lbl { font-size: 8px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
-  .sb-divider { width: 30px; height: 1px; background: rgba(255,255,255,0.14); margin: 6px 0; }
+  /* ---------------- planets — big 2x2 showcase cards ---------------- */
+  #planets-section { margin-bottom: 36px; }
+  #planets-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 560px) { #planets-grid { grid-template-columns: 1fr; } }
 
-  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  #topbar { background: var(--bg-raised); border-bottom: 1px solid var(--line); padding: 0 20px; height: 54px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-  #topbar-title { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
-  #topbar-sub { font-size: 11px; color: var(--ink-soft); margin-left: 10px; }
-  .tb-badge { border-radius: 20px; padding: 4px 12px; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; border: 1px solid var(--line); }
-  .tb-cyan { background: var(--cyan-tint); border-color: var(--cyan); color: var(--cyan); }
+  .planet-card { position:relative; overflow:hidden; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 28px; padding: 30px 26px 0; min-height: 380px; display:flex; flex-direction:column; align-items:center; text-align:center; text-decoration:none; color: var(--ink); transition: transform .15s ease, border-color .15s ease; }
+  .planet-card.active:hover { transform: translateY(-6px); border-color: var(--pc); box-shadow: 0 18px 40px #0009; }
+  .planet-card.locked { opacity:.72; cursor: default; }
+  .planet-card::before { content:''; position:absolute; z-index:0; left:50%; bottom:-15%; transform:translateX(-50%); width:80%; aspect-ratio:1; border-radius:50%; background: radial-gradient(circle, var(--pc) 0%, transparent 70%); opacity:.3; filter: blur(4px); pointer-events:none; }
 
-  #hero { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; padding: 14px 20px; background: var(--bg-raised); border-bottom: 1px solid var(--line); flex-shrink: 0; }
-  .hero-box { background: var(--bg-panel); border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line); }
-  .hero-val { font-family: "Orbitron", sans-serif; font-size: 21px; font-weight: 800; line-height: 1.1; color: var(--cyan); }
-  .hero-lbl { font-size: 10px; color: var(--ink-soft); margin-top: 3px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; }
-  .hero-sub { font-size: 10px; font-weight: 600; margin-top: 1px; color: var(--ink-soft); }
-  .hero-axis { font-size: 9px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: var(--amber); margin-bottom: 2px; }
+  .planet-card-body { position:relative; z-index:1; }
+  .planet-name { font-family:"Orbitron",sans-serif; font-weight:800; font-size: clamp(1.4rem, 2.6vw, 1.85rem); margin-bottom: 10px; letter-spacing:.01em; }
+  .planet-blurb { font-size: 1.05rem; line-height:1.55; color: var(--ink-soft); max-width: 36ch; margin: 0 auto 8px; }
+  .planet-mission { font-size: .86rem; color: var(--ink-soft); margin-bottom: 16px; }
 
-  #content { flex: 1; overflow-y: auto; padding: 20px; }
-  .panel { display: none; } .panel.active { display: block; }
-  .sec-div { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--ink-soft); padding: 6px 0 10px; }
+  .planet-cta { display:inline-block; font-family:"JetBrains Mono",monospace; font-weight:700; font-size: .86rem; padding: 10px 22px; border-radius: 999px; letter-spacing:.02em; }
+  .cta-active { background: var(--pc); color: #0A0E1E; box-shadow: 0 8px 20px #0007; }
+  .cta-locked { background: var(--locked-bg); color: var(--locked-text); border: 1.5px dashed var(--line); }
 
-  .pattern { background: var(--bg-raised); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; }
-  .pattern .lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--cyan); }
-  .pattern p { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+  .planet-card-art { position:relative; z-index:1; margin-top: auto; width:100%; display:flex; justify-content:center; padding: 14px 0 8px; }
+  .planet-art-img { width: min(230px, 62%); height:auto; object-fit:contain; filter: drop-shadow(0 14px 22px #0008); transition: transform .3s ease; }
+  .planet-card.active:hover .planet-art-img { transform: translateY(-5px) scale(1.03); }
 
-  .unit-list { display: flex; flex-direction: column; gap: 10px; }
-  .unit-card { display: flex; align-items: center; gap: 14px; background: var(--bg-raised); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; text-decoration: none; color: var(--ink); }
-  .unit-card:hover { border-color: var(--cyan); }
-  .unit-card.locked { background: var(--locked-bg); color: var(--locked-text); cursor: default; pointer-events: none; }
-  .unit-num { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 14px; width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--cyan-tint); color: var(--cyan); }
-  .unit-card.locked .unit-num { background: var(--locked-bg); color: var(--locked-text); border: 1px dashed var(--line); }
-  .unit-card.done .unit-num { background: var(--success-tint); color: var(--success); }
-  .unit-title { font-weight: 700; font-size: 15px; }
-  .unit-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
-  .locked .unit-sub, .locked .unit-title { color: var(--locked-text); }
-  .unit-status { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; text-align: right; }
-  .unit-status.active { color: var(--amber); }
-  .unit-status.done { color: var(--success); }
-  .unit-score { display: block; font-size: 10px; color: var(--ink-soft); margin-top: 2px; }
-
-  .empty { color: var(--ink-soft); font-size: 12.5px; padding: 26px 20px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; }
-
-  #pw-overlay { position: fixed; inset: 0; background: rgba(6,9,22,0.94); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(4px); }
-  #pw-overlay.hidden { display: none; }
-  .pw-box { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 36px 32px 30px; width: 320px; text-align: center; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
-  .pw-box h2 { font-size: 1.15rem; color: var(--cyan); margin-bottom: 6px; }
-  .pw-box p { font-size: 0.85rem; color: var(--ink-soft); margin-bottom: 20px; font-family: "Atkinson Hyperlegible", sans-serif; }
-  .pw-input { width: 100%; padding: 11px 14px; border: 2px solid var(--line); background: var(--bg-panel); color: var(--ink); border-radius: 10px; font-size: 1rem; outline: none; margin-bottom: 10px; }
-  .pw-input:focus { border-color: var(--cyan); }
-  .pw-btn { width: 100%; padding: 11px; background: var(--cyan); color: var(--cyan-ink); border: none; border-radius: 10px; font-family: "Orbitron", sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
-  .pw-error { font-size: 0.8rem; color: var(--danger); margin-top: 8px; min-height: 16px; }
+  /* ---------------- page-scoped hero crop tweak (index only — keeps faces clear of the headline) ---------------- */
+  #hero .hero-bg-slide { background-position: 50% 42%; }
+  @media (max-width: 680px) { #hero .hero-bg-slide { background-position: 68% 40%; } }
 </style>
 </head>
 <body>
-<div id="pw-overlay">
-  <div class="pw-box">
-    <div style="font-size:2.2rem;margin-bottom:10px">🚀</div>
-    <h2>Prem's Coding Lessons</h2>
-    <p>Enter the password to continue</p>
-    <input class="pw-input" id="pw-input" type="password" placeholder="Password" inputmode="numeric"
-           onkeydown="if(event.key==='Enter') checkPassword()">
-    <button class="pw-btn" onclick="checkPassword()">Unlock &#8594;</button>
-    <div class="pw-error" id="pw-error"></div>
-  </div>
-</div>
-<div id="app">
-  <nav id="sidebar">
-    <div class="sb-logo">🚀</div>
-    <button class="sb-btn active" onclick="showPanel('unit',this)"><span class="sb-icon">📘</span><span class="sb-lbl">Unit</span></button>
-    <button class="sb-btn" onclick="showPanel('done',this)"><span class="sb-icon">✅</span><span class="sb-lbl">Done</span></button>
-    <div class="sb-divider"></div>
-    <button class="sb-btn" onclick="openDashboard()"><span class="sb-icon">📊</span><span class="sb-lbl">Board</span></button>
-    <a class="sb-btn" href="javascript:void(0)" onclick="openMath()" title="Math Lessons"><span class="sb-icon" style="font-weight:700">M</span><span class="sb-lbl">Math</span></a>
-    <a class="sb-btn" href="javascript:void(0)" onclick="openEnglish()" title="English Lessons"><span class="sb-icon" style="font-weight:700">E</span><span class="sb-lbl">English</span></a>
-    <a class="sb-btn" href="javascript:void(0)" onclick="openScience()" title="Science Lessons"><span class="sb-icon" style="font-weight:700">S</span><span class="sb-lbl">Science</span></a>
-    <a class="sb-btn" href="https://athipprem.github.io/scigame/" target="_blank" rel="noopener" title="Science Quest"><span class="sb-icon"><img src="https://athipprem.github.io/scigame/favicon.svg" alt="Science Quest" style="width:18px;height:18px;display:block"></span><span class="sb-lbl">Quest</span></a>
-  </nav>
-  <div id="main">
-    <div id="topbar">
-      <div style="display:flex;align-items:baseline">
-        <span id="topbar-title">Code Cadet Academy</span>
-        <span id="topbar-sub">&nbsp;&mdash;&nbsp;Stage 1 · Fundamentals &nbsp;|&nbsp; Coach: Claude</span>
-      </div>
-      <div style="display:flex;gap:10px">
-        <span class="tb-badge tb-cyan" id="tb-unit">Unit &mdash;</span>
-      </div>
-    </div>
-    <div id="hero">
-      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-unit">&mdash;</div><div class="hero-lbl">Current unit</div><div class="hero-sub" id="h-unit-sub">&mdash;</div></div>
-      <div class="hero-box"><div class="hero-axis">Structure</div><div class="hero-val" id="h-done">&mdash;</div><div class="hero-lbl">Checkpoints complete</div><div class="hero-sub">of 10 units + Milestone 1</div></div>
-      <div class="hero-box"><div class="hero-axis">Coding</div><div class="hero-val" id="h-coding">&mdash;</div><div class="hero-lbl">Coding mastery avg</div><div class="hero-sub">concept quiz score</div></div>
-      <div class="hero-box"><div class="hero-axis">Life</div><div class="hero-val" id="h-life">&mdash;</div><div class="hero-lbl">Apply-to-life avg</div><div class="hero-sub">transfer check score</div></div>
-    </div>
-    <div id="content">
-      <div class="panel active" id="panel-unit">
-        <div class="sec-div">Stage 1 Roadmap &middot; Fundamentals</div>
-        <div class="unit-list" id="roadmap-list"></div>
-        <div class="pattern" id="pattern-box"></div>
-      </div>
-      <div class="panel" id="panel-done">
-        <div class="sec-div">Completed</div>
-        <div class="unit-list" id="done-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
-<script src="prem_coding_data.js"></script>
-<script>
-  var PW_HASH = 2088511772;
-  function djb2(str){ var h=5381; for(var i=0;i<str.length;i++){ h=(((h<<5)+h)+str.charCodeAt(i))>>>0; } return h; }
-  var hubToken = new URLSearchParams(window.location.search).get('hub');
-  var tokenValid = hubToken && (Date.now() - parseInt(hubToken, 10)) < 15000;
-  if (sessionStorage.getItem('unlocked')==='yes' || tokenValid){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
-  else { document.getElementById('pw-input').focus(); }
-  function checkPassword(){
-    var e=document.getElementById('pw-input').value;
-    if (djb2(e)===PW_HASH){ sessionStorage.setItem('unlocked','yes'); document.getElementById('pw-overlay').classList.add('hidden'); }
-    else { document.getElementById('pw-error').textContent='Wrong password. Try again!'; document.getElementById('pw-input').value=''; document.getElementById('pw-input').focus(); }
-  }
-  function showPanel(id, btn){
-    var ps=document.querySelectorAll('.panel'); for(var i=0;i<ps.length;i++) ps[i].classList.remove('active');
-    document.getElementById('panel-'+id).classList.add('active');
-    var bs=document.querySelectorAll('.sb-btn'); for(var j=0;j<bs.length;j++) bs[j].classList.remove('active');
-    if(btn) btn.classList.add('active');
-  }
-  function withHub(url){ return sessionStorage.getItem('unlocked')==='yes' ? url + '?hub=' + Date.now() : url; }
-  function openDashboard(){ window.location.href = withHub('Prems_Coding_Dashboard.html'); }
-  function openMath(){ window.location.href = withHub('https://athipprem.github.io/mathlessons/'); }
-  function openEnglish(){ window.location.href = withHub('https://athipprem.github.io/englessons/'); }
-  function openScience(){ window.location.href = withHub('https://athipprem.github.io/scilessons/'); }
 
+<section id="hero" role="img" aria-label="Spark Academy cadets at Mission Control with Rover-7 visible through the window">
+  <div class="hero-bg-slide active" style="background-image:url('assets/banner_cadet_class.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/banner_twocadets.jpg')"></div>
+  <div id="hero-dots">
+    <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
+    <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
+  </div>
+  <div id="topnav">
+    <div id="brand"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</div>
+    <div id="acct-wrap">
+      <button id="acct-btn"></button>
+      <div id="acct-menu"></div>
+    </div>
+  </div>
+  <div class="hero-inner">
+    <h1>WELCOME BACK,<br><span class="accent" id="hero-rank">CADET</span></h1>
+    <div class="tagline">Four planets stand between you and your Captain's stripes. Right now, you're stationed on <b id="hero-planet-name">The Loop</b>.</div>
+    <div id="mission-log" style="display:none">📡 MISSION LOG — <span id="hero-mission-line">Loading...</span></div>
+    <div id="hero-ctas">
+      <button class="cta-btn cta-primary" onclick="document.getElementById('planets-grid').scrollIntoView({behavior:'smooth'})">Explore the Planets</button>
+      <button class="cta-btn cta-ghost" id="hero-signin-btn">Sign In / Create Account</button>
+    </div>
+  </div>
+</section>
+
+<div id="page">
+
+  <section id="planets-section">
+    <div class="sec-title">THE FOUR PLANETS</div>
+    <div class="sec-sub">Your mission map — Stage 1 is live now, the rest unlock as new planets are charted.</div>
+    <div id="planets-grid"></div>
+  </section>
+
+  <section id="rank-section">
+    <div class="sec-title">CHAIN OF COMMAND</div>
+    <div class="sec-sub">Slide left or right to see every rank up to Captain.</div>
+    <div id="rank-carousel">
+      <button id="rank-prev" class="rank-arrow" aria-label="Previous rank">&#10094;</button>
+      <div id="rank-viewport"><div id="rank-track"></div></div>
+      <button id="rank-next" class="rank-arrow" aria-label="Next rank">&#10095;</button>
+    </div>
+    <div id="rank-dots"></div>
+  </section>
+
+  <footer>
+    Copyright &copy; 2026 Luikishi. All rights reserved. Have fun !
+  </footer>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="../Lessons/prem_coding_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="coding-auth.js"></script>
+<script>
+  /* ============== live data (unit status + rank) ============== */
   var D = PREM_CODING_DATA;
   var roadmap = computeCodingRoadmap(D);
-
-  function pct(score, outOf){ return outOf ? Math.round(score/outOf*100) : null; }
-
-  // Build results-by-unit lookup
-  var resultByUnit = {};
-  D.results.forEach(function(r){ resultByUnit[r.unit] = r; });
-
-  // Header stats
   var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
-  var doneCount = roadmap.filter(function(u){ return u.status === 'done'; }).length;
-  document.getElementById('h-unit').textContent = current ? ('U'+current.n) : 'All done';
-  document.getElementById('h-unit-sub').textContent = current ? current.title : 'Stage 1 complete';
-  document.getElementById('tb-unit').textContent = current ? ('Unit '+current.n+' · '+current.title) : 'Stage 1 complete';
-  document.getElementById('h-done').textContent = doneCount + ' / ' + roadmap.length;
+  var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
+  var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
+  var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
 
-  if (D.results.length){
-    var codingSum=0, codingOut=0, lifeSum=0, lifeOut=0;
-    D.results.forEach(function(r){
-      codingSum += r.coding.concept_score; codingOut += r.coding.concept_out_of;
-      lifeSum += r.life.score; lifeOut += r.life.out_of;
+  document.getElementById('hero-mission-line').textContent = current
+    ? ('Currently on The Loop · Unit ' + current.n + ': ' + current.title)
+    : (stage1Done ? 'The Loop cleared — awaiting your next planet.' : 'All Stage 1 missions complete.');
+
+  /* ============== hero banner carousel — switches between the 2 hero banners ============== */
+  (function(){
+    var slides = document.querySelectorAll('.hero-bg-slide');
+    var dots = document.querySelectorAll('.hero-dot');
+    var idx = 0, timer;
+    function show(i){
+      idx = i;
+      slides.forEach(function(s, j){ s.classList.toggle('active', j === i); });
+      dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    }
+    function next(){ show((idx + 1) % slides.length); }
+    function startAuto(){ stopAuto(); timer = setInterval(next, 6500); }
+    function stopAuto(){ if (timer) clearInterval(timer); }
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){ show(parseInt(d.dataset.i, 10)); startAuto(); });
     });
-    document.getElementById('h-coding').textContent = pct(codingSum, codingOut) + '%';
-    document.getElementById('h-life').textContent = pct(lifeSum, lifeOut) + '%';
-  } else {
-    document.getElementById('h-coding').textContent = '—';
-    document.getElementById('h-life').textContent = '—';
-  }
+    if (slides.length > 1) startAuto();
+  })();
 
-  // Roadmap list (Unit panel)
-  var roadmapHtml = '';
-  roadmap.forEach(function(u, idx){
-    var r = resultByUnit[u.n];
-    var statusLabel = u.status === 'done' ? 'Done' : (u.status === 'in_progress' ? 'In progress' : 'Locked');
-    var cardClass = 'unit-card' + (u.status === 'locked' ? ' locked' : '') + (u.status === 'done' ? ' done' : '');
-    var statusClass = u.status === 'done' ? 'done' : (u.status === 'in_progress' ? 'active' : '');
-    var scoreLine = '';
-    if (r) {
-      scoreLine = '<span class="unit-score">Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '%</span>';
-    }
-    var subText = u.concept;
-    if (u.status === 'locked') {
-      var prevUnit = roadmap[idx - 1];
-      subText = prevUnit ? ('Unlocks after Unit ' + prevUnit.n) : u.concept;
-    }
+  /* ============== rank strip ============== */
+  var RANKS = [
+    { name:'Cadet',      icon:'assets/badge_cadet.png',      blurb:'Starting rank. Follows exact instructions — the whole point of The Loop.' },
+    { name:'Ensign',     icon:'assets/badge_ensign.png',     blurb:'Earned by clearing The Loop (Milestone Test 1 passed).' },
+    { name:'Lieutenant', icon:'assets/badge_lieutenant.png', blurb:'Earned by clearing The Core — fluent in real Python.' },
+    { name:'Commander',  icon:'assets/badge_commander.png',  blurb:'Earned by clearing PyCraft Planet — same rank as your Commander now.' },
+    { name:'Captain',    icon:'assets/badge_captain.png',    blurb:'Earned by clearing Nova Planet — full graduation. Your own missions from here.' }
+  ];
+  var focusedRankIdx = currentRankIdx;
+
+  function rankStatus(i){ return i < currentRankIdx ? 'done' : (i === currentRankIdx ? 'current' : 'locked'); }
+
+  document.getElementById('rank-track').innerHTML = RANKS.map(function(r, i){
+    var cls = rankStatus(i);
+    var tag = cls === 'done' ? '<span class="rank-slide-tag tag-done">&#10003; EARNED</span>'
+      : cls === 'current' ? '<span class="rank-slide-tag tag-current">&#9679; CURRENT RANK</span>'
+      : '<span class="rank-slide-tag tag-locked">&#128274; AHEAD</span>';
+    return '<div class="rank-slide ' + cls + '" data-i="' + i + '" onclick="focusRank(' + i + ')">' +
+      '<div class="rank-slide-badge"><img src="' + r.icon + '" alt="' + r.name + ' badge"></div>' +
+      '<div class="rank-slide-name">' + r.name + '</div>' +
+      '<div class="rank-slide-blurb">' + r.blurb + '</div>' +
+      tag +
+      '</div>';
+  }).join('');
+  document.getElementById('rank-dots').innerHTML = RANKS.map(function(r, i){
+    return '<button class="rank-dot" data-i="' + i + '" aria-label="Show ' + r.name + '"></button>';
+  }).join('');
+
+  function layoutRankCarousel(){
+    var viewport = document.getElementById('rank-viewport');
+    var track = document.getElementById('rank-track');
+    var slides = track.querySelectorAll('.rank-slide');
+    var vw = viewport.clientWidth;
+    var slideW = Math.min(300, Math.round(vw * 0.7));
+    var gap = 14;
+    slides.forEach(function(s){ s.style.width = slideW + 'px'; s.classList.toggle('focused', +s.dataset.i === focusedRankIdx); });
+    track.style.gap = gap + 'px';
+    var offset = (vw - slideW) / 2 - focusedRankIdx * (slideW + gap);
+    track.style.transform = 'translateX(' + offset + 'px)';
+    document.querySelectorAll('.rank-dot').forEach(function(d){ d.classList.toggle('active', +d.dataset.i === focusedRankIdx); });
+    document.getElementById('rank-prev').disabled = focusedRankIdx === 0;
+    document.getElementById('rank-next').disabled = focusedRankIdx === RANKS.length - 1;
+  }
+  function focusRank(i){ focusedRankIdx = Math.max(0, Math.min(RANKS.length - 1, i)); layoutRankCarousel(); }
+  document.getElementById('rank-prev').addEventListener('click', function(){ focusRank(focusedRankIdx - 1); });
+  document.getElementById('rank-next').addEventListener('click', function(){ focusRank(focusedRankIdx + 1); });
+  document.querySelectorAll('.rank-dot').forEach(function(d){ d.addEventListener('click', function(){ focusRank(+d.dataset.i); }); });
+  (function(){
+    var vp = document.getElementById('rank-viewport');
+    var startX = null;
+    vp.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, { passive:true });
+    vp.addEventListener('touchend', function(e){
+      if (startX === null) return;
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) focusRank(focusedRankIdx + (dx < 0 ? 1 : -1));
+      startX = null;
+    });
+  })();
+  window.addEventListener('resize', layoutRankCarousel);
+  layoutRankCarousel();
+
+  /* ============== planets grid ============== */
+  var PLANETS = [
+    { key:'loop', name:'The Loop', img:'assets/planet_theloop.png', pc:'#38E6EE', blurb:'Logic fundamentals — sequence, loops, events, debugging.', active:true, href:'the-loop.html' },
+    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false },
+    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false },
+    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false }
+  ];
+  document.getElementById('planets-grid').innerHTML = PLANETS.map(function(p){
+    var missionLine = p.key === 'loop'
+      ? (current ? ('Unit ' + current.n + ' of 10 &middot; ' + current.title) : (stage1Done ? 'All missions cleared!' : ''))
+      : 'Charts open once The Loop is cleared';
+    var cta = p.active
+      ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
+      : '<span class="planet-cta cta-locked">&#128274; Coming Soon</span>';
     var inner =
-      '<div class="unit-num">' + u.n + '</div>' +
-      '<div><div class="unit-title">' + u.title + '</div><div class="unit-sub">' + subText + '</div></div>' +
-      '<div class="unit-status ' + statusClass + '">' + statusLabel + scoreLine + '</div>';
-    if (u.status !== 'locked' && u.file) {
-      roadmapHtml += '<a class="' + cardClass + '" href="' + u.file + '">' + inner + '</a>';
+      '<div class="planet-card-body">' +
+        '<div class="planet-name">' + p.name + '</div>' +
+        '<div class="planet-blurb">' + p.blurb + '</div>' +
+        '<div class="planet-mission">' + missionLine + '</div>' +
+        cta +
+      '</div>' +
+      '<div class="planet-card-art"><img src="' + p.img + '" alt="' + p.name + '" class="planet-art-img"></div>';
+    return p.active
+      ? '<a class="planet-card active" style="--pc:' + p.pc + '" href="' + p.href + '">' + inner + '</a>'
+      : '<div class="planet-card locked" style="--pc:' + p.pc + '">' + inner + '</div>';
+  }).join('');
+
+  /* ============== hero reacts to real sign-in state ============== */
+  document.getElementById('hero-signin-btn').onclick = function(){ CodingAuth.openAuth('signin'); };
+  function updateHeroForAuth(state){
+    var rankEl = document.getElementById('hero-rank');
+    var missionLog = document.getElementById('mission-log');
+    var signinBtn = document.getElementById('hero-signin-btn');
+    if (state.user){
+      rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
+      missionLog.style.display = 'inline-block';
+      signinBtn.textContent = '📊 View My Progress';
+      signinBtn.onclick = function(){ openProgressDemo(); };
     } else {
-      roadmapHtml += '<div class="' + cardClass + '">' + inner + '</div>';
+      rankEl.textContent = 'CADET';
+      missionLog.style.display = 'none';
+      signinBtn.textContent = 'Sign In / Create Account';
+      signinBtn.onclick = function(){ CodingAuth.openAuth('signin'); };
     }
-  });
-  document.getElementById('roadmap-list').innerHTML = roadmapHtml;
-
-  // Life-connection callout for the current unit
-  if (current) {
-    document.getElementById('pattern-box').innerHTML =
-      '<div class="lbl">Apply to life &mdash; Unit ' + current.n + '</div><p>' + current.life + '</p>';
   }
+  CodingAuth.onChange(updateHeroForAuth);
 
-  // Done panel
-  var doneUnits = roadmap.filter(function(u){ return u.status === 'done'; });
-  if (!doneUnits.length) {
-    document.getElementById('done-list').innerHTML = '<div class="empty">No units completed yet &mdash; finish Unit 1 to see it show up here.</div>';
-  } else {
-    var doneHtml = '';
-    doneUnits.forEach(function(u){
+  /* ============== modal plumbing shared with coding-auth.js ============== */
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+
+  function openProgressDemo(){
+    var resultByUnit = {};
+    D.results.forEach(function(r){ resultByUnit[r.unit] = r; });
+    function pct(s,o){ return o ? Math.round(s/o*100) : null; }
+    var rows = roadmap.map(function(u){
       var r = resultByUnit[u.n];
-      var scoreLine = r ? ('<span class="unit-score">Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '% &middot; ' + r.completed_at + '</span>') : '';
-      doneHtml += '<a class="unit-card done" href="' + (u.file || '#') + '">' +
-        '<div class="unit-num">' + u.n + '</div>' +
-        '<div><div class="unit-title">' + u.title + '</div><div class="unit-sub">' + u.life + '</div></div>' +
-        '<div class="unit-status done">Done' + scoreLine + '</div></a>';
-    });
-    document.getElementById('done-list').innerHTML = doneHtml;
+      var line = r ? ('Coding ' + pct(r.coding.concept_score, r.coding.concept_out_of) + '% &middot; Life ' + pct(r.life.score, r.life.out_of) + '%') : 'Not attempted yet';
+      return '<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:.82rem">' +
+        '<span><b>U' + u.n + '</b> ' + u.title + '</span><span style="color:var(--ink-soft)">' + line + '</span></div>';
+    }).join('');
+    modalContent.innerHTML =
+      '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+      '<h2>My Progress</h2><p class="sub">Real curriculum data — this becomes its own page reading live from Supabase later.</p>' + rows;
+    modalBg.classList.add('open');
+  }
+  function openProfileDemo(){
+    var name = (window.CodingAuth && CodingAuth.user) ? CodingAuth.displayName : 'Prem';
+    var email = (window.CodingAuth && CodingAuth.user) ? CodingAuth.user.email : '';
+    modalContent.innerHTML =
+      '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+      '<h2>My Profile</h2><p class="sub">' + (email ? 'Signed in as ' + email : 'Preview only.') + '</p>' +
+      '<div class="field"><label>Display Name</label><input type="text" id="profile-name" value="' + name.replace(/"/g,'&quot;') + '"></div>' +
+      '<button class="btn-primary" id="profile-save">Save Name</button>' +
+      '<div class="auth-status" id="profile-status"></div>' +
+      '<div class="demo-note">Password changes and account deletion will live here too.</div>';
+    modalBg.classList.add('open');
+    document.getElementById('profile-save').onclick = function(){
+      var newName = document.getElementById('profile-name').value.trim();
+      var statusEl = document.getElementById('profile-status');
+      var btn = document.getElementById('profile-save');
+      if (!newName){ statusEl.textContent = 'Display name cannot be empty.'; statusEl.className = 'auth-status err'; return; }
+      btn.disabled = true; statusEl.textContent = 'Saving...'; statusEl.className = 'auth-status';
+      CodingAuth.updateDisplayName(newName).then(function(res){
+        if (res.error){ statusEl.textContent = res.error.message; statusEl.className = 'auth-status err'; }
+        else { statusEl.textContent = 'Saved!'; statusEl.className = 'auth-status ok'; }
+        btn.disabled = false;
+      });
+    };
   }
 </script>
 </body>

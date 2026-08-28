@@ -1,0 +1,122 @@
+/* ============================================================
+   Spark Academy — shared design system
+   Linked by every App Dev page (index.html, the-loop.html, ...).
+   Page-specific sections (planet grid, rank carousel, mission
+   roadmap, etc.) stay inline in each page's own <style> block.
+   ============================================================ */
+
+:root {
+  --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42;
+  --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+  --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+  --amber: #FFC24B; --amber-tint: #3A2B0E;
+  --success: #4BE39A; --success-tint: #113526;
+  --danger: #FF6B7F; --danger-tint: #3A1620;
+  --nova: #C77DFF; --nova-tint: #241238;
+  --locked-bg: #10152C; --locked-text: #5C6390;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif; font-size: 15px; line-height: 1.55;
+  background-image:
+    radial-gradient(1.6px 1.6px at 8% 12%, #ffffff55, transparent),
+    radial-gradient(1.3px 1.3px at 22% 38%, #ffffff44, transparent),
+    radial-gradient(1.8px 1.8px at 68% 8%, #ffffff55, transparent),
+    radial-gradient(1.4px 1.4px at 82% 44%, #ffffff44, transparent),
+    radial-gradient(1.5px 1.5px at 45% 68%, #ffffff44, transparent),
+    radial-gradient(1.7px 1.7px at 92% 78%, #ffffff55, transparent),
+    radial-gradient(1.3px 1.3px at 12% 82%, #ffffff44, transparent);
+  background-repeat: repeat; background-size: 700px 700px; background-attachment: fixed;
+}
+h1, h2, h3 { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; margin: 0; text-wrap: balance; }
+a { color: inherit; }
+
+#draft-ribbon { background: linear-gradient(90deg, var(--amber-tint), #1a1330); border-bottom: 1px solid var(--amber); color: var(--amber); font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 700; text-align: center; padding: 7px 14px; letter-spacing: .3px; }
+#draft-ribbon b { color: var(--ink); }
+
+/* ---------------- top nav (overlaid on the hero image) ---------------- */
+#topnav { position: absolute; top:0; left:0; right:0; z-index: 6; display:flex; align-items:center; justify-content:space-between; padding: 18px 28px; max-width: 1180px; margin: 0 auto; }
+#brand { display:flex; align-items:center; gap:10px; font-family:"Orbitron",sans-serif; font-weight:800; font-size: 1.05rem; text-shadow: 0 2px 10px #000a; text-decoration:none; color:#fff; }
+#brand .brand-logo { height: 32px; width:auto; display:block; filter: drop-shadow(0 0 8px #38e6ee88); }
+
+#acct-wrap { position: relative; }
+#acct-btn { display:flex; align-items:center; gap:8px; background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 22px; padding: 6px 16px 6px 6px; cursor:pointer; color: var(--ink); font-size:.85rem; font-weight:700; font-family: inherit; }
+#acct-btn:hover { border-color: var(--cyan); transform: translateY(-1px); }
+#acct-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.85rem; flex-shrink:0; }
+#acct-menu { display:none; position:absolute; top:48px; right:0; background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px; min-width: 190px; box-shadow: 0 10px 30px #0009; z-index: 50; }
+#acct-menu.open { display:block; }
+#acct-menu button { display:block; width:100%; text-align:left; background:none; border:none; color: var(--ink); font-size:.82rem; font-weight:700; padding:9px 10px; border-radius:9px; cursor:pointer; font-family: inherit; }
+#acct-menu button:hover { background: var(--bg-raised); }
+
+/* ---------------- unit sign-in gate note (coding-auth.js adds this next to a disabled #beginBtn) ---------------- */
+.unit-lock-note { font-size: 13px; color: var(--ink-soft); margin-top: -6px; }
+.unit-lock-note a { color: var(--cyan); text-decoration: none; cursor: pointer; font-weight: 700; }
+.unit-lock-note a:hover { text-decoration: underline; }
+
+#page { max-width: 1180px; margin: 0 auto; padding: 30px 24px 40px; }
+
+/* ---------------- hero — switchable full-bleed banner (reused by every page) ---------------- */
+#hero {
+  position: relative; width: 100%; min-height: 62vh; max-height: 640px;
+  display:flex; align-items:flex-end; overflow:hidden;
+}
+.hero-bg-slide {
+  position:absolute; inset:0; z-index:0; background-size:cover; background-position: 50% 22%;
+  opacity:0; transition: opacity 1.2s ease;
+}
+.hero-bg-slide.active { opacity:1; }
+#hero::before {
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(4,6,16,.6) 0%, rgba(4,6,16,0) 16%),
+    linear-gradient(100deg, rgba(4,6,16,.94) 0%, rgba(4,6,16,.68) 38%, rgba(4,6,16,.22) 68%, rgba(4,6,16,.05) 100%),
+    linear-gradient(0deg, var(--bg) 0%, rgba(4,6,16,0) 24%);
+}
+#hero-dots { position:absolute; z-index:3; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:9px; }
+.hero-dot { width:9px; height:9px; padding:0; border-radius:50%; border:1.5px solid rgba(255,255,255,.75); background: rgba(255,255,255,.25); cursor:pointer; transition: background .2s, transform .2s; }
+.hero-dot:hover { background: rgba(255,255,255,.55); }
+.hero-dot.active { background:#fff; transform: scale(1.2); box-shadow: 0 0 10px #fffb; }
+.hero-inner { position:relative; z-index:2; max-width:1180px; margin:0 auto; width:100%; padding: 0 28px 44px; }
+.hero-inner h1 { font-size: clamp(1.9rem, 4.4vw, 2.9rem); color:#fff; margin-bottom: 8px; letter-spacing:.02em; text-shadow: 0 4px 18px #000a; }
+.hero-inner h1 .accent { background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero-inner .tagline { color: var(--ink); opacity:.92; font-size: 1.02rem; margin-bottom: 16px; max-width: 50ch; text-shadow: 0 2px 10px #000a; }
+#mission-log { background: rgba(10,14,30,.55); backdrop-filter: blur(2px); border: 1.5px solid var(--cyan-tint); border-radius: 14px; padding: 11px 16px; font-family: "JetBrains Mono", monospace; font-size: .8rem; color: var(--cyan); display:inline-block; }
+#hero-ctas { display:flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+.cta-btn { border:none; border-radius:999px; padding:13px 24px; font-weight:800; font-size:.9rem; cursor:pointer; font-family:"Orbitron",sans-serif; transition: transform .12s ease; text-decoration:none; display:inline-block; }
+.cta-btn:hover { transform: translateY(-2px) scale(1.02); }
+.cta-primary { background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); box-shadow: 0 8px 20px #38e6ee44; }
+.cta-ghost { background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,.5); color: #fff; backdrop-filter: blur(2px); }
+@media (max-width: 680px) { #hero { min-height: 68vh; } .hero-bg-slide { background-position: 62% 20%; } .hero-inner { padding: 0 20px 32px; } }
+
+/* ---------------- section headers (reused by every page) ---------------- */
+.sec-title { font-family:"Orbitron",sans-serif; font-size: clamp(1.15rem, 2.4vw, 1.55rem); font-weight:800; text-align:center; margin-bottom: 6px; letter-spacing:.02em; }
+.sec-sub { text-align:center; color: var(--ink-soft); font-size: .95rem; margin-bottom: 22px; }
+
+footer { text-align:center; color: var(--ink-soft); font-size:.74rem; padding: 34px 20px 10px; line-height:1.7; }
+footer b { color: var(--ink); }
+footer a.foot-link { color: var(--cyan); text-decoration:none; font-weight:700; }
+
+/* ---------------- modal system (used by coding-auth.js + each page's own modals) ---------------- */
+#modal-bg { display:none; position:fixed; inset:0; background:#03050fcc; backdrop-filter: blur(3px); z-index:100; align-items:center; justify-content:center; padding:16px; }
+#modal-bg.open { display:flex; }
+.modal { background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 18px; padding: 26px; max-width: 380px; width:100%; position:relative; max-height: 88vh; overflow-y:auto; }
+.modal h2 { font-size: 1.2rem; margin: 0 0 4px; display:flex; align-items:center; gap:8px; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.modal-badge-img { width:34px; height:34px; object-fit:contain; -webkit-text-fill-color: initial; }
+.modal p.sub { color: var(--ink-soft); font-size:.8rem; margin: 0 0 16px; font-family: "Atkinson Hyperlegible", sans-serif; }
+.modal-close { position:absolute; top:14px; right:16px; background:none; border:none; color: var(--ink-soft); font-size:1.3rem; cursor:pointer; line-height:1; }
+.field { margin-bottom: 12px; }
+.field label { display:block; font-size:.75rem; color: var(--ink-soft); margin-bottom:4px; font-weight:700; }
+.field input { width:100%; box-sizing:border-box; background: var(--bg-raised); border: 1.5px solid var(--line); border-radius:9px; padding:9px 11px; color: var(--ink); font-size:.9rem; font-family: inherit; }
+.field input:focus { outline:none; border-color: var(--cyan); }
+.btn-primary { display:block; width:100%; border:none; border-radius:12px; padding:11px; font-weight:800; font-size:.88rem; cursor:pointer; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); margin-top:6px; font-family: "Orbitron", sans-serif; }
+.btn-primary:disabled { opacity:.6; cursor:default; }
+.btn-google { display:flex; align-items:center; justify-content:center; gap:9px; width:100%; border: 1.5px solid var(--line); border-radius:12px; padding:10px; font-weight:700; font-size:.85rem; cursor:pointer; background:#fff3e6; color:#241533; margin-top:6px; font-family: inherit; }
+.divider { display:flex; align-items:center; gap:10px; margin:16px 0; color: var(--ink-soft); font-size:.72rem; }
+.divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--line); }
+.toggle-line { text-align:center; font-size:.78rem; color: var(--ink-soft); margin-top:14px; }
+.toggle-line a { color: var(--cyan); text-decoration:none; cursor:pointer; font-weight:700; }
+.demo-note { background: var(--cyan-tint); border: 1px solid var(--cyan); border-radius: 10px; padding: 10px 12px; font-size: .72rem; color: var(--ink-soft); line-height:1.5; margin-top: 14px; }
+.auth-status { font-size: .78rem; text-align:center; margin-top: 10px; min-height: 16px; color: var(--ink-soft); }
+.auth-status.err { color: var(--danger); }
+.auth-status.ok { color: var(--success); }

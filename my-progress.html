@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Academy — My Progress</title>
+<link rel="icon" type="image/png" href="assets/spark_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spark-academy.css">
+<style>
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 980px; margin: 0 auto; }
+  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover { color: var(--cyan); }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 10px 24px 60px; }
+  header.page-head { text-align: center; margin-bottom: 26px; }
+  header.page-head h1 { font-size: clamp(1.4rem, 3.6vw, 1.9rem); background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 6px; }
+  header.page-head p { color: var(--ink-soft); font-size: .92rem; margin: 0 0 14px; }
+  #back-link { display: inline-block; color: var(--ink-soft); font-size: .8rem; text-decoration: none; border: 1.5px solid var(--line); border-radius: 20px; padding: 6px 16px; font-family: "JetBrains Mono", monospace; }
+  #back-link:hover { color: var(--cyan); border-color: var(--cyan); }
+
+  #gate { text-align: center; padding: 70px 20px; color: var(--ink-soft); }
+  #gate button { margin-top: 16px; border: none; border-radius: 999px; padding: 12px 26px; font-weight: 800; font-size: .9rem; cursor: pointer; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); font-family: "Orbitron", sans-serif; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  @media (max-width: 720px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card { background: var(--bg-raised); border: 1.5px solid var(--line); border-radius: 16px; padding: 16px 18px; text-align: center; }
+  .stat-card .stat-num { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1.6rem; color: var(--cyan); }
+  .stat-card .stat-label { font-size: .74rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; margin-top: 4px; font-family: "JetBrains Mono", monospace; }
+
+  .card { background: var(--bg-raised); border: 1.5px solid var(--line); border-radius: 18px; padding: 20px 22px; margin-bottom: 18px; }
+  .card h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--amber); font-weight: 800; margin: 0 0 14px; font-family: "Orbitron", sans-serif; }
+  .empty-note { color: var(--ink-soft); font-size: .88rem; text-align: center; padding: 18px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  th { text-align: left; color: var(--ink-soft); font-weight: 700; font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; padding: 7px 8px; border-bottom: 1.5px solid var(--line); }
+  td { padding: 10px 8px; border-bottom: 1px solid #ffffff10; color: var(--ink); }
+  tr:last-child td { border-bottom: none; }
+  .pct-chip { font-weight: 800; }
+  .unit-tag { font-family: "JetBrains Mono", monospace; font-size: .72rem; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <a id="brand" href="the-loop.html"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+  <div id="acct-wrap">
+    <button id="acct-btn"></button>
+    <div id="acct-menu"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="page-head">
+    <h1>📊 My Progress</h1>
+    <p>Every mission you've completed on The Loop — coding scores and life-connection scores, side by side.</p>
+    <a id="back-link" href="the-loop.html">&larr; Back to The Loop</a>
+  </header>
+
+  <div id="gate">Loading…</div>
+
+  <div id="content" style="display:none">
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" id="stat-units">0/11</div><div class="stat-label">Units Complete</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-coding">—</div><div class="stat-label">Coding Avg</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-life">—</div><div class="stat-label">Life Avg</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Every Result</h2>
+      <div id="results-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>window.SPARK_BASE = '';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+
+  function zoneColor(pct){
+    if (pct >= 85) return 'var(--success)';
+    if (pct >= 60) return 'var(--amber)';
+    return 'var(--danger)';
+  }
+  function fmtDate(iso){
+    var d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  function unitLabel(key){ return key === 'M1' ? 'Milestone 1' : 'Unit ' + key; }
+
+  function renderResults(rows){
+    if (!rows.length){
+      document.getElementById('results-wrap').innerHTML = '<div class="empty-note">No missions completed yet — head to <a href="the-loop.html" style="color:var(--cyan)">The Loop</a> to start Unit 1.</div>';
+      return;
+    }
+    var trs = rows.map(function(r){
+      var codingPct = r.concept_out_of ? Math.round(r.concept_score / r.concept_out_of * 100) : null;
+      var lifePct = r.life_out_of ? Math.round(r.life_score / r.life_out_of * 100) : null;
+      return '<tr>' +
+        '<td><span class="unit-tag">' + unitLabel(r.unit_key) + '</span><br>' + r.unit_title + '</td>' +
+        '<td>' + r.xp_earned + ' XP</td>' +
+        '<td class="pct-chip" style="color:' + (codingPct === null ? 'var(--ink-soft)' : zoneColor(codingPct)) + '">' + (codingPct === null ? '—' : r.concept_score + '/' + r.concept_out_of + ' (' + codingPct + '%)') + '</td>' +
+        '<td class="pct-chip" style="color:' + (lifePct === null ? 'var(--ink-soft)' : zoneColor(lifePct)) + '">' + (lifePct === null ? '—' : r.life_score + '/' + r.life_out_of + ' (' + lifePct + '%)') + '</td>' +
+        '<td>' + fmtDate(r.completed_at) + '</td>' +
+      '</tr>';
+    }).join('');
+    document.getElementById('results-wrap').innerHTML =
+      '<table><thead><tr><th>Mission</th><th>XP</th><th>Coding</th><th>Life</th><th>Completed</th></tr></thead><tbody>' + trs + '</tbody></table>';
+  }
+
+  function renderStats(rows){
+    // "Best" attempt per unit (highest XP) drives the summary stats, so replaying a unit for
+    // fun doesn't inflate totals — matches the same "best attempt" model Science Quest uses.
+    var bestByUnit = {};
+    rows.forEach(function(r){
+      var existing = bestByUnit[r.unit_key];
+      if (!existing || r.xp_earned > existing.xp_earned) bestByUnit[r.unit_key] = r;
+    });
+    var best = Object.values(bestByUnit);
+    document.getElementById('stat-units').textContent = best.length + '/11';
+    document.getElementById('stat-xp').textContent = best.reduce(function(s, r){ return s + (r.xp_earned || 0); }, 0);
+
+    var codingVals = best.filter(function(r){ return r.concept_out_of; }).map(function(r){ return r.concept_score / r.concept_out_of * 100; });
+    var lifeVals = best.filter(function(r){ return r.life_out_of; }).map(function(r){ return r.life_score / r.life_out_of * 100; });
+    document.getElementById('stat-coding').textContent = codingVals.length ? Math.round(codingVals.reduce(function(a,b){return a+b;},0) / codingVals.length) + '%' : '—';
+    document.getElementById('stat-life').textContent = lifeVals.length ? Math.round(lifeVals.reduce(function(a,b){return a+b;},0) / lifeVals.length) + '%' : '—';
+  }
+
+  function loadProgress(){
+    CodingAuth.fetchResults().then(function(rows){
+      renderStats(rows);
+      renderResults(rows);
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+    });
+  }
+
+  function boot(){
+    if (!CodingAuth.ready){ setTimeout(boot, 80); return; }
+    if (!CodingAuth.user){
+      document.getElementById('gate').innerHTML = 'Sign in to see your progress across The Loop.<br><button id="gate-signin">Sign In</button>';
+      document.getElementById('gate-signin').onclick = function(){ CodingAuth.openAuth('signin'); };
+      CodingAuth.onChange(function(){ if (CodingAuth.user) loadProgress(); });
+      return;
+    }
+    loadProgress();
+  }
+  boot();
+</script>
+</body>
+</html>

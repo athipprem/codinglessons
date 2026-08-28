@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Academy — The Loop</title>
+<link rel="icon" type="image/png" href="assets/spark_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="spark-academy.css">
+<style>
+  /* ---------------- about blurb ---------------- */
+  #about-section { max-width: 800px; margin: 0 auto 40px; text-align:center; }
+  #about-section p { font-size: 1.02rem; line-height:1.7; color: var(--ink-soft); }
+  #about-section p b { color: var(--ink); }
+
+  /* ---------------- mission roadmap grid ---------------- */
+  #roadmap-section { margin-bottom: 20px; }
+  #roadmap-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .mission-card { display:flex; flex-direction:column; gap:6px; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 16px; padding: 16px 14px; text-decoration:none; color:inherit; transition: transform .15s ease, border-color .15s ease; min-height: 96px; }
+  .mission-card.done { border-color: var(--success); }
+  .mission-card.in_progress { border-color: var(--cyan); box-shadow: 0 0 0 3px #38e6ee22; }
+  .mission-card.locked { opacity:.55; cursor: default; }
+  .mission-card:not(.locked):hover { transform: translateY(-3px); }
+  .mission-num { font-family:"JetBrains Mono",monospace; font-size:.7rem; color: var(--ink-soft); font-weight:700; letter-spacing:.03em; }
+  .mission-title { font-family:"Orbitron",sans-serif; font-weight:800; font-size:.95rem; }
+  .mission-status { font-size:.72rem; margin-top:auto; padding-top:6px; font-weight:700; }
+  .mission-status.done { color: var(--success); }
+  .mission-status.in_progress { color: var(--cyan); }
+  .mission-status.locked { color: var(--locked-text); }
+</style>
+</head>
+<body>
+
+<section id="hero" role="img" aria-label="The Loop — Spark Academy's campus, and cadets working in the Loop Arena">
+  <div class="hero-bg-slide active" style="background-image:url('assets/spark_academy_theloop_1.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/spark_academy_theloop_2.jpg')"></div>
+  <div id="hero-dots">
+    <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
+    <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
+  </div>
+  <div id="topnav">
+    <a id="brand" href="index.html"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+    <div id="acct-wrap">
+      <button id="acct-btn"></button>
+      <div id="acct-menu"></div>
+    </div>
+  </div>
+  <div class="hero-inner">
+    <h1>SPARK ACADEMY<br><span class="accent">@ THE LOOP</span></h1>
+    <div class="tagline">Planet 1 of 4. Ten platforms of pure logic — sequence, loops, events, conditions — building to Milestone Test 1.</div>
+    <div id="hero-ctas">
+      <a class="cta-btn cta-primary" id="hero-enter-btn" href="#roadmap-section">&#128640; Enter Missions</a>
+      <a class="cta-btn cta-ghost" href="index.html">&larr; Back to Mission Control</a>
+    </div>
+  </div>
+</section>
+
+<div id="page">
+
+  <section id="about-section">
+    <div class="sec-title">WHAT IS THE LOOP?</div>
+    <p>The Loop is a dry, platform-studded world where nothing moves unless a cadet tells it to — <b>in exactly the order they said it.</b> This is where Rover-7 first got stranded, and where every platform since has proven the same thing: a computer is honest to a fault, and being precise is a skill, not a personality trait. Sequence, loops, nested loops, events, conditions, debugging — ten platforms, one skill at a time, building to <b>Milestone Test 1</b>, the first time everything learned has to hold up combined.</p>
+  </section>
+
+  <section id="roadmap-section">
+    <div class="sec-title">MISSION ROADMAP</div>
+    <div class="sec-sub">Clear a platform, unlock the next. Tap any unlocked mission to jump straight in.</div>
+    <div id="roadmap-grid"></div>
+  </section>
+
+  <footer>
+    Copyright &copy; 2026 Luikishi. All rights reserved. Have fun !
+  </footer>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="spark_coding_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="coding-auth.js"></script>
+<script>
+  /* ============== hero banner carousel — switches between the 2 Loop banners ============== */
+  (function(){
+    var slides = document.querySelectorAll('.hero-bg-slide');
+    var dots = document.querySelectorAll('.hero-dot');
+    var idx = 0, timer;
+    function show(i){
+      idx = i;
+      slides.forEach(function(s, j){ s.classList.toggle('active', j === i); });
+      dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    }
+    function next(){ show((idx + 1) % slides.length); }
+    function startAuto(){ stopAuto(); timer = setInterval(next, 6500); }
+    function stopAuto(){ if (timer) clearInterval(timer); }
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){ show(parseInt(d.dataset.i, 10)); startAuto(); });
+    });
+    if (slides.length > 1) startAuto();
+  })();
+
+  /* ============== mission roadmap grid — App Dev's own project data (spark_coding_data.js),
+     separate from the legacy Code Cadet build under Lessons/. EVERY unit, including Unit 1,
+     is locked until the cadet is actually signed in — signing in is what reveals real
+     progression (Unit 1 unlocked by default, the rest per completed Supabase results). ============== */
+  var heroBtn = document.getElementById('hero-enter-btn');
+
+  function cardHtml(u){
+    var statusLabel = u.status === 'done' ? '&#10003; Done'
+      : u.status === 'in_progress' ? '&#9679; Current'
+      : '&#128274; Locked';
+    var inner =
+      '<div class="mission-num">' + (u.n === 'M1' ? 'MILESTONE' : 'UNIT ' + u.n) + '</div>' +
+      '<div class="mission-title">' + u.title + '</div>' +
+      '<div class="mission-status ' + u.status + '">' + statusLabel + '</div>';
+    var clickable = u.file && (u.status === 'done' || u.status === 'in_progress');
+    return clickable
+      ? '<a class="mission-card ' + u.status + '" href="' + u.file + '">' + inner + '</a>'
+      : '<div class="mission-card ' + u.status + '">' + inner + '</div>';
+  }
+
+  // Signed-out state: every card forced locked, regardless of roadmap position — no progress
+  // is knowable (or unlockable) without an account. The hero CTA opens sign-in instead of
+  // linking anywhere, since nothing is actually playable yet.
+  function renderSignedOutLocked(){
+    document.getElementById('roadmap-grid').innerHTML = SPARK_CODING_DATA.roadmap
+      .map(function(u){ return cardHtml({ n: u.n, title: u.title, file: u.file, status: 'locked' }); })
+      .join('');
+    heroBtn.setAttribute('href', '#');
+    heroBtn.onclick = function(e){ e.preventDefault(); if (window.CodingAuth) CodingAuth.openAuth('signin'); };
+  }
+
+  // Signed-in state: real computed roadmap from the cadet's actual Supabase results.
+  function renderRoadmap(resultsList){
+    var data = { roadmap: SPARK_CODING_DATA.roadmap, results: resultsList };
+    var roadmap = computeSparkRoadmap(data);
+    document.getElementById('roadmap-grid').innerHTML = roadmap.map(cardHtml).join('');
+
+    heroBtn.onclick = null;
+    var currentUnit = roadmap.find(function(u){ return u.status === 'in_progress' && u.file; });
+    heroBtn.setAttribute('href', currentUnit ? currentUnit.file : '#roadmap-section');
+  }
+
+  renderSignedOutLocked(); // shown immediately, before auth even resolves
+  if (window.CodingAuth){
+    CodingAuth.onChange(function(state){
+      if (state.user){
+        CodingAuth.fetchResults().then(function(rows){
+          // fetchResults() returns raw coding_results rows — computeSparkRoadmap only needs { unit }
+          renderRoadmap(rows.map(function(r){ return { unit: r.unit_key }; }));
+        });
+      } else {
+        renderSignedOutLocked();
+      }
+    });
+  }
+
+  /* ============== modal plumbing shared with coding-auth.js ============== */
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+</body>
+</html>

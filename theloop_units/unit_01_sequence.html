@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Cadet — Unit 1: Sequence Protocol</title>
-<link rel="icon" type="image/svg+xml" href="assets/rover-ship.svg">
+<title>Spark Academy — Unit 1: Sequence Protocol</title>
+<link rel="icon" type="image/png" href="../assets/spark_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../spark-academy.css">
 <style>
   :root {
-    /* dark = default (mission control) */
+    /* Spark Academy design system — same tokens as spark-academy.css, dark-only (no light mode) */
     --bg: #0A0E1E;
     --bg-raised: #131A33;
     --bg-panel: #171F42;
@@ -28,37 +29,6 @@
     --success-tint: #113526;
     --wall-bg: #3A1420;
     --star: rgba(233,236,255,0.5);
-  }
-
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      --bg: #EEF1FA;
-      --bg-raised: #FFFFFF;
-      --bg-panel: #F6F7FD;
-      --ink: #131A33;
-      --ink-soft: #565F82;
-      --line: #D7DBEC;
-      --cyan: #0E7C82;
-      --cyan-ink: #FFFFFF;
-      --cyan-tint: #DCF3F2;
-      --amber: #A9660A;
-      --amber-tint: #FBE9CC;
-      --danger: #C23652;
-      --danger-tint: #FBDEE2;
-      --success: #1D8A55;
-      --success-tint: #DBF2E5;
-      --wall-bg: #F4D9DC;
-      --star: transparent;
-    }
-  }
-  :root[data-theme="light"] {
-    --bg: #EEF1FA; --bg-raised: #FFFFFF; --bg-panel: #F6F7FD;
-    --ink: #131A33; --ink-soft: #565F82; --line: #D7DBEC;
-    --cyan: #0E7C82; --cyan-ink: #FFFFFF; --cyan-tint: #DCF3F2;
-    --amber: #A9660A; --amber-tint: #FBE9CC;
-    --danger: #C23652; --danger-tint: #FBDEE2;
-    --success: #1D8A55; --success-tint: #DBF2E5;
-    --wall-bg: #F4D9DC; --star: transparent;
   }
 
   * { box-sizing: border-box; }
@@ -84,8 +54,14 @@
   a { color: var(--cyan); }
 
   main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
-  .back-link { display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 12.5px; text-decoration: none; color: var(--ink-soft); margin-bottom: 14px; }
-  .back-link:hover { color: var(--cyan); }
+
+  /* ---------------- Spark Academy topbar (replaces the old plain text back-link) ---------------- */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
+  #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover { color: var(--cyan); }
+  #topbar .topbar-sub { font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-soft); text-transform: uppercase; }
 
   /* HUD */
   .hud {
@@ -126,8 +102,8 @@
     gap: 16px;
     margin-top: 40px;
   }
-  .boot-card .logo { font-size: 40px; }
-  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; color: var(--cyan); }
+  .boot-card .logo { height: 52px; width: auto; filter: drop-shadow(0 0 14px #38e6ee66); }
+  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
   .boot-card input {
     font-family: inherit; font-size: 16px; padding: 10px 14px; border-radius: 10px;
@@ -138,30 +114,33 @@
 
   button.primary {
     font-family: "Orbitron", sans-serif;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 14px;
     letter-spacing: 0.03em;
-    background: var(--cyan);
+    background: linear-gradient(135deg, var(--cyan), #1c8fa0);
     color: var(--cyan-ink);
     border: none;
-    padding: 12px 22px;
-    border-radius: 10px;
+    padding: 12px 24px;
+    border-radius: 999px;
     cursor: pointer;
+    box-shadow: 0 6px 16px #38e6ee33;
+    transition: transform .12s ease, filter .12s ease;
   }
-  button.primary:hover { filter: brightness(1.08); }
-  button.primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   button.ghost {
     font-family: "Orbitron", sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
     background: transparent;
     color: var(--ink-soft);
-    border: 1px solid var(--line);
-    padding: 10px 16px;
-    border-radius: 10px;
+    border: 1.5px solid var(--line);
+    padding: 10px 18px;
+    border-radius: 999px;
     cursor: pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
-  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
 
   /* dialogue */
   .transmission-tag {
@@ -349,7 +328,16 @@
 </head>
 <body>
 <main>
-  <a class="back-link" href="index.html">&larr; Back to my units</a>
+  <div id="topbar">
+    <div class="topbar-left">
+      <a id="brand" href="../the-loop.html"><img src="../assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+      <div class="topbar-sub">The Loop &middot; Unit 1</div>
+    </div>
+    <div id="acct-wrap">
+      <button id="acct-btn"></button>
+      <div id="acct-menu"></div>
+    </div>
+  </div>
 
   <div class="hud" id="hud">
     <span>CADET: <span class="cadet" id="hudName">—</span></span>
@@ -361,12 +349,10 @@
   <!-- BOOT -->
   <section class="screen active" id="scr-boot">
     <div class="boot-card">
-      <div class="logo">🛰️</div>
-      <h1>CODE CADET ACADEMY</h1>
-      <div class="tagline">Training Program · Unit 01 · Sequence Protocol</div>
+      <img class="logo" src="../assets/spark_logo.png" alt="Spark Academy logo">
+      <h1>SPARK ACADEMY</h1>
+      <div class="tagline">The Loop · Unit 01 · Sequence Protocol</div>
       <p style="color:var(--ink-soft); max-width: 46ch;">Command Rover-7 is stranded on a research platform. It only follows exact instructions, in exact order. Command Control needs a cadet to guide it home.</p>
-      <label for="cadetName">What should we call you, Cadet?</label>
-      <input type="text" id="cadetName" placeholder="Your name" maxlength="20">
       <button class="primary" id="beginBtn">Begin Training →</button>
     </div>
   </section>
@@ -424,7 +410,7 @@
         <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
       </div>
       <div class="chip-order" id="prog1"></div>
-      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
       <div class="mission-actions">
         <button class="primary" id="run1">▶ Run Program</button>
         <button class="ghost" id="reset1">Reset Rover</button>
@@ -454,7 +440,7 @@
         <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
       </div>
       <div class="chip-order" id="prog2"></div>
-      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
       <div class="mission-actions">
         <button class="primary" id="run2">▶ Run Program</button>
         <button class="ghost" id="reset2">Reset Rover</button>
@@ -511,7 +497,7 @@
         <p class="puzzle-msg" id="finishMsg"></p>
         <div class="result-box" id="resultBox"></div>
         <div class="post-debrief-nav" id="postDebriefNav">
-          <button class="ghost" onclick="location.href='index.html'">🏠 Back to Home</button>
+          <button class="ghost" onclick="location.href='../the-loop.html'">🏠 Back to The Loop</button>
           <button class="ghost" id="prevUnitBtn" style="display:none">⬅ Previous Unit</button>
           <button class="ghost" id="nextUnitBtn" style="display:none">Next Unit ➡</button>
         </div>
@@ -519,9 +505,22 @@
     </div>
   </section>
 
-  <footer>Stage 1 · Unit 1 of 10 · Code Cadet Academy</footer>
+  <footer>Spark Academy · The Loop · Unit 1 of 10</footer>
 </main>
 
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>window.SPARK_BASE = '../';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
 <script>
   // ================= State =================
   let cadetName = 'Cadet';
@@ -558,9 +557,11 @@
   });
 
   // ================= Boot =================
+  // No name field — the cadet must be signed in (coding-auth.js disables this button and shows
+  // a "Sign In" note until then), so the name comes straight from the real account profile.
   document.getElementById('beginBtn').addEventListener('click', () => {
-    const val = document.getElementById('cadetName').value.trim();
-    if (val) cadetName = val;
+    if (!window.CodingAuth || !CodingAuth.user) { CodingAuth && CodingAuth.openAuth('signin'); return; }
+    cadetName = CodingAuth.displayName || 'Cadet';
     document.getElementById('hudName').textContent = cadetName;
     document.getElementById('hud').classList.add('show');
     showScreen('scr-t1');
@@ -1081,7 +1082,7 @@
     q3Box.innerHTML = q3Html;
     q3Box.classList.add('show');
 
-    const payload = {
+    const rawPayload = {
       unit_number: 1,
       unit_title: 'Sequence',
       stage: 1,
@@ -1106,33 +1107,43 @@
     msg.textContent = '';
     msg.className = '';
 
-    const filename = 'coding_unit01_results.json';
     const box = document.getElementById('resultBox');
     box.classList.add('show');
-    box.innerHTML = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
+    const summaryHtml = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
       + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
       + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
-      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
-      + '<br><br>A file called <code>' + filename + '</code> is downloading now. Save it into the <code>Lessons/Results</code> folder so your coach can see how it went.';
+      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
+    box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
+
+    // Results now save straight to the signed-in cadet's Supabase account — no more manual
+    // file download/drop. Once saved, Unit 2 (once it exists) unlocks automatically on The Loop.
+    CodingAuth.saveResult({
+      unit_key: '1',
+      unit_title: 'Sequence',
+      xp_earned: xp,
+      concept_score: conceptScore,
+      concept_out_of: 2,
+      life_score: q3Score,
+      life_out_of: q3OutOf,
+      mission1_succeeded: mission1.succeeded,
+      mission1_attempts: mission1.attempts,
+      mission2_succeeded: mission2.succeeded,
+      mission2_attempts: mission2.attempts,
+      raw_payload: rawPayload
+    }).then((res) => {
+      box.innerHTML = summaryHtml + (res.saved
+        ? '<br><br>✅ Saved to your account — check My Progress any time from the menu up top.'
+        : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
+    });
 
     const PREV_UNIT_FILE = null;
-    const NEXT_UNIT_FILE = 'unit_02_loops.html';
+    const NEXT_UNIT_FILE = null; // set to 'unit_02_loops.html' once Unit 2 ships in this folder
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');
     const nextBtn = document.getElementById('nextUnitBtn');
     if (PREV_UNIT_FILE) { prevBtn.style.display = ''; prevBtn.onclick = () => location.href = PREV_UNIT_FILE; }
     if (NEXT_UNIT_FILE) { nextBtn.style.display = ''; nextBtn.onclick = () => location.href = NEXT_UNIT_FILE; }
-
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   });
 </script>
 </body>
