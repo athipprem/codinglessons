@@ -437,7 +437,7 @@
   function fetchResults(){
     if (!state.user) return Promise.resolve([]);
     return sb.from('coding_results')
-      .select('unit_key, unit_title, xp_earned, concept_score, concept_out_of, life_score, life_out_of, mission1_succeeded, mission1_attempts, mission2_succeeded, mission2_attempts, completed_at')
+      .select('unit_key, unit_title, xp_earned, concept_score, concept_out_of, life_score, life_out_of, mission1_succeeded, mission1_attempts, mission2_succeeded, mission2_attempts, completed_at, raw_payload')
       .order('completed_at', { ascending: false })
       .then(function(res){
         if (res.error){ console.error('coding-auth.js: fetchResults failed —', res.error.message); return []; }
