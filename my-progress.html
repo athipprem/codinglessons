@@ -242,7 +242,7 @@
       var r = bestByUnit[u.n];
       var codingPct = r && r.concept_out_of ? Math.round(r.concept_score / r.concept_out_of * 100) : null;
       var lifePct = r && r.life_out_of ? Math.round(r.life_score / r.life_out_of * 100) : null;
-      var statusLabel = u.status === 'done' ? 'Done' : u.status === 'in_progress' ? 'Current' : u.status === 'unlocked' ? 'Unlocked' : 'Locked';
+      var statusLabel = u.status === 'done' ? 'Done' : u.status === 'in_progress' ? 'Current' : u.status === 'unlocked' ? 'Explore' : 'Locked';
       var scores = r
         ? (r.xp_earned + ' XP &middot; Coding ' + (codingPct === null ? '—' : codingPct + '%') + ' &middot; Life ' + (lifePct === null ? '—' : lifePct + '%'))
         : (u.status === 'locked' ? '—' : 'Not attempted yet');

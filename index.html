@@ -140,7 +140,6 @@
   <div class="hero-inner">
     <h1>WELCOME BACK,<br><span class="accent" id="hero-rank">CADET</span></h1>
     <div class="tagline">Four planets stand between you and your Captain's stripes. Right now, you're stationed on <b id="hero-planet-name">The Loop</b>.</div>
-    <div id="mission-log" style="display:none">📡 MISSION LOG — <span id="hero-mission-line">Loading...</span></div>
     <div id="hero-ctas">
       <button class="cta-btn cta-primary" onclick="document.getElementById('planets-grid').scrollIntoView({behavior:'smooth'})">Explore the Planets</button>
       <button class="cta-btn cta-ghost" id="hero-signin-btn">Sign In / Create Account</button>
@@ -213,19 +212,10 @@
   })();
 
   /* ============== live data (unit status + rank) — App Dev's own project data
-     (spark_coding_data.js), same source the-loop.html already uses. ============== */
-  var D = SPARK_CODING_DATA;
-  var roadmap = computeSparkRoadmap(D);
-  var current = roadmap.find(function(u){ return u.status === 'in_progress'; });
-  var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
-  var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
-  var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
-
-  document.getElementById('hero-mission-line').textContent = current
-    ? ('Currently on The Loop · Unit ' + current.n + ': ' + current.title)
-    : (stage1Done ? 'The Loop cleared — awaiting your next planet.' : 'All Stage 1 missions complete.');
-
-  /* ============== rank strip ============== */
+     (spark_coding_data.js), same source the-loop.html already uses. Recomputed for real on
+     every sign-in/out via renderLiveData(), not just once at load from the static (always-empty)
+     SPARK_CODING_DATA.results — that used to leave the hero rank and planet card permanently
+     stuck on Cadet/Unit 1 regardless of a signed-in cadet's real progress. ============== */
   var RANKS = [
     { name:'Cadet',      icon:'assets/badge_cadet.png',      blurb:'Starting rank. Follows exact instructions — the whole point of The Loop.' },
     { name:'Ensign',     icon:'assets/badge_ensign.png',     blurb:'Earned by clearing The Loop (Milestone Test 1 passed).' },
@@ -233,25 +223,38 @@
     { name:'Commander',  icon:'assets/badge_commander.png',  blurb:'Earned by clearing PyCraft Planet — same rank as your Commander now.' },
     { name:'Captain',    icon:'assets/badge_captain.png',    blurb:'Earned by clearing Nova Planet — full graduation. Your own missions from here.' }
   ];
-  var focusedRankIdx = currentRankIdx;
+  var PLANETS = [
+    { key:'loop', name:'The Loop', img:'assets/planet_theloop.png', pc:'#38E6EE', blurb:'Logic fundamentals — sequence, loops, events, debugging.', active:true, href:'the-loop.html' },
+    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false, unlocksAfter:'The Loop' },
+    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false, unlocksAfter:'The Core' },
+    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false, unlocksAfter:'PyCraft Planet' }
+  ];
+
+  var currentRankIdx = 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
+  var focusedRankIdx = 0;
 
   function rankStatus(i){ return i < currentRankIdx ? 'done' : (i === currentRankIdx ? 'current' : 'locked'); }
 
-  document.getElementById('rank-track').innerHTML = RANKS.map(function(r, i){
-    var cls = rankStatus(i);
-    var tag = cls === 'done' ? '<span class="rank-slide-tag tag-done">&#10003; EARNED</span>'
-      : cls === 'current' ? '<span class="rank-slide-tag tag-current">&#9679; CURRENT RANK</span>'
-      : '<span class="rank-slide-tag tag-locked">&#128274; AHEAD</span>';
-    return '<div class="rank-slide ' + cls + '" data-i="' + i + '" onclick="focusRank(' + i + ')">' +
-      '<div class="rank-slide-badge"><img src="' + r.icon + '" alt="' + r.name + ' badge"></div>' +
-      '<div class="rank-slide-name">' + r.name + '</div>' +
-      '<div class="rank-slide-blurb">' + r.blurb + '</div>' +
-      tag +
-      '</div>';
-  }).join('');
-  document.getElementById('rank-dots').innerHTML = RANKS.map(function(r, i){
-    return '<button class="rank-dot" data-i="' + i + '" aria-label="Show ' + r.name + '"></button>';
-  }).join('');
+  /* ============== rank strip ============== */
+  function renderRankStrip(){
+    document.getElementById('rank-track').innerHTML = RANKS.map(function(r, i){
+      var cls = rankStatus(i);
+      var tag = cls === 'done' ? '<span class="rank-slide-tag tag-done">&#10003; EARNED</span>'
+        : cls === 'current' ? '<span class="rank-slide-tag tag-current">&#9679; CURRENT RANK</span>'
+        : '<span class="rank-slide-tag tag-locked">&#128274; AHEAD</span>';
+      return '<div class="rank-slide ' + cls + '" data-i="' + i + '" onclick="focusRank(' + i + ')">' +
+        '<div class="rank-slide-badge"><img src="' + r.icon + '" alt="' + r.name + ' badge"></div>' +
+        '<div class="rank-slide-name">' + r.name + '</div>' +
+        '<div class="rank-slide-blurb">' + r.blurb + '</div>' +
+        tag +
+        '</div>';
+    }).join('');
+    document.getElementById('rank-dots').innerHTML = RANKS.map(function(r, i){
+      return '<button class="rank-dot" data-i="' + i + '" aria-label="Show ' + r.name + '"></button>';
+    }).join('');
+    focusedRankIdx = currentRankIdx;
+    layoutRankCarousel();
+  }
 
   function layoutRankCarousel(){
     var viewport = document.getElementById('rank-viewport');
@@ -271,7 +274,12 @@
   function focusRank(i){ focusedRankIdx = Math.max(0, Math.min(RANKS.length - 1, i)); layoutRankCarousel(); }
   document.getElementById('rank-prev').addEventListener('click', function(){ focusRank(focusedRankIdx - 1); });
   document.getElementById('rank-next').addEventListener('click', function(){ focusRank(focusedRankIdx + 1); });
-  document.querySelectorAll('.rank-dot').forEach(function(d){ d.addEventListener('click', function(){ focusRank(+d.dataset.i); }); });
+  // Delegated (not one addEventListener per dot) so clicks still work after renderRankStrip()
+  // rebuilds #rank-dots' children on every sign-in/out refresh.
+  document.getElementById('rank-dots').addEventListener('click', function(e){
+    var dot = e.target.closest('.rank-dot');
+    if (dot) focusRank(+dot.dataset.i);
+  });
   (function(){
     var vp = document.getElementById('rank-viewport');
     var startX = null;
@@ -284,52 +292,65 @@
     });
   })();
   window.addEventListener('resize', layoutRankCarousel);
-  layoutRankCarousel();
 
   /* ============== planets grid ============== */
-  var PLANETS = [
-    { key:'loop', name:'The Loop', img:'assets/planet_theloop.png', pc:'#38E6EE', blurb:'Logic fundamentals — sequence, loops, events, debugging.', active:true, href:'the-loop.html' },
-    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false, unlocksAfter:'The Loop' },
-    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false, unlocksAfter:'The Core' },
-    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false, unlocksAfter:'PyCraft Planet' }
-  ];
-  document.getElementById('planets-grid').innerHTML = PLANETS.map(function(p){
-    // Each locked planet names the ONE planet directly before it in the real unlock chain
-    // (Loop -> Core -> PyCraft -> Nova), not always "The Loop" -- PyCraft opens after The Core
-    // clears, and Nova opens after PyCraft clears, not straight off The Loop.
-    var missionLine = p.key === 'loop'
-      ? (current ? ('Unit ' + current.n + ' of 10 &middot; ' + current.title) : (stage1Done ? 'All missions cleared!' : ''))
-      : 'Charts open once ' + p.unlocksAfter + ' is cleared';
-    var cta = p.active
-      ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
-      : '<span class="planet-cta cta-locked">&#128274; Coming Soon</span>';
-    var inner =
-      '<div class="planet-card-body">' +
-        '<div class="planet-name">' + p.name + '</div>' +
-        '<div class="planet-blurb">' + p.blurb + '</div>' +
-        '<div class="planet-mission">' + missionLine + '</div>' +
-        cta +
-      '</div>' +
-      '<div class="planet-card-art"><img src="' + p.img + '" alt="' + p.name + '" class="planet-art-img"></div>';
-    return p.active
-      ? '<a class="planet-card active" style="--pc:' + p.pc + '" href="' + p.href + '">' + inner + '</a>'
-      : '<div class="planet-card locked" style="--pc:' + p.pc + '">' + inner + '</div>';
-  }).join('');
+  function renderPlanetsGrid(roadmap, stage1Done){
+    // The Loop's card names the first not-done-and-not-locked unit — same "what's next" logic
+    // the-loop.html's own hero CTA uses, since Units 1-9 no longer collapse to one canonical
+    // "in_progress" unit (they're all 'unlocked', browsable in any order).
+    var nextUnit = roadmap.find(function(u){ return (u.status === 'unlocked' || u.status === 'in_progress') && u.file; });
+    document.getElementById('planets-grid').innerHTML = PLANETS.map(function(p){
+      // Each locked planet names the ONE planet directly before it in the real unlock chain
+      // (Loop -> Core -> PyCraft -> Nova), not always "The Loop" -- PyCraft opens after The Core
+      // clears, and Nova opens after PyCraft clears, not straight off The Loop.
+      var missionLine = p.key === 'loop'
+        ? (nextUnit ? ('Unit ' + nextUnit.n + ' of 10 &middot; ' + nextUnit.title) : (stage1Done ? 'All missions cleared!' : ''))
+        : 'Charts open once ' + p.unlocksAfter + ' is cleared';
+      var cta = p.active
+        ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
+        : '<span class="planet-cta cta-locked">&#128274; Coming Soon</span>';
+      var inner =
+        '<div class="planet-card-body">' +
+          '<div class="planet-name">' + p.name + '</div>' +
+          '<div class="planet-blurb">' + p.blurb + '</div>' +
+          '<div class="planet-mission">' + missionLine + '</div>' +
+          cta +
+        '</div>' +
+        '<div class="planet-card-art"><img src="' + p.img + '" alt="' + p.name + '" class="planet-art-img"></div>';
+      return p.active
+        ? '<a class="planet-card active" style="--pc:' + p.pc + '" href="' + p.href + '">' + inner + '</a>'
+        : '<div class="planet-card locked" style="--pc:' + p.pc + '">' + inner + '</div>';
+    }).join('');
+  }
+
+  // Recomputes everything live-data-dependent (rank + rank strip + planets grid) from a real
+  // results list — called once at load (signed-out default: []) and again every time CodingAuth
+  // reports a sign-in/out, so the hero and planet cards never go stale.
+  function renderLiveData(resultsList){
+    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: resultsList });
+    var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
+    var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
+    currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0;
+    renderRankStrip();
+    renderPlanetsGrid(roadmap, stage1Done);
+  }
+  renderLiveData([]); // signed-out default, shown immediately before auth even resolves
 
   /* ============== hero reacts to real sign-in state ============== */
   document.getElementById('hero-signin-btn').onclick = function(){ CodingAuth.openAuth('signin'); };
   function updateHeroForAuth(state){
     var rankEl = document.getElementById('hero-rank');
-    var missionLog = document.getElementById('mission-log');
     var signinBtn = document.getElementById('hero-signin-btn');
     if (state.user){
-      rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
-      missionLog.style.display = 'inline-block';
       signinBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="2 12 6 12 8 6 12 16 14 9 16 12 18 12"/></svg>View My Progress';
       signinBtn.onclick = function(){ location.href = 'my-progress.html'; };
+      CodingAuth.fetchResults().then(function(rows){
+        renderLiveData(rows.map(function(r){ return { unit: r.unit_key }; }));
+        rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
+      });
     } else {
+      renderLiveData([]);
       rankEl.textContent = 'CADET';
-      missionLog.style.display = 'none';
       signinBtn.textContent = 'Sign In / Create Account';
       signinBtn.onclick = function(){ CodingAuth.openAuth('signin'); };
     }
