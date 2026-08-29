@@ -88,6 +88,7 @@
   .unit-row-status { font-size: .68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; flex-shrink: 0; }
   .unit-row-status.done { background: var(--success-tint); color: var(--success); }
   .unit-row-status.in_progress { background: var(--cyan-tint); color: var(--cyan); }
+  .unit-row-status.unlocked { background: var(--amber-tint); color: var(--amber); }
   .unit-row-status.locked { background: var(--locked-bg); color: var(--locked-text); }
   .unit-row-scores { width: 190px; flex-shrink: 0; text-align: right; font-size: .74rem; color: var(--ink-soft); }
   @media (max-width: 640px) { .unit-row { flex-wrap: wrap; } .unit-row-scores { width: auto; text-align: left; flex-basis: 100%; padding-left: 86px; } }
@@ -241,7 +242,7 @@
       var r = bestByUnit[u.n];
       var codingPct = r && r.concept_out_of ? Math.round(r.concept_score / r.concept_out_of * 100) : null;
       var lifePct = r && r.life_out_of ? Math.round(r.life_score / r.life_out_of * 100) : null;
-      var statusLabel = u.status === 'done' ? 'Done' : u.status === 'in_progress' ? 'Current' : 'Locked';
+      var statusLabel = u.status === 'done' ? 'Done' : u.status === 'in_progress' ? 'Current' : u.status === 'unlocked' ? 'Unlocked' : 'Locked';
       var scores = r
         ? (r.xp_earned + ' XP &middot; Coding ' + (codingPct === null ? '—' : codingPct + '%') + ' &middot; Life ' + (lifePct === null ? '—' : lifePct + '%'))
         : (u.status === 'locked' ? '—' : 'Not attempted yet');

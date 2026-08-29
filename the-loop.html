@@ -34,6 +34,7 @@
   .mission-status { font-size:.72rem; margin-top:auto; padding-top:6px; font-weight:700; }
   .mission-status.done { color: var(--success); }
   .mission-status.in_progress { color: var(--cyan); }
+  .mission-status.unlocked { color: var(--amber); }
   .mission-status.locked { color: var(--locked-text); }
 
   /* ---------------- light mode: "Cosmic Vibes" frame on every unlocked mission card (done or
@@ -152,12 +153,13 @@
   function cardHtml(u){
     var statusLabel = u.status === 'done' ? '&#10003; Done'
       : u.status === 'in_progress' ? '&#9679; Current'
+      : u.status === 'unlocked' ? '&#9654; Explore'
       : '&#128274; Locked';
     var inner =
       '<div class="mission-num">' + (u.n === 'M1' ? 'MILESTONE' : 'UNIT ' + u.n) + '</div>' +
       '<div class="mission-title">' + u.title + '</div>' +
       '<div class="mission-status ' + u.status + '">' + statusLabel + '</div>';
-    var clickable = u.file && (u.status === 'done' || u.status === 'in_progress');
+    var clickable = u.file && (u.status === 'done' || u.status === 'in_progress' || u.status === 'unlocked');
     return clickable
       ? '<a class="mission-card ' + u.status + '" href="' + u.file + '">' + inner + '</a>'
       : '<div class="mission-card ' + u.status + '">' + inner + '</div>';
@@ -181,7 +183,10 @@
     document.getElementById('roadmap-grid').innerHTML = roadmap.map(cardHtml).join('');
 
     heroBtn.onclick = null;
-    var currentUnit = roadmap.find(function(u){ return u.status === 'in_progress' && u.file; });
+    // Units 1-9 no longer collapse to one canonical "in_progress" unit (they're all 'unlocked'
+    // browsable at once) -- so the hero CTA picks the first not-yet-done, not-locked unit in
+    // roadmap order (an 'unlocked' unit 1-9, or the 'in_progress' Unit 10/M1 once all nine are done).
+    var currentUnit = roadmap.find(function(u){ return (u.status === 'unlocked' || u.status === 'in_progress') && u.file; });
     heroBtn.setAttribute('href', currentUnit ? currentUnit.file : '#roadmap-section');
   }
 

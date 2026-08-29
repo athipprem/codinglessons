@@ -34,13 +34,13 @@ var SPARK_CODING_DATA = {
       file: "theloop_units/unit_06_variables.html" },
     { n: 7,  title: "Custom Blocks",  concept: "Build a tool once, reuse it anywhere",
       life: "A skill learned once, reused forever (riding a bike)",
-      file: null },
+      file: "theloop_units/unit_07_custom_blocks.html" },
     { n: 8,  title: "Lists",          concept: "Tracking many values in order, not just one",
       life: "Rankings, a shopping list",
-      file: null },
+      file: "theloop_units/unit_08_lists.html" },
     { n: 9,  title: "Debugging",      concept: "Find *why* something's wrong, not just that it is",
       life: "Diagnosing a mistake — where exactly did the logic break?",
-      file: null },
+      file: "theloop_units/unit_09_debugging.html" },
     { n: 10, title: "Capstone Project", concept: "Combine everything (1–9) into one finished mini-game",
       life: "A small taste of Stage 3 — idea to finished, working thing",
       file: null },
@@ -54,15 +54,26 @@ var SPARK_CODING_DATA = {
   results: []
 };
 
+// Units 1-9 are all browsable any time, in any order, regardless of completion — "feel free to
+// browse and learn." Unit 10 (Capstone) and Milestone 1 stay locked until every one of Units 1-9
+// has a saved result; the moment that's true, whichever of the two isn't done yet becomes the
+// current "in_progress" pick (Unit 10 first, since M1 wraps up the whole stage after it).
 function computeSparkRoadmap(data){
   var doneSet = {};
   data.results.forEach(function(r){ doneSet[r.unit] = true; });
-  var unlockedNext = true;
+  var allNineDone = true;
+  for (var i = 1; i <= 9; i++) { if (!doneSet[i]) { allNineDone = false; break; } }
+  var gateUnlockedNext = true;
   return data.roadmap.map(function(u){
     var status;
-    if (doneSet[u.n]) { status = 'done'; }
-    else if (unlockedNext) { status = 'in_progress'; unlockedNext = false; }
-    else { status = 'locked'; }
+    if (doneSet[u.n]) {
+      status = 'done';
+    } else if (u.n === 10 || u.n === 'M1') {
+      if (allNineDone && gateUnlockedNext) { status = 'in_progress'; gateUnlockedNext = false; }
+      else { status = 'locked'; }
+    } else {
+      status = 'unlocked';
+    }
     var merged = {};
     for (var k in u) merged[k] = u[k];
     merged.status = status;
