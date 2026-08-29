@@ -35,6 +35,19 @@
   .mission-status.done { color: var(--success); }
   .mission-status.in_progress { color: var(--cyan); }
   .mission-status.locked { color: var(--locked-text); }
+
+  /* ---------------- light mode: "Cosmic Vibes" frame on every unlocked mission card (done or
+     in_progress) — same 5-color gradient-ring treatment as index.html's planet cards, so the
+     look is consistent across both pages. Locked cards are untouched (still dimmed/neutral).
+     in_progress keeps its cyan glow on top of the gradient so "current" still reads apart from
+     "done" at a glance. Index-only precedent from earlier this session; here on The Loop too. ---------------- */
+  html[data-theme="light"] .mission-card:not(.locked) {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, #483D8B 0%, #00BFFF 28%, #8A2BE2 52%, #FF8C00 76%, #FFD700 100%) border-box;
+  }
+  html[data-theme="light"] .mission-card.in_progress { box-shadow: 0 0 0 3px #38e6ee33; }
 </style>
 </head>
 <body>

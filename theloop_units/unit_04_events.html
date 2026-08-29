@@ -78,6 +78,20 @@
   button.ghost:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .transmission-tag { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); }
+  .tx-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tx-nav { display: flex; gap: 8px; }
+  .tx-nav-btn {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .tx-nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .tx-nav-btn:disabled { opacity: .35; cursor: default; }
+  #lastResultCard {
+    margin-top: 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg-panel); font-size: .86rem; color: var(--ink-soft); text-align: left;
+  }
+  #lastResultCard strong { color: var(--ink); }
   .dialogue { background: var(--bg-panel); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
   .dialogue .avatar { font-size: 26px; flex-shrink: 0; }
   .dialogue p { margin: 0 0 8px; }
@@ -257,13 +271,23 @@
       <h1>SPARK ACADEMY</h1>
       <div class="tagline">The Loop · Unit 04 · Event Protocol</div>
       <p style="color:var(--ink-soft); max-width: 46ch;">Not every mission can be planned start-to-finish in advance — some things happen when they happen, not on schedule. Rover-7 needs to react in the moment, not just follow a fixed plan. Command Control needs you to master the EVENT block: code that waits, then reacts.</p>
-      <button class="primary" id="beginBtn">Begin Training →</button>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="primary" id="beginBtn">Begin Training →</button>
+        <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
+      </div>
+      <div id="lastResultCard" style="display:none;"></div>
     </div>
   </section>
 
   <!-- TRANSMISSION 1 -->
   <section class="screen" id="scr-t1">
-    <div class="transmission-tag">Transmission 1 of 3</div>
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 1 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" disabled>◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">Next ▶</button>
+      </div>
+    </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
@@ -299,7 +323,13 @@
 
   <!-- TRANSMISSION 2 -->
   <section class="screen" id="scr-t2">
-    <div class="transmission-tag">Transmission 2 of 3</div>
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 2 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">Next ▶</button>
+      </div>
+    </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div><p><strong>COMMANDER:</strong> Time to wire one up for real. Click "🔔 Add Event" to place an ON SIGNAL BEACON block anywhere in your program, then add the steps you want Rover-7 to react with. Command Control won't accept this route unless that event actually fires during the run — so your path needs to genuinely pass over the beacon (📡). Patrol Platform Golf and reach the flag.</p></div>
@@ -331,7 +361,13 @@
 
   <!-- TRANSMISSION 3 -->
   <section class="screen" id="scr-t3">
-    <div class="transmission-tag">Transmission 3 of 3</div>
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 3 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+      </div>
+    </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div><p><strong>COMMANDER:</strong> Platform Hotel has a barrier, and there's another signal beacon out there too. Mix individual commands, loops, and your event handler however gets Rover-7 to the flag — but that event still has to actually fire.</p></div>
@@ -363,7 +399,13 @@
 
   <!-- FINAL SYSTEMS CHECK -->
   <section class="screen" id="scr-final">
-    <div class="transmission-tag">Final Systems Check</div>
+    <div class="tx-header">
+      <div class="transmission-tag">Final Systems Check</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" disabled>Next ▶</button>
+      </div>
+    </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Event Protocol as mastered.</p></div>
@@ -435,6 +477,56 @@
   let debriefed = false;
   const XP_TARGET = 100;
 
+  // ================= Review mode =================
+  let isReviewMode = false;
+  let savedRawPayload = null; // this unit's most recent saved raw_payload, once fetched
+
+  function checkForSavedResult() {
+    if (!window.CodingAuth || !CodingAuth.user || typeof CodingAuth.fetchResults !== 'function') return;
+    CodingAuth.fetchResults().then((results) => {
+      const mine = (results || []).find(r => String(r.unit_key) === '4');
+      if (mine && mine.raw_payload) {
+        savedRawPayload = mine.raw_payload;
+        document.getElementById('reviewBtn').style.display = '';
+        const card = document.getElementById('lastResultCard');
+        card.innerHTML = '<strong>Last result:</strong> XP ' + (mine.xp_earned || 0)
+          + ' · Concept quiz ' + mine.concept_score + '/' + mine.concept_out_of
+          + ' · Transfer check ' + mine.life_score + '/' + mine.life_out_of
+          + '<br>Mission 1: ' + (mine.mission1_succeeded ? '✅' : '—') + ' (' + mine.mission1_attempts + ' run' + (mine.mission1_attempts === 1 ? '' : 's') + ')'
+          + ' · Mission 2: ' + (mine.mission2_succeeded ? '✅' : '—') + ' (' + mine.mission2_attempts + ' run' + (mine.mission2_attempts === 1 ? '' : 's') + ')';
+        card.style.display = '';
+      }
+    });
+  }
+  if (window.CodingAuth && typeof CodingAuth.onChange === 'function') {
+    CodingAuth.onChange(() => checkForSavedResult());
+  }
+
+  function prefillReviewAnswers() {
+    if (!savedRawPayload || !savedRawPayload.quiz) return;
+    const q = savedRawPayload.quiz;
+    if (q.q1_answer !== undefined && q.q1_answer !== null) {
+      const input = document.querySelector('input[name="q1"][value="' + q.q1_answer + '"]');
+      if (input) input.checked = true;
+    }
+    if (q.q2_answer !== undefined && q.q2_answer !== null) {
+      const input = document.querySelector('input[name="q2"][value="' + q.q2_answer + '"]');
+      if (input) input.checked = true;
+    }
+    if (q.transfer_check && q.transfer_check.answers) {
+      Object.keys(q.transfer_check.answers).forEach((idx) => {
+        const val = q.transfer_check.answers[idx];
+        q3Answers[idx] = val;
+        const row = document.querySelector('.yn-row[data-idx="' + idx + '"]');
+        if (row) {
+          row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+          const btn = row.querySelector('.yn-btn[data-val="' + val + '"]');
+          if (btn) btn.classList.add(val === 'yes' ? 'selected-yes' : 'selected-no');
+        }
+      });
+    }
+  }
+
   function addXp(n) {
     xp += n;
     document.getElementById('hudXp').textContent = xp;
@@ -472,6 +564,13 @@
     document.getElementById('hudName').textContent = cadetName;
     document.getElementById('hud').classList.add('show');
     showScreen('scr-t1');
+  });
+
+  document.getElementById('reviewBtn').addEventListener('click', () => {
+    isReviewMode = true;
+    document.getElementById('finishBtn').textContent = '📡 Debrief';
+    prefillReviewAnswers();
+    document.getElementById('beginBtn').click();
   });
 
   // ================= Calibration: Spot the Event =================
@@ -1101,6 +1200,7 @@
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
+        q1_answer: q1.value, q2_answer: q2.value,
         transfer_check: { score: q3Score, out_of: q3OutOf, hits: q3Hits, misses: q3Misses, false_positives: q3FalsePositives, correct_rejections: q3CorrectRejections, answers: q3Answers, correct_set: Q3_CORRECT }
       }
     };
@@ -1112,28 +1212,31 @@
       + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
       + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
       + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
-    box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
-
-    // Results now save straight to the signed-in cadet's Supabase account — no more manual
-    // file download/drop. Once saved, the next unit unlocks automatically on The Loop.
-    CodingAuth.saveResult({
-      unit_key: '4',
-      unit_title: 'Events',
-      xp_earned: xp,
-      concept_score: conceptScore,
-      concept_out_of: 2,
-      life_score: q3Score,
-      life_out_of: q3OutOf,
-      mission1_succeeded: mission1.succeeded,
-      mission1_attempts: mission1.attempts,
-      mission2_succeeded: mission2.succeeded,
-      mission2_attempts: mission2.attempts,
-      raw_payload: rawPayload
-    }).then((res) => {
-      box.innerHTML = summaryHtml + (res.saved
-        ? '<br><br>✅ Saved to your account — check My Progress any time from the menu up top.'
-        : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
-    });
+    if (isReviewMode) {
+      box.innerHTML = summaryHtml + '<br><br>📋 Review mode — not saved (you already have a saved result for this unit).';
+    } else {
+      box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
+      // Results now save straight to the signed-in cadet's Supabase account — no more manual
+      // file download/drop. Once saved, the next unit unlocks automatically on The Loop.
+      CodingAuth.saveResult({
+        unit_key: '4',
+        unit_title: 'Events',
+        xp_earned: xp,
+        concept_score: conceptScore,
+        concept_out_of: 2,
+        life_score: q3Score,
+        life_out_of: q3OutOf,
+        mission1_succeeded: mission1.succeeded,
+        mission1_attempts: mission1.attempts,
+        mission2_succeeded: mission2.succeeded,
+        mission2_attempts: mission2.attempts,
+        raw_payload: rawPayload
+      }).then((res) => {
+        box.innerHTML = summaryHtml + (res.saved
+          ? '<br><br>✅ Saved to your account — check My Progress any time from the menu up top.'
+          : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
+      });
+    }
 
     const PREV_UNIT_FILE = 'unit_03_nested_loops.html';
     const NEXT_UNIT_FILE = 'unit_05_conditions.html';
