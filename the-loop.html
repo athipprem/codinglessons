@@ -169,7 +169,7 @@
       : u.status === 'unlocked' ? '&#9654; Explore'
       : '&#128274; Locked';
     var inner =
-      '<div class="mission-num">' + (u.n === 'M1' ? 'MILESTONE' : 'UNIT ' + u.n) + '</div>' +
+      '<div class="mission-num">' + (u.n === 'M1' ? 'MILESTONE' : u.n === 10 ? 'FINAL' : 'UNIT ' + u.n) + '</div>' +
       '<div class="mission-title">' + u.title + '</div>' +
       '<div class="mission-status ' + u.status + '">' + statusLabel + '</div>';
     var clickable = u.file && (u.status === 'done' || u.status === 'in_progress' || u.status === 'unlocked');
