@@ -299,11 +299,17 @@
       '<div class="auth-status" id="settings-status"></div>' +
 
       '<div class="section-title">Change Password</div>' +
-      '<div class="field"><label>Current Password</label><div class="pwd-wrap"><input type="password" id="pwd-current" placeholder="Enter your current password" autocomplete="current-password"><button type="button" class="eye-btn" id="eye-current" aria-label="Show password">' + EYE_ICON + '</button></div></div>' +
-      '<div class="field"><label>New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new" placeholder="Create a new password" autocomplete="new-password"><button type="button" class="eye-btn" id="eye-new" aria-label="Show password">' + EYE_ICON + '</button></div>' +
-      '<div class="field-hint">Must be at least 6 characters.</div></div>' +
-      '<div class="field"><label>Confirm New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new-confirm" placeholder="Re-enter your new password" autocomplete="new-password"><button type="button" class="eye-btn" id="eye-new-confirm" aria-label="Show password">' + EYE_ICON + '</button></div></div>' +
-      '<button class="btn-primary" id="pwd-save">Change Password</button>' +
+      (provider === 'google'
+        ? '<div class="field-hint">Signed in with Google — your password is managed by your Google account, so there\'s nothing to change here.</div>' +
+          '<div class="field"><label>Current Password</label><div class="pwd-wrap"><input type="password" id="pwd-current" placeholder="Managed by Google" disabled></div></div>' +
+          '<div class="field"><label>New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new" placeholder="Managed by Google" disabled></div></div>' +
+          '<div class="field"><label>Confirm New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new-confirm" placeholder="Managed by Google" disabled></div></div>' +
+          '<button class="btn-primary" id="pwd-save" disabled>Change Password</button>'
+        : '<div class="field"><label>Current Password</label><div class="pwd-wrap"><input type="password" id="pwd-current" placeholder="Enter your current password" autocomplete="current-password"><button type="button" class="eye-btn" id="eye-current" aria-label="Show password">' + EYE_ICON + '</button></div></div>' +
+          '<div class="field"><label>New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new" placeholder="Create a new password" autocomplete="new-password"><button type="button" class="eye-btn" id="eye-new" aria-label="Show password">' + EYE_ICON + '</button></div>' +
+          '<div class="field-hint">Must be at least 6 characters.</div></div>' +
+          '<div class="field"><label>Confirm New Password</label><div class="pwd-wrap"><input type="password" id="pwd-new-confirm" placeholder="Re-enter your new password" autocomplete="new-password"><button type="button" class="eye-btn" id="eye-new-confirm" aria-label="Show password">' + EYE_ICON + '</button></div></div>' +
+          '<button class="btn-primary" id="pwd-save">Change Password</button>') +
       '<div class="auth-status" id="pwd-status"></div>' +
 
       '<div class="section-title">Danger Zone</div>' +
