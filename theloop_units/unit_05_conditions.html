@@ -4,17 +4,17 @@
 <script>
   // Runs before first paint so the page never flashes the wrong theme on load.
   try {
-    if (localStorage.getItem('spark_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
   } catch (e) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spark Academy — Unit 5: Condition Protocol</title>
-<link rel="icon" type="image/png" href="../assets/spark_logo.png">
+<title>Flow Academy — Unit 5: Condition Protocol</title>
+<link rel="icon" type="image/png" href="../assets/flow_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../spark-academy.css">
+<link rel="stylesheet" href="../flow-academy.css">
 <style>
   :root {
     --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42;
@@ -46,7 +46,7 @@
   a { color: var(--cyan); }
   main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
 
-  /* ---------------- Spark Academy topbar ---------------- */
+  /* ---------------- Flow Academy topbar ---------------- */
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
   #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
@@ -235,7 +235,7 @@
 <main>
   <div id="topbar">
     <div class="topbar-left">
-      <a id="brand" href="../the-loop.html"><img src="../assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+      <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
       <button id="theme-toggle" type="button"></button>
@@ -259,7 +259,7 @@
       apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
       btn.addEventListener('click', function(){
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('spark_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
         apply(next);
       });
     })();
@@ -275,8 +275,8 @@
   <!-- BOOT -->
   <section class="screen active" id="scr-boot">
     <div class="boot-card">
-      <img class="logo" src="../assets/spark_logo.png" alt="Spark Academy logo">
-      <h1>SPARK ACADEMY</h1>
+      <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
+      <h1>FLOW ACADEMY</h1>
       <div class="tagline">The Loop · Unit 05 · Condition Protocol</div>
       <p style="color:var(--ink-soft); max-width: 46ch;">Every mission so far has followed a plan — written in advance, run top to bottom, maybe repeated, maybe reacting to a signal. But sometimes Rover-7 needs to make a real decision in the moment: check what's actually true right now, then choose what to do. Command Control needs you to master the IF block — branching logic, including combining two checks at once with AND or OR.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
@@ -464,14 +464,14 @@
     </div>
   </section>
 
-  <footer>Spark Academy · The Loop · Unit 5 of 10</footer>
+  <footer>Flow Academy · The Loop · Unit 5 of 10</footer>
 </main>
 
 <div id="modal-bg">
   <div class="modal" id="modal-content"></div>
 </div>
 
-<script>window.SPARK_BASE = '../';</script>
+<script>window.FLOW_BASE = '../';</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../coding-auth.js"></script>
 <script>

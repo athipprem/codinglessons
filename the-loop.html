@@ -4,17 +4,17 @@
 <script>
   // Runs before first paint so the page never flashes the wrong theme on load.
   try {
-    if (localStorage.getItem('spark_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
   } catch (e) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spark Academy — The Loop</title>
-<link rel="icon" type="image/png" href="assets/spark_logo.png">
+<title>Flow Academy — The Loop</title>
+<link rel="icon" type="image/png" href="assets/flow_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="spark-academy.css">
+<link rel="stylesheet" href="flow-academy.css">
 <style>
   /* ---------------- about blurb ---------------- */
   #about-section { max-width: 800px; margin: 0 auto 40px; text-align:center; }
@@ -53,15 +53,15 @@
 </head>
 <body>
 
-<section id="hero" role="img" aria-label="The Loop — Spark Academy's campus, and cadets working in the Loop Arena">
-  <div class="hero-bg-slide active" style="background-image:url('assets/spark_academy_theloop_1.jpg')"></div>
-  <div class="hero-bg-slide" style="background-image:url('assets/spark_academy_theloop_2.jpg')"></div>
+<section id="hero" role="img" aria-label="The Loop — Flow Academy's campus, and cadets working in the Loop Arena">
+  <div class="hero-bg-slide active" style="background-image:url('assets/flow_banner_theloop1.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/flow_banner_theloop2.jpg')"></div>
   <div id="hero-dots">
     <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
     <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
   </div>
   <div id="topnav">
-    <a id="brand" href="index.html"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+    <a id="brand" href="index.html"><img src="assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     <div style="display:flex; align-items:center; gap:10px;">
       <button id="theme-toggle" type="button"></button>
       <div id="acct-wrap">
@@ -84,13 +84,13 @@
       apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
       btn.addEventListener('click', function(){
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('spark_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
         apply(next);
       });
     })();
   </script>
   <div class="hero-inner">
-    <h1>SPARK ACADEMY<br><span class="accent">@ THE LOOP</span></h1>
+    <h1>FLOW ACADEMY<br><span class="accent">@ THE LOOP</span></h1>
     <div class="tagline" id="hero-tagline">Mission Log: Loading…</div>
     <div id="hero-ctas">
       <a class="cta-btn cta-primary" id="hero-enter-btn" href="#roadmap-section">&#128640; Enter Missions</a>
@@ -108,7 +108,7 @@
 
   <section id="roadmap-section">
     <div class="sec-title">MISSION ROADMAP</div>
-    <div class="sec-sub">Clear the platform by completing the first 9 units to unlock the Capstone Project and Milestone Test 1.</div>
+    <div class="sec-sub">Clear the platform by completing the first 9 units to unlock the Milestone Test 1 and Capstone Project.</div>
     <div id="roadmap-grid"></div>
   </section>
 
@@ -121,7 +121,7 @@
   <div class="modal" id="modal-content"></div>
 </div>
 
-<script src="spark_coding_data.js"></script>
+<script src="flow_coding_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="coding-auth.js"></script>
 <script>
@@ -144,7 +144,7 @@
     if (slides.length > 1) startAuto();
   })();
 
-  /* ============== mission roadmap grid — App Dev's own project data (spark_coding_data.js),
+  /* ============== mission roadmap grid — App Dev's own project data (flow_coding_data.js),
      separate from the legacy Code Cadet build under Lessons/. EVERY unit, including Unit 1,
      is locked until the cadet is actually signed in — signing in is what reveals real
      progression (Unit 1 unlocked by default, the rest per completed Supabase results). ============== */
@@ -182,7 +182,7 @@
   // is knowable (or unlockable) without an account. The hero CTA opens sign-in instead of
   // linking anywhere, since nothing is actually playable yet.
   function renderSignedOutLocked(){
-    var lockedRoadmap = SPARK_CODING_DATA.roadmap.map(function(u){ return { n: u.n, title: u.title, file: u.file, status: 'locked' }; });
+    var lockedRoadmap = FLOW_CODING_DATA.roadmap.map(function(u){ return { n: u.n, title: u.title, file: u.file, status: 'locked' }; });
     document.getElementById('roadmap-grid').innerHTML = lockedRoadmap.map(cardHtml).join('');
     updateMissionLogTagline(lockedRoadmap);
     heroBtn.setAttribute('href', '#');
@@ -191,8 +191,8 @@
 
   // Signed-in state: real computed roadmap from the cadet's actual Supabase results.
   function renderRoadmap(resultsList){
-    var data = { roadmap: SPARK_CODING_DATA.roadmap, results: resultsList };
-    var roadmap = computeSparkRoadmap(data);
+    var data = { roadmap: FLOW_CODING_DATA.roadmap, results: resultsList };
+    var roadmap = computeFlowRoadmap(data);
     document.getElementById('roadmap-grid').innerHTML = roadmap.map(cardHtml).join('');
     updateMissionLogTagline(roadmap);
 
@@ -209,7 +209,7 @@
     CodingAuth.onChange(function(state){
       if (state.user){
         CodingAuth.fetchResults().then(function(rows){
-          // fetchResults() returns raw coding_results rows — computeSparkRoadmap only needs { unit }
+          // fetchResults() returns raw coding_results rows — computeFlowRoadmap only needs { unit }
           renderRoadmap(rows.map(function(r){ return { unit: r.unit_key }; }));
         });
       } else {

@@ -4,17 +4,17 @@
 <script>
   // Runs before first paint so the page never flashes the wrong theme on load.
   try {
-    if (localStorage.getItem('spark_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
   } catch (e) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spark Academy — Mission Control</title>
-<link rel="icon" type="image/png" href="assets/spark_logo.png">
+<title>Flow Academy — Mission Control</title>
+<link rel="icon" type="image/png" href="assets/flow_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="spark-academy.css">
+<link rel="stylesheet" href="flow-academy.css">
 <style>
   /* ---------------- rank strip — peek carousel: center rank in focus, neighbors peeking left/right ---------------- */
   #rank-section { margin-bottom: 30px; }
@@ -101,15 +101,15 @@
 </head>
 <body>
 
-<section id="hero" role="img" aria-label="Spark Academy cadets at Mission Control with Rover-7 visible through the window">
-  <div class="hero-bg-slide active" style="background-image:url('assets/banner_cadet_class.jpg')"></div>
-  <div class="hero-bg-slide" style="background-image:url('assets/banner_twocadets.jpg')"></div>
+<section id="hero" role="img" aria-label="Flow Academy cadets at Mission Control with Rover-7 visible through the window">
+  <div class="hero-bg-slide active" style="background-image:url('assets/flow_banner_index1.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/flow_banner_index2.jpg')"></div>
   <div id="hero-dots">
     <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
     <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
   </div>
   <div id="topnav">
-    <div id="brand"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</div>
+    <div id="brand"><img src="assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</div>
     <div style="display:flex; align-items:center; gap:10px;">
       <button id="theme-toggle" type="button"></button>
       <div id="acct-wrap">
@@ -132,7 +132,7 @@
       apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
       btn.addEventListener('click', function(){
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('spark_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
         apply(next);
       });
     })();
@@ -175,7 +175,7 @@
   <div class="modal" id="modal-content"></div>
 </div>
 
-<script src="spark_coding_data.js"></script>
+<script src="flow_coding_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="coding-auth.js"></script>
 <script>
@@ -212,9 +212,9 @@
   })();
 
   /* ============== live data (unit status + rank) — App Dev's own project data
-     (spark_coding_data.js), same source the-loop.html already uses. Recomputed for real on
+     (flow_coding_data.js), same source the-loop.html already uses. Recomputed for real on
      every sign-in/out via renderLiveData(), not just once at load from the static (always-empty)
-     SPARK_CODING_DATA.results — that used to leave the hero rank and planet card permanently
+     FLOW_CODING_DATA.results — that used to leave the hero rank and planet card permanently
      stuck on Cadet/Unit 1 regardless of a signed-in cadet's real progress. ============== */
   var RANKS = [
     { name:'Cadet',      icon:'assets/badge_cadet.png',      blurb:'Starting rank. Follows exact instructions — the whole point of The Loop.' },
@@ -303,8 +303,11 @@
       // Each locked planet names the ONE planet directly before it in the real unlock chain
       // (Loop -> Core -> PyCraft -> Nova), not always "The Loop" -- PyCraft opens after The Core
       // clears, and Nova opens after PyCraft clears, not straight off The Loop.
+      var nextUnitLabel = nextUnit
+        ? (nextUnit.n === 'M1' ? nextUnit.title : ('Unit ' + nextUnit.n + ' of 10 &middot; ' + nextUnit.title))
+        : (stage1Done ? 'All missions cleared!' : '');
       var missionLine = p.key === 'loop'
-        ? (nextUnit ? ('Unit ' + nextUnit.n + ' of 10 &middot; ' + nextUnit.title) : (stage1Done ? 'All missions cleared!' : ''))
+        ? nextUnitLabel
         : 'Charts open once ' + p.unlocksAfter + ' is cleared';
       var cta = p.active
         ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
@@ -327,7 +330,7 @@
   // results list — called once at load (signed-out default: []) and again every time CodingAuth
   // reports a sign-in/out, so the hero and planet cards never go stale.
   function renderLiveData(resultsList){
-    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: resultsList });
+    var roadmap = computeFlowRoadmap({ roadmap: FLOW_CODING_DATA.roadmap, results: resultsList });
     var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
     var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
     currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0;

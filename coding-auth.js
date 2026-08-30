@@ -1,9 +1,9 @@
 /* ============================================================
-   Spark Academy — shared account script
+   Flow Academy — shared account script
    Include on every page, in this order:
-     <script>window.SPARK_BASE = '';</script>            <!-- '../' on pages one folder deep, e.g. theloop_units/ -->
+     <script>window.FLOW_BASE = '';</script>            <!-- '../' on pages one folder deep, e.g. theloop_units/ -->
      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-     <script src="coding-auth.js"></script>               <!-- (path-adjusted to match SPARK_BASE) -->
+     <script src="coding-auth.js"></script>               <!-- (path-adjusted to match FLOW_BASE) -->
 
    Each including page must provide, in its own HTML/CSS:
      #acct-wrap > #acct-btn (button) + #acct-menu (div)   — the widget mount, ALWAYS shown (signed-out
@@ -11,7 +11,7 @@
                                                              just pages with somewhere to sign in from)
      #modal-bg > #modal-content                            — the modal mount
      .modal / .field / .btn-primary / .btn-google /
-     .divider / .toggle-line / .auth-status                 — CSS classes (see spark-academy.css)
+     .divider / .toggle-line / .auth-status                 — CSS classes (see flow-academy.css)
      a global function closeModal() that hides #modal-bg and clears #modal-content
 
    Unit/lesson pages additionally get automatic sign-in gating for free: if the page has a
@@ -28,8 +28,8 @@
 (function(){
   var SUPABASE_URL = "https://jpkhghgjfipxooqzkezz.supabase.co";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwa2hnaGdqZmlweG9vcXprZXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NzYxOTMsImV4cCI6MjEwMzQ1MjE5M30.ICVbolTG7JRxdlNSkEDeVo6N2VwDv0GnpDrU5IcToqI";
-  var BASE = window.SPARK_BASE || '';
-  var PENDING_KEY = 'spark_pending_coding_result';
+  var BASE = window.FLOW_BASE || '';
+  var PENDING_KEY = 'flow_pending_coding_result';
   // Signed-out account badge icon — terminal prompt ("> _"), same line-icon family as the
   // account menu's icons below. Declared up here (not with the others further down) because the
   // no-Supabase fallback branch immediately below needs it too, before it would otherwise be defined.
@@ -276,7 +276,7 @@
   }
 
   /* ---------------- my profile modal (name, password, delete account) — same shape as
-     Science Quest's openProfileSettings(), restyled to Spark Academy's own tokens/classes.
+     Science Quest's openProfileSettings(), restyled to Flow Academy's own tokens/classes.
      Delete Account needs a server-side Edge Function (delete-account) since a user can't
      delete their own auth account from client-side JS — the client only re-verifies the
      password, then calls that function with the caller's access token. ---------------- */

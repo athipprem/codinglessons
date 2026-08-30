@@ -4,17 +4,17 @@
 <script>
   // Runs before first paint so the page never flashes the wrong theme on load.
   try {
-    if (localStorage.getItem('spark_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
   } catch (e) {}
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spark Academy — My Progress</title>
-<link rel="icon" type="image/png" href="assets/spark_logo.png">
+<title>Flow Academy — My Progress</title>
+<link rel="icon" type="image/png" href="assets/flow_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="spark-academy.css">
+<link rel="stylesheet" href="flow-academy.css">
 <style>
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 980px; margin: 0 auto; }
   #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
@@ -98,7 +98,7 @@
 <body>
 
 <div id="topbar">
-  <a id="brand" href="the-loop.html"><img src="assets/spark_logo.png" alt="Spark Academy logo" class="brand-logo"> Spark Academy</a>
+  <a id="brand" href="the-loop.html"><img src="assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
   <div style="display:flex; align-items:center; gap:10px;">
     <button id="theme-toggle" type="button"></button>
     <div id="acct-wrap">
@@ -121,7 +121,7 @@
     apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
     btn.addEventListener('click', function(){
       var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-      try { localStorage.setItem('spark_theme', next); } catch (e) {}
+      try { localStorage.setItem('flow_theme', next); } catch (e) {}
       apply(next);
     });
   })();
@@ -170,8 +170,8 @@
   <div class="modal" id="modal-content"></div>
 </div>
 
-<script>window.SPARK_BASE = '';</script>
-<script src="spark_coding_data.js"></script>
+<script>window.FLOW_BASE = '';</script>
+<script src="flow_coding_data.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="coding-auth.js"></script>
 <script>
@@ -204,7 +204,7 @@
   ];
 
   function renderRank(rows){
-    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
+    var roadmap = computeFlowRoadmap({ roadmap: FLOW_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
     var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
     var currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0;
     var rank = RANKS[currentRankIdx];
@@ -257,7 +257,7 @@
 
   function renderPlanetPerf(rows){
     var bestByUnit = bestAttempts(rows);
-    var roadmap = computeSparkRoadmap({ roadmap: SPARK_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
+    var roadmap = computeFlowRoadmap({ roadmap: FLOW_CODING_DATA.roadmap, results: rows.map(function(r){ return { unit: r.unit_key }; }) });
 
     var html = PLANETS.map(function(p, i){
       var rowId = 'planet-row-' + p.key;
