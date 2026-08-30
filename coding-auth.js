@@ -317,8 +317,11 @@
       '<div class="danger-box" id="del-box" style="display:none">' +
       '<label style="display:flex;align-items:flex-start;gap:8px;font-size:.78rem;color:var(--ink-soft);line-height:1.5;cursor:pointer;margin-bottom:12px">' +
       '<input type="checkbox" id="del-ack" style="margin-top:2px;flex-shrink:0">' +
-      '<span>I understand that this will permanently delete my account, display name, and all saved mission results. This action cannot be undone. Enter your password to confirm.</span></label>' +
-      '<div class="field"><label>Password</label><div class="pwd-wrap"><input type="password" id="del-pwd" placeholder="Enter your password" autocomplete="current-password"><button type="button" class="eye-btn" id="eye-del" aria-label="Show password">' + EYE_ICON + '</button></div></div>' +
+      '<span>I understand that this will permanently delete my account, display name, and all saved mission results. This action cannot be undone. ' +
+      (provider === 'google' ? 'Type DELETE below to confirm.' : 'Enter your password to confirm.') + '</span></label>' +
+      (provider === 'google'
+        ? '<div class="field"><label>Type DELETE to confirm</label><input type="text" id="del-confirm-text" placeholder="Type DELETE" autocomplete="off"></div>'
+        : '<div class="field"><label>Password</label><div class="pwd-wrap"><input type="password" id="del-pwd" placeholder="Enter your password" autocomplete="current-password"><button type="button" class="eye-btn" id="eye-del" aria-label="Show password">' + EYE_ICON + '</button></div></div>') +
       '<button class="btn-primary btn-danger" id="del-confirm">Permanently Delete My Account</button>' +
       '<div class="auth-status" id="del-status"></div>' +
       '</div>';
@@ -371,13 +374,50 @@
       box.style.display = box.style.display === 'none' ? 'block' : 'none';
     };
 
+    // Shared final step once the caller is confirmed (by password, for email accounts, or by
+    // typing DELETE, for Google accounts) -- the delete-account Edge Function itself authorizes
+    // purely off the caller's own valid session token (see its source), never a password, so
+    // either confirmation path is equally safe: both are just a client-side "are you sure"
+    // friction gate before the same server-side call.
+    function performAccountDeletion(statusEl, btn){
+      statusEl.textContent = 'Deleting your account...';
+      sb.auth.getSession().then(function(sesRes){
+        var session = sesRes.data && sesRes.data.session;
+        return fetch(SUPABASE_URL + '/functions/v1/delete-account', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + (session ? session.access_token : '') }
+        });
+      }).then(function(resp){
+        return resp.json().catch(function(){ return {}; }).then(function(result){
+          if (!resp.ok) throw new Error(result.error || 'Could not delete account.');
+          statusEl.textContent = 'Account deleted. Bye for now!'; statusEl.className = 'auth-status ok';
+          setTimeout(function(){
+            sb.auth.signOut().catch(function(){}).then(function(){
+              location.href = BASE + 'index.html';
+            });
+          }, 1200);
+        });
+      }).catch(function(e){
+        statusEl.textContent = (e && e.message) || 'Something went wrong.'; statusEl.className = 'auth-status err'; btn.disabled = false;
+      });
+    }
+
     document.getElementById('del-confirm').onclick = function(){
       var ack = document.getElementById('del-ack').checked;
-      var pwd = document.getElementById('del-pwd').value;
       var statusEl = document.getElementById('del-status');
       var btn = document.getElementById('del-confirm');
       statusEl.className = 'auth-status';
       if (!ack){ statusEl.textContent = 'Please tick the box to confirm you understand this deletes your account permanently.'; statusEl.className = 'auth-status err'; return; }
+
+      if (provider === 'google'){
+        var confirmText = document.getElementById('del-confirm-text').value.trim();
+        if (confirmText !== 'DELETE'){ statusEl.textContent = 'Type DELETE (all capitals) to confirm.'; statusEl.className = 'auth-status err'; return; }
+        btn.disabled = true;
+        performAccountDeletion(statusEl, btn);
+        return;
+      }
+
+      var pwd = document.getElementById('del-pwd').value;
       if (!pwd){ statusEl.textContent = 'Enter your password to confirm.'; statusEl.className = 'auth-status err'; return; }
       btn.disabled = true; statusEl.textContent = 'Verifying password...';
       var email = state.user.email;
@@ -386,26 +426,7 @@
           statusEl.textContent = 'Incorrect password.'; statusEl.className = 'auth-status err'; btn.disabled = false;
           return;
         }
-        statusEl.textContent = 'Deleting your account...';
-        return sb.auth.getSession().then(function(sesRes){
-          var session = sesRes.data && sesRes.data.session;
-          return fetch(SUPABASE_URL + '/functions/v1/delete-account', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + (session ? session.access_token : '') }
-          });
-        }).then(function(resp){
-          return resp.json().catch(function(){ return {}; }).then(function(result){
-            if (!resp.ok) throw new Error(result.error || 'Could not delete account.');
-            statusEl.textContent = 'Account deleted. Bye for now!'; statusEl.className = 'auth-status ok';
-            setTimeout(function(){
-              sb.auth.signOut().catch(function(){}).then(function(){
-                location.href = BASE + 'index.html';
-              });
-            }, 1200);
-          });
-        }).catch(function(e){
-          statusEl.textContent = (e && e.message) || 'Something went wrong.'; statusEl.className = 'auth-status err'; btn.disabled = false;
-        });
+        performAccountDeletion(statusEl, btn);
       });
     };
   }
