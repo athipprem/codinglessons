@@ -275,9 +275,6 @@
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
   .cell.goal { background: var(--success-tint); }
-  /* V2: E12 prediction gate (light form) -- the cell the cadet clicked before the first Run. */
-  .cell.predictable { cursor: pointer; }
-  .cell.predicted { outline: 3px solid var(--amber); outline-offset: -3px; }
   .rover {
     position: absolute;
     transform-origin: 50% 50%;
@@ -523,7 +520,15 @@
           btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
         });
       }
-      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      // The very first apply() call has this same early-parsing problem in a different way: even
+      // though it re-queries fresh (see above), if it fires INLINE right here it still only finds
+      // the main topbar's button, because that's all that exists yet -- so the two mission-screen
+      // buttons were shipping with no icon at all until the cadet toggled the theme once (which,
+      // being a real click, always happens after the whole page has parsed). Deferring this one
+      // startup call to DOMContentLoaded guarantees every .theme-toggle-btn already exists first.
+      document.addEventListener('DOMContentLoaded', function(){
+        apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      });
       document.addEventListener('click', function(e){
         var btn = e.target.closest && e.target.closest('.theme-toggle-btn');
         if (!btn) return;
@@ -616,7 +621,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Good calibration. Now guide Rover-7 across <strong>Platform Alpha</strong> to the flag. Steer with the direction pad — every press moves Rover-7 one cell, Up/Down/Left/Right, your point of view. Before you launch: click the cell where you think it'll finish — Command Control wants your call on record before you burn fuel. Then hit Run.</p></div>
+          <div><p><strong>COMMANDER:</strong> Good calibration. Now guide Rover-7 across <strong>Platform Alpha</strong> to the flag. Steer with the direction pad — every press moves Rover-7 one cell, Up/Down/Left/Right, your point of view. Build your sequence, then hit Run.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail" id="paletteWrap1">
@@ -666,7 +671,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Nice work, Cadet. Platform Bravo has a barrier down — you'll need to route around it. Same rules apply — call your landing cell before you run this one too.</p></div>
+          <div><p><strong>COMMANDER:</strong> Nice work, Cadet. Platform Bravo has a barrier down — you'll need to route around it.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail" id="paletteWrap2">
@@ -1119,33 +1124,8 @@
     let cellEls = [];
     let winningProgram = null; // V2 E15: snapshot of the program that just won, for "Watch Again"
 
-    // ---- V2 E12 (light form): prediction gate. Opt-in via cfg.predictionGate = { mode: 'cell' }.
-    // Before the first Run, the cadet must click the cell where he thinks Rover-7 will finish.
-    // It is recorded and compared to the actual outcome, but it never gates mission success.
-    let predictedCell = null;
-    let firstRunDone = false;
-    let predictionRecord = null;
-
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
-
-    function updateRunGate() {
-      if (cfg.predictionGate && cfg.predictionGate.mode === 'cell' && !firstRunDone) {
-        cfg.runBtn.disabled = !predictedCell;
-      }
-    }
-
-    function finalizeFirstRunIfNeeded() {
-      if (firstRunDone) return;
-      firstRunDone = true;
-      if (predictedCell) {
-        predictionRecord = {
-          predicted: { r: predictedCell.r, c: predictedCell.c },
-          actual: { r: state.r, c: state.c },
-          correct: predictedCell.r === state.r && predictedCell.c === state.c
-        };
-      }
-    }
 
     function buildGrid() {
       cfg.gridEl.innerHTML = '';
@@ -1161,18 +1141,6 @@
           if (r === mission.goal.r && c === mission.goal.c) {
             cell.classList.add('goal');
             cell.textContent = '🚩';
-          }
-          if (cfg.predictionGate && cfg.predictionGate.mode === 'cell') {
-            cell.classList.add('predictable');
-            cell.addEventListener('click', () => {
-              if (firstRunDone || running) return;
-              predictedCell = { r, c };
-              cellEls.forEach(row => row.forEach(ce => ce.classList.remove('predicted')));
-              cell.classList.add('predicted');
-              updateRunGate();
-              cfg.msgEl.textContent = '';
-              cfg.msgEl.className = 'mission-msg';
-            });
           }
           cellEls[r][c] = cell;
           cfg.gridEl.appendChild(cell);
@@ -1322,7 +1290,6 @@
 
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
-      if (cfg.predictionGate && cfg.predictionGate.mode === 'cell' && !firstRunDone && !predictedCell) return;
       running = true;
       attempts++;
       cfg.runBtn.disabled = true;
@@ -1340,19 +1307,15 @@
         if (!inBounds(nr, nc)) {
           cfg.msgEl.textContent = '🤖 SYSTEM ERROR: Rover drove off the platform edge.';
           cfg.msgEl.className = 'mission-msg bad';
-          finalizeFirstRunIfNeeded();
           running = false;
           cfg.runBtn.disabled = false;
-          updateRunGate();
           return;
         }
         if (isWall(nr, nc)) {
           cfg.msgEl.textContent = '🤖 COLLISION: Rover hit a barrier and stopped.';
           cfg.msgEl.className = 'mission-msg bad';
-          finalizeFirstRunIfNeeded();
           running = false;
           cfg.runBtn.disabled = false;
-          updateRunGate();
           return;
         }
         state.r = nr; state.c = nc;
@@ -1363,31 +1326,22 @@
       if (state.r === mission.goal.r && state.c === mission.goal.c) {
         succeeded = true;
         winningProgram = [...program];
-        finalizeFirstRunIfNeeded();
         celebrate();
       } else {
         cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
         cfg.msgEl.className = 'mission-msg bad';
-        finalizeFirstRunIfNeeded();
       }
       running = false;
       cfg.runBtn.disabled = false;
-      updateRunGate();
     });
 
     buildGrid();
     updateRoverPosition(false);
     renderProgram();
-    if (cfg.predictionGate && cfg.predictionGate.mode === 'cell') {
-      cfg.msgEl.textContent = '🎯 First — click the cell where you think Rover-7 will finish.';
-      cfg.msgEl.className = 'mission-msg';
-      updateRunGate();
-    }
 
     return {
       get succeeded() { return succeeded; },
-      get attempts() { return attempts; },
-      get prediction() { return predictionRecord; }
+      get attempts() { return attempts; }
     };
   }
 
@@ -1405,7 +1359,6 @@
     watchAgainBtn: document.getElementById('watchAgain1'),
     watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
-    predictionGate: { mode: 'cell' },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 reached the flag on Platform Alpha exactly as planned.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Alpha. That took some real troubleshooting, Cadet — nice recovery.',
@@ -1431,7 +1384,6 @@
     watchAgainBtn: document.getElementById('watchAgain2'),
     watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
-    predictionGate: { mode: 'cell' },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 routed around the barrier on Platform Bravo without a hitch.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Bravo. That barrier gave you a real fight, Cadet — well earned.',
@@ -1589,13 +1541,6 @@
     q3Box.innerHTML = q3Html;
     q3Box.classList.add('show');
 
-    function predictionLine(label, p) {
-      if (!p) return label + ': (no prediction recorded)';
-      if (p.correct) return label + ': ✅ called it';
-      const dist = Math.abs(p.predicted.r - p.actual.r) + Math.abs(p.predicted.c - p.actual.c);
-      return label + ': ❌ off by ' + dist + ' cell' + (dist === 1 ? '' : 's');
-    }
-
     const rawPayload = {
       mission_version: 2,
       unit_number: 1,
@@ -1609,10 +1554,6 @@
         calibration_attempts: calAttempts,
         mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts },
         mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts }
-      },
-      prediction: {
-        mission_1: mission1.prediction,
-        mission_2: mission2.prediction
       },
       quiz: {
         concept_score: conceptScore,
@@ -1633,8 +1574,7 @@
     const summaryHtml = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
       + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
       + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
-      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
-      + '<br>' + predictionLine('Prediction 1', mission1.prediction) + ' · ' + predictionLine('Prediction 2', mission2.prediction);
+      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
 
     if (isReviewMode) {
       // Review mode: this is a re-run of an already-saved unit, purely so the cadet can see what
