@@ -37,6 +37,21 @@
     --success-tint: #113526;
     --wall-bg: #3A1420;
     --star: rgba(233,236,255,0.5);
+
+    /* V2: vivid dark-mode accents -- reused verbatim from index.html's planet colors and the
+       rainbow gradient index.html/the-loop.html already use for their light-mode card borders
+       (Nova=#C77DFF purple, the gradient's #FF8C00 orange, Craft/--success=#4BE39A green), so
+       the palette stays on-brand instead of introducing new hues. Dark-mode only, guarded below
+       via html:not([data-theme="light"]) -- light mode's own palette is untouched. */
+    --purple: #C77DFF;
+    --purple-ink: #2B0E45;
+    --purple-tint: #241040;
+    --orange: #FF8C00;
+    --orange-ink: #3A1B00;
+    --orange-tint: #3A2000;
+    --green: #4BE39A;
+    --green-ink: #06281C;
+    --green-tint: #0F3324;
   }
 
   * { box-sizing: border-box; }
@@ -416,6 +431,81 @@
     .control-rail { flex: 0 0 auto; }
     .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
   }
+
+  /* ================= V2: vivid dark-mode palette redesign =================
+     Lui's call: dark mode leaned too hard on cyan + pale/washed-out tints. This mixes purple,
+     orange and green into the frames and the mission grids -- the same three accent colors
+     already established elsewhere (index.html's planet colors, the rainbow gradient index.html/
+     the-loop.html use for their light-mode card borders), reused verbatim rather than invented,
+     so it stays on-brand. Mission 1 (Platform Alpha) reads purple, Mission 2 (Platform Bravo)
+     reads orange -- two visually distinct "zones" instead of identical cyan twins -- and green
+     stays reserved for the goal cell / success feedback (it IS --success). Scoped to dark mode
+     only via html:not([data-theme="light"]) on every rule below -- light mode's palette (and
+     index.html/the-loop.html's own light-mode treatment) is completely untouched; Lui's
+     complaint was dark-mode specific. */
+  html:not([data-theme="light"]) .dialogue { border-left-color: var(--purple); }
+  html:not([data-theme="light"]) .panel {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, var(--purple) 0%, var(--cyan) 30%, var(--green) 55%, var(--orange) 80%, var(--amber) 100%) border-box;
+  }
+  /* Grid: goal + wall cells were low-opacity/pale on both missions -- richer fills, and the goal
+     cell gets a soft green glow instead of a flat tint. */
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
+    background: color-mix(in srgb, var(--green) 48%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
+    background: color-mix(in srgb, var(--danger) 48%, transparent);
+  }
+  /* Mission 1 (Platform Alpha) -- purple zone. */
+  html:not([data-theme="light"]) #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .transmission-tag { color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .dialogue { border-left-color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
+  html:not([data-theme="light"]) #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
+  }
+  html:not([data-theme="light"]) #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  html:not([data-theme="light"]) #scr-t2 .order-row.active-step { outline-color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  html:not([data-theme="light"]) #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  html:not([data-theme="light"]) #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  html:not([data-theme="light"]) #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  html:not([data-theme="light"]) #scr-t2 .stage-bg::before,
+  html:not([data-theme="light"]) #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  html:not([data-theme="light"]) #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  html:not([data-theme="light"]) #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+
+  /* Mission 2 (Platform Bravo) -- orange zone. */
+  html:not([data-theme="light"]) #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .transmission-tag { color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .dialogue { border-left-color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
+  html:not([data-theme="light"]) #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  }
+  html:not([data-theme="light"]) #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  html:not([data-theme="light"]) #scr-t3 .order-row.active-step { outline-color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  html:not([data-theme="light"]) #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  html:not([data-theme="light"]) #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  html:not([data-theme="light"]) #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  html:not([data-theme="light"]) #scr-t3 .stage-bg::before,
+  html:not([data-theme="light"]) #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  html:not([data-theme="light"]) #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  html:not([data-theme="light"]) #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
 
   /* life connection / quiz reuse */
   textarea {
