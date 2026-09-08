@@ -1,0 +1,1463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  // Runs before first paint so the page never flashes the wrong theme on load.
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — Unit 1: Sequence Protocol</title>
+<link rel="icon" type="image/png" href="../assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../flow-academy.css">
+<style>
+  :root {
+    /* Flow Academy design system — same tokens as flow-academy.css. These are the DARK-mode
+       values; flow-academy.css's html[data-theme="light"] rule overrides them all (higher
+       specificity than this plain :root) whenever the page's theme toggle switches to light. */
+    --bg: #0A0E1E;
+    --bg-raised: #131A33;
+    --bg-panel: #171F42;
+    --ink: #E9ECFF;
+    --ink-soft: #9AA3CC;
+    --line: #2B3560;
+    --cyan: #38E6EE;
+    --cyan-ink: #06282C;
+    --cyan-tint: #123138;
+    --amber: #FFC24B;
+    --amber-tint: #3A2B0E;
+    --danger: #FF6B7F;
+    --danger-tint: #3A1620;
+    --success: #4BE39A;
+    --success-tint: #113526;
+    --wall-bg: #3A1420;
+    --star: rgba(233,236,255,0.5);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1px 1px at 10% 20%, var(--star), transparent),
+      radial-gradient(1px 1px at 80% 10%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, var(--star), transparent),
+      radial-gradient(1px 1px at 60% 40%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 90% 80%, var(--star), transparent),
+      radial-gradient(1px 1px at 25% 85%, var(--star), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, .display { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+  a { color: var(--cyan); }
+
+  main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
+
+  /* ---------------- Flow Academy topbar (replaces the old plain text back-link) ---------------- */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
+  #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover { color: var(--cyan); }
+
+  /* HUD */
+  .hud {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    flex-wrap: wrap;
+  }
+  .hud.show { display: flex; }
+  .hud .cadet { color: var(--ink); font-weight: 600; }
+  .hud .xp { color: var(--amber); font-weight: 700; }
+  .hud .tx { margin-left: auto; }
+  .hud-bar { flex-basis: 100%; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .hud-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--success)); transition: width 0.5s ease; }
+
+  /* screens */
+  .screen { display: none; flex-direction: column; gap: 20px; }
+  .screen.active { display: flex; }
+
+  /* boot */
+  .boot-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 40px 28px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .boot-card .logo { height: 52px; width: auto; filter: drop-shadow(0 0 14px #38e6ee66); }
+  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .boot-card input {
+    font-family: inherit; font-size: 16px; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink);
+    width: 100%; max-width: 280px; text-align: center;
+  }
+  .boot-card label { font-size: 14px; color: var(--ink-soft); }
+
+  button.primary {
+    font-family: "Orbitron", sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    background: linear-gradient(135deg, var(--cyan), #1c8fa0);
+    color: var(--cyan-ink);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px #38e6ee33;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  button.ghost {
+    font-family: "Orbitron", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--line);
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+
+  /* dialogue */
+  .transmission-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .tx-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tx-nav { display: flex; gap: 8px; }
+  .tx-nav-btn {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .tx-nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .tx-nav-btn:disabled { opacity: .35; cursor: default; }
+  #lastResultCard {
+    margin-top: 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg-panel); font-size: .86rem; color: var(--ink-soft); text-align: left;
+  }
+  #lastResultCard strong { color: var(--ink); }
+  .dialogue {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--cyan);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .dialogue .avatar { font-size: 26px; flex-shrink: 0; }
+  .dialogue p { margin: 0 0 8px; }
+  .dialogue p:last-child { margin-bottom: 0; }
+
+  .panel {
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel h2 { font-size: 18px; color: var(--ink); }
+  .panel .sub { color: var(--ink-soft); font-size: 14.5px; }
+
+  .field-manual {
+    background: var(--amber-tint);
+    border-left: 4px solid var(--amber);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+  .field-manual h3 { font-size: 15px; margin-bottom: 6px; color: var(--ink); }
+  .field-manual ol { margin: 6px 0 0; padding-left: 20px; }
+  .field-manual li { margin: 4px 0; }
+
+  /* chips shared (calibration + program list) */
+  .chip-pool {
+    display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px;
+  }
+  .chip-order {
+    display: flex; flex-direction: column; gap: 8px; min-height: 40px;
+    padding: 10px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--line);
+  }
+  .step-chip, .cmd-chip {
+    font-size: 14px; padding: 8px 13px; border-radius: 10px;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink);
+    cursor: pointer; font-family: inherit;
+  }
+  .step-chip:hover, .cmd-chip:hover { border-color: var(--cyan); }
+  .step-chip.placed, .cmd-chip { background: var(--cyan-tint); border-color: var(--cyan); }
+  .cmd-chip.active-step { outline: 2px solid var(--amber); }
+  .num { font-family: "JetBrains Mono", monospace; font-weight: 700; margin-right: 6px; }
+  .empty-hint { color: var(--ink-soft); font-size: 13.5px; }
+
+  /* vertical, reorderable rows for placed/queued commands (calibration + missions) */
+  .order-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cyan-tint); border: 1.5px solid var(--cyan); border-radius: 10px;
+    padding: 7px 8px 7px 13px;
+  }
+  .order-row .order-label { flex: 1; font-size: 14px; text-align: left; }
+  .order-row .order-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .order-row .order-btns button {
+    font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+    width: 30px; height: 30px; padding: 0; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg-raised); color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .order-row .order-btns button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .order-row .order-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-row .order-btns button.remove:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+  .debrief-note {
+    display: none; background: var(--bg-panel); border-left: 3px solid var(--cyan);
+    border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--ink-soft);
+  }
+  .debrief-note.show { display: block; }
+  .debrief-note strong { color: var(--ink); }
+  .debrief-note ul { margin: 6px 0 0; padding-left: 20px; }
+  .debrief-note li { margin: 3px 0; }
+
+  .puzzle-actions, .mission-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .puzzle-msg, .mission-msg { font-size: 14.5px; font-weight: 600; min-height: 20px; }
+  .puzzle-msg.ok, .mission-msg.ok { color: var(--success); }
+  .puzzle-msg.bad, .mission-msg.bad { color: var(--danger); }
+
+  /* command palette */
+  .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .cmd-btn {
+    font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 14px;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink);
+    padding: 10px 16px; border-radius: 10px; cursor: pointer;
+  }
+  .cmd-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* V2: direction pad -- a turtle-mode alt input for Forward / Turn Left / Turn Right, added to
+     match the milestone test's preferred page layout while giving cadets a more intuitive steering
+     control alongside the labeled command buttons. It writes the exact same 'F'/'L'/'R' commands
+     via the same [data-cmd] click binding -- purely additive, no engine changes needed. */
+  .turnpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; }
+  .turnpad-btn { background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .turnpad-btn:hover { border-color: var(--cyan); }
+  .turnpad-btn:hover .turnpad-tri { background: var(--cyan); }
+  .turnpad-fwd { grid-column: 2; grid-row: 1; }
+  .turnpad-left { grid-column: 1; grid-row: 2; }
+  .turnpad-right { grid-column: 3; grid-row: 2; }
+  .turnpad-tri { display: block; width: 15px; height: 15px; background: var(--ink); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .turnpad-fwd .turnpad-tri { transform: rotate(0deg); }
+  .turnpad-left .turnpad-tri { transform: rotate(-90deg); }
+  .turnpad-right .turnpad-tri { transform: rotate(90deg); }
+
+  /* grid */
+  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
+  .grid {
+    position: relative;
+    display: grid;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .cell {
+    border: 1px solid var(--line);
+    background: var(--bg-raised);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.wall::after { content: "🚧"; font-size: 16px; }
+  .cell.goal { background: var(--success-tint); }
+  /* V2: E12 prediction gate (light form) -- the cell the cadet clicked before the first Run. */
+  .cell.predictable { cursor: pointer; }
+  .cell.predicted { outline: 3px solid var(--amber); outline-offset: -3px; }
+  .rover {
+    position: absolute;
+    transform-origin: 50% 50%;
+  }
+  .rover-shape {
+    width: 100%; height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 3px rgba(56,230,238,0.5));
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* life connection / quiz reuse */
+  textarea {
+    width: 100%; min-height: 70px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--bg-panel); color: var(--ink); font-family: inherit; font-size: 15px;
+    padding: 10px 12px; resize: vertical;
+  }
+  .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .quiz-q:first-of-type { border-top: none; padding-top: 0; }
+  .qtext { font-weight: 700; }
+  .choice {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px;
+    border-radius: 10px; border: 1px solid var(--line); cursor: pointer; background: var(--bg-panel);
+  }
+  .choice:hover { border-color: var(--cyan); }
+  .choice input { margin-top: 3px; accent-color: var(--cyan); }
+  .choice.correct { border-color: var(--success); background: var(--success-tint); }
+  .choice.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel);
+  }
+  .yn-text { flex: 1; }
+  .yn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .yn-btn {
+    font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.03em;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: transparent;
+    color: var(--ink-soft); cursor: pointer;
+  }
+  .yn-btn:hover { border-color: var(--cyan); color: var(--ink); }
+  .yn-btn.selected-yes { border-color: var(--cyan); background: var(--cyan-tint); color: var(--cyan); }
+  .yn-btn.selected-no { border-color: var(--ink-soft); background: var(--bg-raised); color: var(--ink); }
+  .yn-row.correct { border-color: var(--success); background: var(--success-tint); }
+  .yn-row.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row.correct .yn-btn.selected-yes, .yn-row.correct .yn-btn.selected-no { border-color: var(--success); background: transparent; color: var(--success); }
+  .yn-row.incorrect .yn-btn.selected-yes, .yn-row.incorrect .yn-btn.selected-no { border-color: var(--danger); background: transparent; color: var(--danger); }
+  .check-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .check-row:first-of-type { border-top: none; }
+  .check-row input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--success); flex-shrink: 0; }
+
+  .result-box { display: none; background: var(--success-tint); border-radius: 12px; padding: 16px 18px; font-size: 15px; }
+  .result-box.show { display: block; }
+  .result-box strong { font-family: "Orbitron", sans-serif; }
+  .post-debrief-nav { display: none; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .post-debrief-nav.show { display: flex; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
+
+  /* Reviewer nav -- always pinned bottom-right, lets Lui step through every screen (boot -> T1 ->
+     Mission 1 -> Mission 2 -> Final Systems Check) without playing either mission, for build review.
+     Independent of the cadet-facing "Review" feature above (isReviewMode / reviewBtn), which is a
+     real, auth-gated re-view of a saved result -- this is a build-time QA tool, always available. */
+  #reviewNav {
+    position: fixed; right: 16px; bottom: 16px; z-index: 100;
+    display: flex; align-items: center; gap: 10px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent); border: 1px solid var(--cyan); border-radius: 999px;
+    padding: 8px 10px 8px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+    font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink-soft);
+  }
+  #reviewNav button {
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink);
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  }
+  #reviewNav button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  #reviewNav button:disabled { opacity: .35; cursor: not-allowed; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="topbar">
+    <div class="topbar-left">
+      <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="theme-toggle" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      var btn = document.getElementById('theme-toggle');
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      btn.addEventListener('click', function(){
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        apply(next);
+      });
+    })();
+  </script>
+
+  <div class="hud" id="hud">
+    <span>CADET: <span class="cadet" id="hudName">—</span></span>
+    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span class="tx" id="hudTx">TRANSMISSION 1/3</span>
+    <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- BOOT -->
+  <section class="screen active" id="scr-boot">
+    <div class="boot-card">
+      <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
+      <h1>FLOW ACADEMY</h1>
+      <div class="tagline">The Loop · Unit 01 · Sequence Protocol</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Command Rover-7 is stranded on a research platform. It only follows exact instructions, in exact order. Command Control needs a cadet to guide it home.</p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="primary" id="beginBtn">Begin Training →</button>
+        <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
+      </div>
+      <div id="lastResultCard" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 1 -->
+  <section class="screen" id="scr-t1">
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 1 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" disabled>◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div>
+        <p><strong>COMMANDER:</strong> Listen up, Cadet. Rover-7 does not guess — it runs the <em>exact</em> commands you give it, in the <em>exact</em> order you give them. Nothing more, nothing assumed.</p>
+        <p>You already know this feeling: in a math competition, using the right method in the wrong order still gets the wrong answer. Same rule out here. One bad order and the mission's over.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Calibration Test: Refuel the Rover</h2>
+      <p class="sub">Before launch, prove you understand exact-order thinking. Click the steps below, in the order they need to happen — they'll stack up in your sequence underneath. Click a step in your sequence to take it back out.</p>
+      <div class="chip-pool" id="calPool"></div>
+      <div class="chip-order" id="calOrder"></div>
+      <div class="puzzle-actions">
+        <button class="primary" id="calCheckBtn">Run Calibration</button>
+        <button class="ghost" id="calResetBtn">Reset</button>
+      </div>
+      <p class="puzzle-msg" id="calMsg"></p>
+    </div>
+
+    <div class="field-manual" id="fieldManual" style="display:none;">
+      <h3>📖 Field Manual: SEQUENCE</h3>
+      <p>A list of exact steps, done in a specific order, is called a <strong>sequence</strong>. Two rules to remember:</p>
+      <ol>
+        <li><strong>Order matters.</strong> Swap two steps, get a different — or broken — result.</li>
+        <li><strong>Nothing is assumed.</strong> If you didn't command it, it didn't happen.</li>
+      </ol>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toT2Btn" disabled>Continue to Transmission 2 →</button>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 2 -->
+  <section class="screen" id="scr-t2">
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 2 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Good calibration. Now guide Rover-7 across <strong>Platform Alpha</strong> to the flag. Steer it with the direction pad or the command buttons — either one builds the same sequence. Before you launch: click the cell where you think Rover-7 will finish — Command Control wants your call on record before you burn fuel. Then hit Run. Watch closely — if it drives off the edge, you'll need to reset and try again.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Mission 1 · Platform Alpha</h2>
+      <div class="cmd-palette" id="palette1">
+        <div class="turnpad">
+          <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
+          <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
+          <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+        </div>
+        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+      </div>
+      <div class="chip-order" id="prog1"></div>
+      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div></div>
+      <div class="mission-actions">
+        <button class="primary" id="run1">▶ Run Program</button>
+        <button class="ghost" id="reset1">Reset Rover</button>
+        <button class="ghost" id="clear1">Clear Program</button>
+      </div>
+      <p class="mission-msg" id="msg1"></p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 3 -->
+  <section class="screen" id="scr-t3">
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 3 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Nice work, Cadet. Platform Bravo has a barrier down — you'll need to route around it. Same rules apply — call your landing cell before you run this one too.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Mission 2 · Platform Bravo</h2>
+      <div class="cmd-palette" id="palette2">
+        <div class="turnpad">
+          <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
+          <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
+          <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+        </div>
+        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+      </div>
+      <div class="chip-order" id="prog2"></div>
+      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div></div>
+      <div class="mission-actions">
+        <button class="primary" id="run2">▶ Run Program</button>
+        <button class="ghost" id="reset2">Reset Rover</button>
+        <button class="ghost" id="clear2">Clear Program</button>
+      </div>
+      <p class="mission-msg" id="msg2"></p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
+    </div>
+  </section>
+
+  <!-- FINAL SYSTEMS CHECK -->
+  <section class="screen" id="scr-final">
+    <div class="tx-header">
+      <div class="transmission-tag">Final Systems Check</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" disabled>Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Last step, Cadet. Command Control needs to confirm this is locked in before the mission gets logged as complete.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Final Systems Check</h2>
+      <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
+
+      <div class="quiz-q" data-qid="q1">
+        <div class="qtext">1. In coding, what does SEQUENCE mean? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">Steps you can do in whatever order feels right</label>
+        <label class="choice"><input type="radio" name="q1" value="1">Exact steps, done one after another in a specific order</label>
+        <label class="choice"><input type="radio" name="q1" value="2">A block that repeats the same steps over and over</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A word that only means something inside Scratch</label>
+        <div class="debrief-note" id="explainQ1"></div>
+      </div>
+      <div class="quiz-q" data-qid="q2">
+        <div class="qtext">2. Someone commands Rover-7: 1) Lower the wheels 2) Exit the landing pod 3) Unlock the hatch. What happens? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">A smooth exit — the order doesn't matter here</label>
+        <label class="choice"><input type="radio" name="q2" value="1">Rover-7 tries to exit through a hatch that's still locked, with the wheels not even down yet — the sequence fails</label>
+        <label class="choice"><input type="radio" name="q2" value="2">Nothing changes — order never actually matters</label>
+        <label class="choice"><input type="radio" name="q2" value="3">The rover automatically fixes the order by itself</label>
+        <div class="debrief-note" id="explainQ2"></div>
+      </div>
+      <div class="quiz-q" data-qid="q3">
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: if you did these steps in the WRONG order, would it actually cause a real problem?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Putting on your socks before your shoes</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">Choosing which color marker to use first when coloring a picture</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Saving your game before turning off the console</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Deciding whether to pet the cat or the dog first when you get home</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Preheating the oven before putting in the cookies</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="debrief-note" id="explainQ3"></div>
+      </div>
+
+      <div class="mission-actions" style="flex-direction:column; align-items:flex-start;">
+        <button class="primary" id="finishBtn">📡 Debrief &amp; Save Results</button>
+        <p class="puzzle-msg" id="finishMsg"></p>
+        <div class="result-box" id="resultBox"></div>
+        <div class="post-debrief-nav" id="postDebriefNav">
+          <button class="ghost" onclick="location.href='../the-loop.html'">🏠 Back to The Loop</button>
+          <button class="ghost" id="prevUnitBtn" style="display:none">⬅ Previous Unit</button>
+          <button class="ghost" id="nextUnitBtn" style="display:none">Next Unit ➡</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Flow Academy · The Loop · Unit 1 of 10</footer>
+</main>
+
+<!-- Reviewer nav: steps through every screen in order (boot -> T1 -> Mission 1 -> Mission 2 ->
+     Final Systems Check) without needing to actually solve either mission -- build-review only. -->
+<div id="reviewNav">
+  <button id="reviewPrevBtn" type="button">◀ Prev Pg</button>
+  <span id="reviewPageLabel">1 / 5</span>
+  <button id="reviewNextBtn" type="button">Next Pg ▶</button>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>window.FLOW_BASE = '../';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+<script>
+  // ================= State =================
+  let cadetName = 'Cadet';
+  let xp = 0;
+  let debriefed = false;
+  const XP_TARGET = 100;
+
+  // ================= Review mode (cadet-facing, auth-gated -- unchanged from V1) =================
+  // If this cadet already has a saved result for this unit, show a Review button beside
+  // Begin Training. Review runs the exact same screens (nothing is locked/read-only) but:
+  // (1) the Final Systems Check pre-fills his previous picks so he can see what he answered,
+  // (2) the Debrief button reads "Debrief" only (no "& Save Results") and skips the actual
+  // Supabase save, so reviewing never overwrites or duplicates the real saved result.
+  let isReviewMode = false;
+  let savedRawPayload = null; // this unit's most recent saved raw_payload, once fetched
+
+  function checkForSavedResult() {
+    if (!window.CodingAuth || !CodingAuth.user || typeof CodingAuth.fetchResults !== 'function') return;
+    CodingAuth.fetchResults().then((results) => {
+      const mine = (results || []).find(r => String(r.unit_key) === '1');
+      if (mine && mine.raw_payload) {
+        savedRawPayload = mine.raw_payload;
+        document.getElementById('reviewBtn').style.display = '';
+        // Show his last saved result right on the boot screen — the mission grids don't get
+        // re-run in review mode, so this is the one place the real saved mission history (not
+        // just the quiz) is visible without needing Supabase access of your own.
+        const card = document.getElementById('lastResultCard');
+        card.innerHTML = '<strong>Last result:</strong> XP ' + (mine.xp_earned || 0)
+          + ' · Concept quiz ' + mine.concept_score + '/' + mine.concept_out_of
+          + ' · Transfer check ' + mine.life_score + '/' + mine.life_out_of
+          + '<br>Mission 1: ' + (mine.mission1_succeeded ? '✅' : '—') + ' (' + mine.mission1_attempts + ' run' + (mine.mission1_attempts === 1 ? '' : 's') + ')'
+          + ' · Mission 2: ' + (mine.mission2_succeeded ? '✅' : '—') + ' (' + mine.mission2_attempts + ' run' + (mine.mission2_attempts === 1 ? '' : 's') + ')';
+        card.style.display = '';
+      }
+    });
+  }
+  if (window.CodingAuth && typeof CodingAuth.onChange === 'function') {
+    CodingAuth.onChange(() => checkForSavedResult());
+  }
+
+  function prefillReviewAnswers() {
+    if (!savedRawPayload || !savedRawPayload.quiz) return;
+    const q = savedRawPayload.quiz;
+    // Q1 / Q2 — only pre-fillable for results saved after this feature shipped (older saved
+    // results only recorded correct/incorrect, not which option was picked).
+    if (q.q1_answer !== undefined && q.q1_answer !== null) {
+      const input = document.querySelector('input[name="q1"][value="' + q.q1_answer + '"]');
+      if (input) input.checked = true;
+    }
+    if (q.q2_answer !== undefined && q.q2_answer !== null) {
+      const input = document.querySelector('input[name="q2"][value="' + q.q2_answer + '"]');
+      if (input) input.checked = true;
+    }
+    // Q3 — always available (the full per-item YES/NO breakdown has been saved from the start).
+    if (q.transfer_check && q.transfer_check.answers) {
+      Object.keys(q.transfer_check.answers).forEach((idx) => {
+        const val = q.transfer_check.answers[idx];
+        q3Answers[idx] = val;
+        const row = document.querySelector('.yn-row[data-idx="' + idx + '"]');
+        if (row) {
+          row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+          const btn = row.querySelector('.yn-btn[data-val="' + val + '"]');
+          if (btn) btn.classList.add(val === 'yes' ? 'selected-yes' : 'selected-no');
+        }
+      });
+    }
+  }
+
+  function addXp(n) {
+    xp += n;
+    document.getElementById('hudXp').textContent = xp;
+    document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    if (typeof syncReviewNav === 'function') syncReviewNav(id);
+  }
+
+  // ================= Reviewer nav: step through every screen without playing (build QA only) =================
+  const REVIEW_SCREENS = ['scr-boot', 'scr-t1', 'scr-t2', 'scr-t3', 'scr-final'];
+  function syncReviewNav(activeId) {
+    const idx = REVIEW_SCREENS.indexOf(activeId);
+    const label = document.getElementById('reviewPageLabel');
+    const prevBtn = document.getElementById('reviewPrevBtn');
+    const nextBtn = document.getElementById('reviewNextBtn');
+    if (!label || !prevBtn || !nextBtn) return;
+    label.textContent = (idx === -1 ? '?' : idx + 1) + ' / ' + REVIEW_SCREENS.length;
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx === -1 || idx >= REVIEW_SCREENS.length - 1;
+  }
+  document.getElementById('reviewPrevBtn').addEventListener('click', () => {
+    document.getElementById('hud').classList.add('show');
+    const idx = REVIEW_SCREENS.indexOf(document.querySelector('.screen.active').id);
+    if (idx > 0) showScreen(REVIEW_SCREENS[idx - 1]);
+  });
+  document.getElementById('reviewNextBtn').addEventListener('click', () => {
+    document.getElementById('hud').classList.add('show');
+    const idx = REVIEW_SCREENS.indexOf(document.querySelector('.screen.active').id);
+    if (idx !== -1 && idx < REVIEW_SCREENS.length - 1) showScreen(REVIEW_SCREENS[idx + 1]);
+  });
+  syncReviewNav('scr-boot');
+
+  // ================= Load-time randomization =================
+  // Reshuffle quiz answer order so answers can't be memorized by screen position.
+  // NOTE: the command palette (Forward / Turn Left / Turn Right / ...) is deliberately NOT shuffled —
+  // it's a fixed toolbar, same order every load and every unit, so cadets build muscle memory for the
+  // tool itself instead of re-reading button positions each time. Keep this order standing for future units.
+  function shuffleDomChildren(container, selector, anchor) {
+    const items = Array.from(container.querySelectorAll(selector));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    items.forEach(el => container.insertBefore(el, anchor || null));
+  }
+  document.querySelectorAll('.quiz-q').forEach(q => {
+    shuffleDomChildren(q, '.choice, .yn-row', q.querySelector('.debrief-note'));
+  });
+
+  // ================= Boot =================
+  // No name field — the cadet must be signed in (coding-auth.js disables this button and shows
+  // a "Sign In" note until then), so the name comes straight from the real account profile.
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    if (!window.CodingAuth || !CodingAuth.user) { CodingAuth && CodingAuth.openAuth('signin'); return; }
+    cadetName = CodingAuth.displayName || 'Cadet';
+    document.getElementById('hudName').textContent = cadetName;
+    document.getElementById('hud').classList.add('show');
+    showScreen('scr-t1');
+  });
+
+  document.getElementById('reviewBtn').addEventListener('click', () => {
+    isReviewMode = true;
+    document.getElementById('finishBtn').textContent = '📡 Debrief';
+    prefillReviewAnswers();
+    document.getElementById('beginBtn').click();
+  });
+
+  // ================= Calibration puzzle (Transmission 1) =================
+  const CAL_STEPS_BASE = [
+    { id: 1, text: 'Open the fuel hatch' },
+    { id: 2, text: 'Insert the fuel cell' },
+    { id: 3, text: 'Close the hatch' },
+    { id: 4, text: 'Press ignition' },
+  ];
+  const CAL_CORRECT = [1, 2, 3, 4];
+  let calPlaced = [];
+  let calSolved = false;
+  let calAttempts = 0;
+  let CAL_STEPS = [];
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function renderCal() {
+    const pool = document.getElementById('calPool');
+    const order = document.getElementById('calOrder');
+    pool.innerHTML = '';
+    order.innerHTML = '';
+
+    CAL_STEPS.filter(s => !calPlaced.includes(s.id)).forEach(s => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'step-chip';
+      btn.textContent = s.text;
+      btn.addEventListener('click', () => { calPlaced.push(s.id); renderCal(); });
+      pool.appendChild(btn);
+    });
+
+    if (calPlaced.length === 0) {
+      const hint = document.createElement('span');
+      hint.className = 'empty-hint';
+      hint.textContent = 'Click steps above, in order, to place them here.';
+      order.appendChild(hint);
+    }
+    calPlaced.forEach((id, idx) => {
+      const s = CAL_STEPS.find(x => x.id === id);
+      const row = document.createElement('div');
+      row.className = 'order-row';
+      const label = document.createElement('span');
+      label.className = 'order-label';
+      label.innerHTML = '<span class="num">' + (idx + 1) + '.</span>' + s.text;
+      row.appendChild(label);
+
+      const btns = document.createElement('div');
+      btns.className = 'order-btns';
+      const upBtn = document.createElement('button');
+      upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+      upBtn.disabled = idx === 0;
+      upBtn.addEventListener('click', () => {
+        [calPlaced[idx - 1], calPlaced[idx]] = [calPlaced[idx], calPlaced[idx - 1]];
+        renderCal();
+      });
+      const downBtn = document.createElement('button');
+      downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+      downBtn.disabled = idx === calPlaced.length - 1;
+      downBtn.addEventListener('click', () => {
+        [calPlaced[idx + 1], calPlaced[idx]] = [calPlaced[idx], calPlaced[idx + 1]];
+        renderCal();
+      });
+      const rmBtn = document.createElement('button');
+      rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
+      rmBtn.addEventListener('click', () => { calPlaced = calPlaced.filter(x => x !== id); renderCal(); });
+
+      btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+      row.appendChild(btns);
+      order.appendChild(row);
+    });
+  }
+
+  document.getElementById('calCheckBtn').addEventListener('click', () => {
+    const msg = document.getElementById('calMsg');
+    if (calPlaced.length < CAL_STEPS.length) {
+      msg.textContent = 'Place all four steps first.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    calAttempts++;
+    const correct = calPlaced.every((id, i) => id === CAL_CORRECT[i]);
+    if (correct) {
+      calSolved = true;
+      msg.textContent = '✅ Calibration successful. Rover-7 is fueled and ready.';
+      msg.className = 'puzzle-msg ok';
+      document.getElementById('fieldManual').style.display = 'block';
+      document.getElementById('toT2Btn').disabled = false;
+      addXp(10);
+    } else {
+      const insertIdx = calPlaced.indexOf(2);
+      const openIdx = calPlaced.indexOf(1);
+      const closeIdx = calPlaced.indexOf(3);
+      const igniteIdx = calPlaced.indexOf(4);
+      if (insertIdx < openIdx) {
+        msg.textContent = '🤖 ERROR: Fuel cell bounces off the sealed hatch.';
+      } else if (igniteIdx < closeIdx) {
+        msg.textContent = '🤖 ERROR: Ignition triggered with the hatch wide open — Command Control aborts immediately!';
+      } else {
+        msg.textContent = "Not quite — that sequence doesn't power up the rover. Try again.";
+      }
+      msg.className = 'puzzle-msg bad';
+    }
+  });
+
+  document.getElementById('calResetBtn').addEventListener('click', () => {
+    calPlaced = [];
+    renderCal();
+    const msg = document.getElementById('calMsg');
+    msg.textContent = '';
+    msg.className = 'puzzle-msg';
+  });
+
+  CAL_STEPS = shuffle(CAL_STEPS_BASE);
+  renderCal();
+
+  document.getElementById('toT2Btn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'TRANSMISSION 2/3';
+    showScreen('scr-t2');
+  });
+  document.getElementById('toT3Btn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'TRANSMISSION 3/3';
+    showScreen('scr-t3');
+  });
+  document.getElementById('toFinalBtn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'FINAL SYSTEMS CHECK';
+    showScreen('scr-final');
+  });
+
+  // ================= Rover game engine =================
+  const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
+  const ROT = { N: 0, E: 90, S: 180, W: 270 };
+  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
+  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
+
+  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+  // Reshuffle each mission's destination cell on every load (walls/start stay put — only the goal moves),
+  // so the flag isn't always in the same corner from a past run. BFS guarantees the new goal is reachable.
+  function bfsReachable(mission) {
+    const key = (r, c) => r + ',' + c;
+    const visited = new Set([key(mission.start.r, mission.start.c)]);
+    const queue = [[mission.start.r, mission.start.c]];
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([nr, nc]) => {
+        if (nr < 0 || nr >= mission.rows || nc < 0 || nc >= mission.cols) return;
+        if (mission.walls.some(w => w.r === nr && w.c === nc)) return;
+        const k = key(nr, nc);
+        if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
+      });
+    }
+    return visited;
+  }
+  function randomizeGoal(mission, minDist) {
+    const reachable = bfsReachable(mission);
+    const candidates = [];
+    reachable.forEach(k => {
+      const [r, c] = k.split(',').map(Number);
+      if (r === mission.start.r && c === mission.start.c) return;
+      if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
+      candidates.push({ r, c });
+    });
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
+  }
+
+  function createRoverGame(cfg) {
+    const mission = cfg.mission;
+    let program = [];
+    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+    let running = false;
+    let succeeded = false;
+    let attempts = 0;
+    let cellEls = [];
+
+    // ---- V2 E12 (light form): prediction gate. Opt-in via cfg.predictionGate = { mode: 'cell' }.
+    // Before the first Run, the cadet must click the cell where he thinks Rover-7 will finish.
+    // It is recorded and compared to the actual outcome, but it never gates mission success.
+    let predictedCell = null;
+    let firstRunDone = false;
+    let predictionRecord = null;
+
+    function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
+    function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+
+    function updateRunGate() {
+      if (cfg.predictionGate && cfg.predictionGate.mode === 'cell' && !firstRunDone) {
+        cfg.runBtn.disabled = !predictedCell;
+      }
+    }
+
+    function finalizeFirstRunIfNeeded() {
+      if (firstRunDone) return;
+      firstRunDone = true;
+      if (predictedCell) {
+        predictionRecord = {
+          predicted: { r: predictedCell.r, c: predictedCell.c },
+          actual: { r: state.r, c: state.c },
+          correct: predictedCell.r === state.r && predictedCell.c === state.c
+        };
+      }
+    }
+
+    function buildGrid() {
+      cfg.gridEl.innerHTML = '';
+      cellEls = [];
+      cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
+      cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
+      for (let r = 0; r < mission.rows; r++) {
+        cellEls[r] = [];
+        for (let c = 0; c < mission.cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (isWall(r, c)) cell.classList.add('wall');
+          if (r === mission.goal.r && c === mission.goal.c) {
+            cell.classList.add('goal');
+            cell.textContent = '🚩';
+          }
+          if (cfg.predictionGate && cfg.predictionGate.mode === 'cell') {
+            cell.classList.add('predictable');
+            cell.addEventListener('click', () => {
+              if (firstRunDone || running) return;
+              predictedCell = { r, c };
+              cellEls.forEach(row => row.forEach(ce => ce.classList.remove('predicted')));
+              cell.classList.add('predicted');
+              updateRunGate();
+              cfg.msgEl.textContent = '';
+              cfg.msgEl.className = 'mission-msg';
+            });
+          }
+          cellEls[r][c] = cell;
+          cfg.gridEl.appendChild(cell);
+        }
+      }
+      cfg.gridEl.appendChild(cfg.roverEl);
+    }
+
+    function updateRoverPosition(animate) {
+      const x = state.c * mission.cellPx + mission.cellPx * 0.15;
+      const y = state.r * mission.cellPx + mission.cellPx * 0.15;
+      cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.left = x + 'px';
+      cfg.roverEl.style.top = y + 'px';
+      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
+    }
+
+    function renderProgram() {
+      cfg.programListEl.innerHTML = '';
+      if (program.length === 0) {
+        const span = document.createElement('span');
+        span.className = 'empty-hint';
+        span.textContent = 'Add commands from the panel above.';
+        cfg.programListEl.appendChild(span);
+        return;
+      }
+      program.forEach((cmd, i) => {
+        const row = document.createElement('div');
+        row.className = 'order-row';
+        const label = document.createElement('span');
+        label.className = 'order-label';
+        const cmdLabel = cmd === 'F' ? '⬆️ Forward' : cmd === 'L' ? '↺ Turn Left' : '↻ Turn Right';
+        label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + cmdLabel;
+        row.appendChild(label);
+
+        const btns = document.createElement('div');
+        btns.className = 'order-btns';
+        const upBtn = document.createElement('button');
+        upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+        upBtn.disabled = running || i === 0;
+        upBtn.addEventListener('click', () => {
+          if (running) return;
+          [program[i - 1], program[i]] = [program[i], program[i - 1]];
+          renderProgram();
+        });
+        const downBtn = document.createElement('button');
+        downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+        downBtn.disabled = running || i === program.length - 1;
+        downBtn.addEventListener('click', () => {
+          if (running) return;
+          [program[i + 1], program[i]] = [program[i], program[i + 1]];
+          renderProgram();
+        });
+        const rmBtn = document.createElement('button');
+        rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
+        rmBtn.disabled = running;
+        rmBtn.addEventListener('click', () => {
+          if (running) return;
+          program.splice(i, 1);
+          renderProgram();
+        });
+
+        btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+        row.appendChild(btns);
+        cfg.programListEl.appendChild(row);
+      });
+    }
+
+    cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (running) return;
+        program.push(btn.dataset.cmd);
+        renderProgram();
+      });
+    });
+
+    cfg.clearBtn.addEventListener('click', () => {
+      if (running) return;
+      program = [];
+      renderProgram();
+      cfg.msgEl.textContent = '';
+      cfg.msgEl.className = 'mission-msg';
+    });
+
+    cfg.resetBtn.addEventListener('click', () => {
+      if (running) return;
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      updateRoverPosition(true);
+      cfg.msgEl.textContent = '';
+      cfg.msgEl.className = 'mission-msg';
+    });
+
+    cfg.runBtn.addEventListener('click', async () => {
+      if (running || program.length === 0) return;
+      if (cfg.predictionGate && cfg.predictionGate.mode === 'cell' && !firstRunDone && !predictedCell) return;
+      running = true;
+      attempts++;
+      cfg.runBtn.disabled = true;
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      updateRoverPosition(false);
+      await wait(150);
+      cfg.msgEl.textContent = '';
+      cfg.msgEl.className = 'mission-msg';
+
+      for (let i = 0; i < program.length; i++) {
+        const cmd = program[i];
+        if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
+        else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
+        else if (cmd === 'F') {
+          const d = DELTA[state.dir];
+          const nr = state.r + d.dr, nc = state.c + d.dc;
+          if (!inBounds(nr, nc)) {
+            cfg.msgEl.textContent = '🤖 SYSTEM ERROR: Rover drove off the platform edge.';
+            cfg.msgEl.className = 'mission-msg bad';
+            finalizeFirstRunIfNeeded();
+            running = false;
+            cfg.runBtn.disabled = false;
+            updateRunGate();
+            return;
+          }
+          if (isWall(nr, nc)) {
+            cfg.msgEl.textContent = '🤖 COLLISION: Rover hit a barrier and stopped.';
+            cfg.msgEl.className = 'mission-msg bad';
+            finalizeFirstRunIfNeeded();
+            running = false;
+            cfg.runBtn.disabled = false;
+            updateRunGate();
+            return;
+          }
+          state.r = nr; state.c = nc;
+        }
+        updateRoverPosition(true);
+        await wait(450);
+      }
+
+      if (state.r === mission.goal.r && state.c === mission.goal.c) {
+        succeeded = true;
+        cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
+        cfg.msgEl.className = 'mission-msg ok';
+        finalizeFirstRunIfNeeded();
+        if (cfg.onSuccess) cfg.onSuccess();
+      } else {
+        cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+        cfg.msgEl.className = 'mission-msg bad';
+        finalizeFirstRunIfNeeded();
+      }
+      running = false;
+      cfg.runBtn.disabled = false;
+      updateRunGate();
+    });
+
+    buildGrid();
+    updateRoverPosition(false);
+    renderProgram();
+    if (cfg.predictionGate && cfg.predictionGate.mode === 'cell') {
+      cfg.msgEl.textContent = '🎯 First — click the cell where you think Rover-7 will finish.';
+      cfg.msgEl.className = 'mission-msg';
+      updateRunGate();
+    }
+
+    return {
+      get succeeded() { return succeeded; },
+      get attempts() { return attempts; },
+      get prediction() { return predictionRecord; }
+    };
+  }
+
+  const mission1Def = { rows: 3, cols: 3, cellPx: 78, start: { r: 2, c: 0, dir: 'N' }, goal: { r: 0, c: 2 }, walls: [] };
+  mission1Def.goal = randomizeGoal(mission1Def, 3);
+  const mission1 = createRoverGame({
+    gridEl: document.getElementById('grid1'),
+    roverEl: document.getElementById('rover1'),
+    programListEl: document.getElementById('prog1'),
+    msgEl: document.getElementById('msg1'),
+    runBtn: document.getElementById('run1'),
+    resetBtn: document.getElementById('reset1'),
+    clearBtn: document.getElementById('clear1'),
+    paletteEl: document.getElementById('palette1'),
+    mission: mission1Def,
+    predictionGate: { mode: 'cell' },
+    onSuccess: () => {
+      document.getElementById('toT3Btn').disabled = false;
+      addXp(20);
+    }
+  });
+
+  const mission2Def = { rows: 4, cols: 4, cellPx: 64, start: { r: 3, c: 1, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [{ r: 1, c: 1 }, { r: 0, c: 1 }] };
+  mission2Def.goal = randomizeGoal(mission2Def, 3);
+  const mission2 = createRoverGame({
+    gridEl: document.getElementById('grid2'),
+    roverEl: document.getElementById('rover2'),
+    programListEl: document.getElementById('prog2'),
+    msgEl: document.getElementById('msg2'),
+    runBtn: document.getElementById('run2'),
+    resetBtn: document.getElementById('reset2'),
+    clearBtn: document.getElementById('clear2'),
+    paletteEl: document.getElementById('palette2'),
+    mission: mission2Def,
+    predictionGate: { mode: 'cell' },
+    onSuccess: () => {
+      document.getElementById('toFinalBtn').disabled = false;
+      addXp(30);
+    }
+  });
+
+  // ================= Finish / Debrief =================
+  const QUIZ_ANSWERS = { q1: 1, q2: 1 };
+  const Q3_CORRECT = [0, 2, 4];
+  const Q3_ALL = [0, 1, 2, 3, 4];
+
+  const Q_EXPLAIN = {
+    q1: {
+      correct: 1,
+      why: {
+        0: "Order isn't optional to a computer — swap two steps and Rover-7 (or your code) does something completely different, or breaks outright.",
+        1: "Exactly right. A sequence is exact steps, done one after another in a specific order — nothing skipped, nothing assumed.",
+        2: "That's a loop, not a sequence — a loop repeats the same steps; a sequence is just steps in order, once each.",
+        3: "Sequence isn't a Scratch-only word — it's a universal coding idea. Real Python, and every other language, runs code top to bottom the exact same way."
+      },
+      codeLife: "Why it matters for coding: almost every beginner bug is really an order bug — a step that ran too early or too late. Why it matters in life: recipes, science experiments, even getting dressed — change the order and you get a different (or broken) result."
+    },
+    q2: {
+      correct: 1,
+      why: {
+        0: "Look at the order again: exiting the pod (step 2) happens before the hatch is even unlocked (step 3). That's not smooth — it's stuck.",
+        1: "Right. Command Control follows the exact order it's given — trying to exit before the hatch is unlocked and the wheels are down means the sequence fails right where it's out of order.",
+        2: "Order always matters to a computer. It never quietly reorders your steps to make them safe.",
+        3: "Computers don't fix your order for you — every instruction you give actually runs, in the order you gave it, even a broken one.",
+      },
+      codeLife: "Why it matters for coding: a computer never 'figures out what you meant' — it does exactly what's written, in that order, every time. Why it matters in life: pouring the batter before turning on the oven, or hitting send before proofreading — the wrong order causes the exact problem you were trying to avoid."
+    }
+  };
+  // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
+  // (built at render time, based on what THIS cadet actually checked) carry the correctness signal,
+  // so the two never contradict each other.
+  const Q3_EXPLAIN = {
+    0: "shoes go on after socks for a reason — swap the order and the shoe won't fit right, or the sock ends up bunched and useless.",
+    1: "marker color doesn't depend on order at all — pick the red one first or the blue one first, the picture turns out the same either way.",
+    2: "turning off the console before saving loses your progress — the order here decides whether your work is kept or wiped.",
+    3: "petting the cat or the dog first isn't a multi-step process with steps that could happen out of order — there's no sequence to break here.",
+    4: "skip preheating and the cookies go into a cold oven — same recipe, worse result, because a step ran out of order."
+  };
+
+  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — a cadet who just
+  // answered 1 and 2 by picking one best radio option was defaulting into "pick one" here too when
+  // it was a checkbox list. Every item now requires an explicit click before debriefing is allowed,
+  // which also resolves the old ambiguity of "was leaving it unchecked a real answer or just unsure?"
+  // — there's no more unanswered state possible once every row has a recorded YES or NO.
+  const q3Answers = {};
+  document.querySelector('.quiz-q[data-qid="q3"]').addEventListener('click', (e) => {
+    const btn = e.target.closest('.yn-btn');
+    if (!btn) return;
+    const row = btn.closest('.yn-row');
+    const idx = Number(row.dataset.idx);
+    q3Answers[idx] = btn.dataset.val;
+    row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+    btn.classList.add(btn.dataset.val === 'yes' ? 'selected-yes' : 'selected-no');
+  });
+
+  document.getElementById('finishBtn').addEventListener('click', () => {
+    const msg = document.getElementById('finishMsg');
+    const q1 = document.querySelector('input[name="q1"]:checked');
+    const q2 = document.querySelector('input[name="q2"]:checked');
+    const q3AnsweredCount = Q3_ALL.filter(i => q3Answers[i] !== undefined).length;
+
+    if (!q1 || !q2 || q3AnsweredCount < Q3_ALL.length) {
+      msg.textContent = 'Answer questions 1 and 2, and YES or NO for every situation in #3, before debriefing.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    // V2 submission gate: the reviewer nav above lets Lui jump straight to this screen without
+    // playing either mission, so debriefing must not be reachable that way with a fake "complete"
+    // result. Under normal cadet play this can never trigger — scr-final is unreachable until both
+    // Continue buttons unlock, which only happens on a real mission success.
+    if (!mission1.succeeded || !mission2.succeeded) {
+      msg.textContent = '🛰 Both missions must actually be completed before Command Control will log this Final Systems Check.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    // Guard against repeated clicks re-scoring/re-adding XP/re-saving: once a valid debrief has
+    // been processed once, lock it. Without this, mashing the button kept stacking XP and firing
+    // duplicate saves to Supabase on every extra click.
+    if (debriefed) return;
+    debriefed = true;
+    document.getElementById('finishBtn').disabled = true;
+
+    ['q1', 'q2'].forEach(qid => {
+      const chosen = document.querySelector('input[name="' + qid + '"]:checked');
+      const correctVal = String(QUIZ_ANSWERS[qid]);
+      document.querySelectorAll('.quiz-q[data-qid="' + qid + '"] .choice').forEach(label => {
+        const input = label.querySelector('input');
+        if (input.value === correctVal) label.classList.add('correct');
+        else if (input === chosen) label.classList.add('incorrect');
+      });
+    });
+
+    // Every item is now definitively right or wrong — no ambiguous "left blank" case anymore.
+    let q3Hits = 0, q3Misses = 0, q3FalsePositives = 0, q3CorrectRejections = 0;
+    Q3_ALL.forEach(i => {
+      const truthYes = Q3_CORRECT.includes(i);
+      const said = q3Answers[i];
+      const row = document.querySelector(`.yn-row[data-idx="${i}"]`);
+      const correct = (truthYes && said === 'yes') || (!truthYes && said === 'no');
+      row.classList.add(correct ? 'correct' : 'incorrect');
+      if (truthYes && said === 'yes') q3Hits++;
+      else if (truthYes && said === 'no') q3Misses++;
+      else if (!truthYes && said === 'yes') q3FalsePositives++;
+      else q3CorrectRejections++;
+    });
+    const q3Score = q3Hits + q3CorrectRejections;
+    const q3OutOf = Q3_ALL.length;
+
+    const q1Correct = q1.value === String(QUIZ_ANSWERS.q1);
+    const q2Correct = q2.value === String(QUIZ_ANSWERS.q2);
+    const conceptScore = (q1Correct ? 1 : 0) + (q2Correct ? 1 : 0);
+    addXp(conceptScore * 10 + q3Score * 4);
+
+    // ---- Debrief explanations ----
+    const q1Box = document.getElementById('explainQ1');
+    q1Box.innerHTML = '<strong>' + (q1Correct ? '✅ Correct.' : '❌ Not quite.') + '</strong> ' + Q_EXPLAIN.q1.why[q1.value]
+      + (q1Correct ? '' : '<br><br><strong>Correct answer:</strong> ' + Q_EXPLAIN.q1.why[Q_EXPLAIN.q1.correct])
+      + '<br><br>' + Q_EXPLAIN.q1.codeLife;
+    q1Box.classList.add('show');
+
+    const q2Box = document.getElementById('explainQ2');
+    q2Box.innerHTML = '<strong>' + (q2Correct ? '✅ Correct.' : '❌ Not quite.') + '</strong> ' + Q_EXPLAIN.q2.why[q2.value]
+      + (q2Correct ? '' : '<br><br><strong>Correct answer:</strong> ' + Q_EXPLAIN.q2.why[Q_EXPLAIN.q2.correct])
+      + '<br><br>' + Q_EXPLAIN.q2.codeLife;
+    q2Box.classList.add('show');
+
+    // Grouped by what the question actually asks — every order-sensitive situation first (with
+    // whether you caught it), then every non-issue after — instead of the shuffled on-screen order,
+    // so this review reads as one clear pass rather than jumping around to match scrambled choices.
+    let q3Html = '<strong>Transfer check review:</strong>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These situations ARE order-sensitive — YES is correct:</p><ul>';
+    Q3_CORRECT.forEach(i => {
+      const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
+      q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
+    });
+    q3Html += '</ul>';
+    const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT order-sensitive — NO is correct:</p><ul>';
+    q3Decoys.forEach(i => {
+      const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
+      q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
+    });
+    q3Html += '</ul>';
+    const q3Box = document.getElementById('explainQ3');
+    q3Box.innerHTML = q3Html;
+    q3Box.classList.add('show');
+
+    function predictionLine(label, p) {
+      if (!p) return label + ': (no prediction recorded)';
+      if (p.correct) return label + ': ✅ called it';
+      const dist = Math.abs(p.predicted.r - p.actual.r) + Math.abs(p.predicted.c - p.actual.c);
+      return label + ': ❌ off by ' + dist + ' cell' + (dist === 1 ? '' : 's');
+    }
+
+    const rawPayload = {
+      mission_version: 2,
+      unit_number: 1,
+      unit_title: 'Sequence',
+      stage: 1,
+      cadet_name: cadetName,
+      completed_at: new Date().toISOString(),
+      xp_earned: xp,
+      auto_stats: {
+        calibration_solved: calSolved,
+        calibration_attempts: calAttempts,
+        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts },
+        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts }
+      },
+      prediction: {
+        mission_1: mission1.prediction,
+        mission_2: mission2.prediction
+      },
+      quiz: {
+        concept_score: conceptScore,
+        concept_out_of: 2,
+        q1_correct: q1Correct,
+        q2_correct: q2Correct,
+        q1_answer: q1.value,
+        q2_answer: q2.value,
+        transfer_check: { score: q3Score, out_of: q3OutOf, hits: q3Hits, misses: q3Misses, false_positives: q3FalsePositives, correct_rejections: q3CorrectRejections, answers: q3Answers, correct_set: Q3_CORRECT }
+      }
+    };
+
+    msg.textContent = '';
+    msg.className = '';
+
+    const box = document.getElementById('resultBox');
+    box.classList.add('show');
+    const summaryHtml = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
+      + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
+      + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
+      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
+      + '<br>' + predictionLine('Prediction 1', mission1.prediction) + ' · ' + predictionLine('Prediction 2', mission2.prediction);
+
+    if (isReviewMode) {
+      // Review mode: this is a re-run of an already-saved unit, purely so the cadet can see what
+      // he answered — never touches Supabase, so it can't overwrite or duplicate the real result.
+      box.innerHTML = summaryHtml + '<br><br>📋 Review mode — not saved (you already have a saved result for this unit).';
+    } else {
+      box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
+      // Results now save straight to the signed-in cadet's Supabase account — no more manual
+      // file download/drop. Once saved, Unit 2 (once it exists) unlocks automatically on The Loop.
+      CodingAuth.saveResult({
+        unit_key: '1',
+        unit_title: 'Sequence',
+        xp_earned: xp,
+        concept_score: conceptScore,
+        concept_out_of: 2,
+        life_score: q3Score,
+        life_out_of: q3OutOf,
+        mission1_succeeded: mission1.succeeded,
+        mission1_attempts: mission1.attempts,
+        mission2_succeeded: mission2.succeeded,
+        mission2_attempts: mission2.attempts,
+        raw_payload: rawPayload
+      }).then((res) => {
+        box.innerHTML = summaryHtml + (res.saved
+          ? '<br><br>✅ Saved to your account — check My Progress any time from the menu up top.'
+          : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
+      });
+    }
+
+    const PREV_UNIT_FILE = null;
+    const NEXT_UNIT_FILE = 'unit_02_loops.html';
+    const nav = document.getElementById('postDebriefNav');
+    nav.classList.add('show');
+    const prevBtn = document.getElementById('prevUnitBtn');
+    const nextBtn = document.getElementById('nextUnitBtn');
+    if (PREV_UNIT_FILE) { prevBtn.style.display = ''; prevBtn.onclick = () => location.href = PREV_UNIT_FILE; }
+    if (NEXT_UNIT_FILE) { nextBtn.style.display = ''; nextBtn.onclick = () => location.href = NEXT_UNIT_FILE; }
+  });
+</script>
+</body>
+</html>

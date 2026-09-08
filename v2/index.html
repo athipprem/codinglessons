@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  // Runs before first paint so the page never flashes the wrong theme on load.
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — Mission Control</title>
+<link rel="icon" type="image/png" href="assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="flow-academy.css">
+<style>
+  /* ---------------- rank strip — peek carousel: center rank in focus, neighbors peeking left/right ---------------- */
+  #rank-section { margin-bottom: 30px; }
+
+  #rank-carousel { position:relative; max-width: 760px; margin: 0 auto; }
+  #rank-viewport { overflow:hidden; }
+  #rank-track { display:flex; transition: transform .35s ease; will-change: transform; }
+  .rank-slide { flex: 0 0 auto; box-sizing:border-box; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 24px; padding: 24px 18px; display:flex; flex-direction:column; align-items:center; text-align:center; gap: 8px; cursor:pointer; font-family:inherit; color:inherit; opacity:.4; filter: grayscale(.55); transform: scale(.9); transition: opacity .3s ease, filter .3s ease, transform .3s ease, border-color .3s ease; }
+  .rank-slide.focused { opacity:1; filter:none; transform:scale(1); }
+  .rank-slide.focused.current { border-color: var(--cyan); box-shadow: 0 0 0 4px #38e6ee22, 0 10px 26px #0007; }
+  .rank-slide.focused.done { border-color: var(--success); }
+  .rank-slide-badge { width: 105px; height: 105px; border-radius:50%; background: var(--locked-bg); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+  .rank-slide-badge img { width:85%; height:85%; object-fit:contain; }
+  .rank-slide-name { font-family:"Orbitron",sans-serif; font-weight:800; font-size: 1.25rem; }
+  .rank-slide.focused.current .rank-slide-name { color: var(--cyan); }
+  .rank-slide.focused.done .rank-slide-name { color: var(--success); }
+  .rank-slide-blurb { font-size: .92rem; line-height:1.5; color: var(--ink-soft); }
+  .rank-slide-tag { font-family:"JetBrains Mono",monospace; font-weight:700; font-size: .74rem; padding: 5px 14px; border-radius: 999px; letter-spacing:.03em; margin-top:2px; }
+  .tag-current { background: var(--cyan-tint); color: var(--cyan); border: 1px solid var(--cyan); }
+  .tag-done { background: var(--success-tint); color: var(--success); border: 1px solid var(--success); }
+  .tag-locked { background: var(--locked-bg); color: var(--locked-text); border: 1px dashed var(--line); }
+
+  .rank-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:5; width:42px; height:42px; border-radius:50%; background: var(--bg-panel); border:1.5px solid var(--line); color: var(--ink); font-size:1.1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: border-color .15s, color .15s, opacity .15s; }
+  .rank-arrow:hover { border-color: var(--cyan); color: var(--cyan); }
+  .rank-arrow:disabled { opacity:.3; cursor:default; }
+  #rank-prev { left: 2px; }
+  #rank-next { right: 2px; }
+
+  #rank-dots { display:flex; justify-content:center; gap: 9px; margin-top: 16px; }
+  .rank-dot { width:9px; height:9px; padding:0; border-radius:50%; border:1.5px solid var(--line); background: var(--locked-bg); cursor:pointer; transition: background .2s, border-color .2s, transform .2s; }
+  .rank-dot.active { background: var(--cyan); border-color: var(--cyan); transform: scale(1.2); }
+
+  @media (max-width: 560px) {
+    .rank-slide-blurb { font-size: .84rem; }
+    .rank-arrow { width:36px; height:36px; }
+  }
+
+  /* ---------------- planets — big 2x2 showcase cards ---------------- */
+  #planets-section { margin-bottom: 36px; }
+  #planets-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  @media (max-width: 560px) { #planets-grid { grid-template-columns: 1fr; } }
+
+  .planet-card { position:relative; overflow:hidden; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 28px; padding: 30px 26px 0; min-height: 380px; display:flex; flex-direction:column; align-items:center; text-align:center; text-decoration:none; color: var(--ink); transition: transform .15s ease, border-color .15s ease; }
+  .planet-card.active:hover { transform: translateY(-6px); border-color: var(--pc); box-shadow: 0 18px 40px #0009; }
+  .planet-card.locked { opacity:.72; cursor: default; }
+  .planet-card::before { content:''; position:absolute; z-index:0; left:50%; bottom:-15%; transform:translateX(-50%); width:80%; aspect-ratio:1; border-radius:50%; background: radial-gradient(circle, var(--pc) 0%, transparent 70%); opacity:.3; filter: blur(4px); pointer-events:none; }
+
+  .planet-card-body { position:relative; z-index:1; }
+  .planet-name { font-family:"Orbitron",sans-serif; font-weight:800; font-size: clamp(1.4rem, 2.6vw, 1.85rem); margin-bottom: 10px; letter-spacing:.01em; }
+  .planet-blurb { font-size: 1.05rem; line-height:1.55; color: var(--ink-soft); max-width: 36ch; margin: 0 auto 8px; }
+  .planet-mission { font-size: .86rem; color: var(--ink-soft); margin-bottom: 16px; }
+
+  .planet-cta { display:inline-block; font-family:"JetBrains Mono",monospace; font-weight:700; font-size: .86rem; padding: 10px 22px; border-radius: 999px; letter-spacing:.02em; }
+  .cta-active { background: var(--pc); color: #0A0E1E; box-shadow: 0 8px 20px #0007; }
+  .cta-locked { background: var(--locked-bg); color: var(--locked-text); border: 1.5px dashed var(--line); }
+
+  .planet-card-art { position:relative; z-index:1; margin-top: auto; width:100%; display:flex; justify-content:center; padding: 14px 0 8px; }
+  .planet-art-img { width: min(230px, 62%); height:auto; object-fit:contain; filter: drop-shadow(0 14px 22px #0008); transition: transform .3s ease; }
+  .planet-card.active:hover .planet-art-img { transform: translateY(-5px) scale(1.03); }
+
+  /* ---------------- light mode: "Cosmic Vibes" frame — the planet-card border becomes a
+     5-color gradient ring (indigo/sky-blue/violet/orange/gold) instead of the flat neutral
+     line, so the light-mode cards visually match the colorful hero banners and planet art
+     behind them. Built as a two-layer background (padding-box fill + border-box gradient)
+     since a plain `border-color` can't hold a gradient. Index-only for now — dark mode and
+     the other pages are untouched. ---------------- */
+  html[data-theme="light"] .planet-card {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, #483D8B 0%, #00BFFF 28%, #8A2BE2 52%, #FF8C00 76%, #FFD700 100%) border-box;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  html[data-theme="light"] .planet-card.active:hover {
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(var(--pc), var(--pc)) border-box;
+    box-shadow: 0 18px 40px #0002;
+  }
+  /* ---------------- page-scoped hero crop tweak (index only — keeps faces clear of the headline) ---------------- */
+  #hero .hero-bg-slide { background-position: 50% 42%; }
+  @media (max-width: 680px) { #hero .hero-bg-slide { background-position: 68% 40%; } }
+</style>
+</head>
+<body>
+
+<section id="hero" role="img" aria-label="Flow Academy cadets at Mission Control with Rover-7 visible through the window">
+  <div class="hero-bg-slide active" style="background-image:url('assets/flow_banner_index1.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/flow_banner_index2.jpg')"></div>
+  <div id="hero-dots">
+    <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
+    <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
+  </div>
+  <div id="topnav">
+    <div id="brand"><img src="assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="theme-toggle" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      var btn = document.getElementById('theme-toggle');
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      btn.addEventListener('click', function(){
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        apply(next);
+      });
+    })();
+  </script>
+  <div class="hero-inner">
+    <h1>WELCOME BACK,<br><span class="accent" id="hero-rank">CADET</span></h1>
+    <div class="tagline">Four planets stand between you and your Captain's stripes. Right now, you're stationed on <b id="hero-planet-name">The Loop</b>.</div>
+    <div id="hero-ctas">
+      <button class="cta-btn cta-primary" onclick="document.getElementById('planets-grid').scrollIntoView({behavior:'smooth'})">Explore the Planets</button>
+      <button class="cta-btn cta-ghost" id="hero-signin-btn">Sign In / Create Account</button>
+    </div>
+  </div>
+</section>
+
+<div id="page">
+
+  <section id="planets-section">
+    <div class="sec-title">THE FOUR PLANETS</div>
+    <div class="sec-sub">Your mission map — Stage 1 is live now, the rest unlock as new planets are charted.</div>
+    <div id="planets-grid"></div>
+  </section>
+
+  <section id="rank-section">
+    <div class="sec-title">CHAIN OF COMMAND</div>
+    <div class="sec-sub">Slide left or right to see every rank up to Captain.</div>
+    <div id="rank-carousel">
+      <button id="rank-prev" class="rank-arrow" aria-label="Previous rank">&#10094;</button>
+      <div id="rank-viewport"><div id="rank-track"></div></div>
+      <button id="rank-next" class="rank-arrow" aria-label="Next rank">&#10095;</button>
+    </div>
+    <div id="rank-dots"></div>
+  </section>
+
+  <footer>
+    Copyright &copy; 2026 Luikishi. All rights reserved. Have fun !
+  </footer>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="flow_coding_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="coding-auth.js"></script>
+<script>
+  /* ============== modal plumbing shared with coding-auth.js — defined FIRST, before any
+     data-dependent code below, so the close button / modal system stays alive even if
+     something later in this script throws (defensive: this is exactly what broke the ×
+     button and the planets/badges rendering when this page still pointed at the old,
+     now-absent ../Lessons/prem_coding_data.js file). ============== */
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+
+  /* ============== hero banner carousel — switches between the 2 hero banners. Wired up
+     right after modal plumbing and BEFORE any data-dependent code, so a future data/roadmap
+     problem can never again silently take the carousel down with it (this is the same class
+     of bug that broke it on the live GitHub Pages site). ============== */
+  (function(){
+    var slides = document.querySelectorAll('.hero-bg-slide');
+    var dots = document.querySelectorAll('.hero-dot');
+    var idx = 0, timer;
+    function show(i){
+      idx = i;
+      slides.forEach(function(s, j){ s.classList.toggle('active', j === i); });
+      dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    }
+    function next(){ show((idx + 1) % slides.length); }
+    function startAuto(){ stopAuto(); timer = setInterval(next, 6500); }
+    function stopAuto(){ if (timer) clearInterval(timer); }
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){ show(parseInt(d.dataset.i, 10)); startAuto(); });
+    });
+    if (slides.length > 1) startAuto();
+  })();
+
+  /* ============== live data (unit status + rank) — App Dev's own project data
+     (flow_coding_data.js), same source the-loop.html already uses. Recomputed for real on
+     every sign-in/out via renderLiveData(), not just once at load from the static (always-empty)
+     FLOW_CODING_DATA.results — that used to leave the hero rank and planet card permanently
+     stuck on Cadet/Unit 1 regardless of a signed-in cadet's real progress. ============== */
+  var RANKS = [
+    { name:'Cadet',      icon:'assets/badge_cadet.png',      blurb:'Starting rank. Follows exact instructions — the whole point of The Loop.' },
+    { name:'Ensign',     icon:'assets/badge_ensign.png',     blurb:'Earned by clearing The Loop (Milestone Test 1 passed).' },
+    { name:'Lieutenant', icon:'assets/badge_lieutenant.png', blurb:'Earned by clearing The Core — fluent in real Python.' },
+    { name:'Commander',  icon:'assets/badge_commander.png',  blurb:'Earned by clearing PyCraft Planet — same rank as your Commander now.' },
+    { name:'Captain',    icon:'assets/badge_captain.png',    blurb:'Earned by clearing Nova Planet — full graduation. Your own missions from here.' }
+  ];
+  var PLANETS = [
+    { key:'loop', name:'The Loop', img:'assets/planet_theloop.png', pc:'#38E6EE', blurb:'Logic fundamentals — sequence, loops, events, debugging.', active:true, href:'the-loop.html' },
+    { key:'core', name:'The Core', img:'assets/planet_thecore.png', pc:'#FFC24B', blurb:'Real Python — variables, functions, lists & more.', active:false, unlocksAfter:'The Loop' },
+    { key:'craft', name:'PyCraft Planet', img:'assets/planet_pycraft.png', pc:'#4BE39A', blurb:'Build real projects — games, trackers, tools.', active:false, unlocksAfter:'The Core' },
+    { key:'nova', name:'Nova Planet', img:'assets/planet_nova.png', pc:'#C77DFF', blurb:'The AI frontier — thinking with and about AI.', active:false, unlocksAfter:'PyCraft Planet' }
+  ];
+
+  var currentRankIdx = 0; // 0=Cadet,1=Ensign,2=Lieutenant,3=Commander,4=Captain — stages 2-4 don't exist yet
+  var focusedRankIdx = 0;
+
+  function rankStatus(i){ return i < currentRankIdx ? 'done' : (i === currentRankIdx ? 'current' : 'locked'); }
+
+  /* ============== rank strip ============== */
+  function renderRankStrip(){
+    document.getElementById('rank-track').innerHTML = RANKS.map(function(r, i){
+      var cls = rankStatus(i);
+      var tag = cls === 'done' ? '<span class="rank-slide-tag tag-done">&#10003; EARNED</span>'
+        : cls === 'current' ? '<span class="rank-slide-tag tag-current">&#9679; CURRENT RANK</span>'
+        : '<span class="rank-slide-tag tag-locked">&#128274; AHEAD</span>';
+      return '<div class="rank-slide ' + cls + '" data-i="' + i + '" onclick="focusRank(' + i + ')">' +
+        '<div class="rank-slide-badge"><img src="' + r.icon + '" alt="' + r.name + ' badge"></div>' +
+        '<div class="rank-slide-name">' + r.name + '</div>' +
+        '<div class="rank-slide-blurb">' + r.blurb + '</div>' +
+        tag +
+        '</div>';
+    }).join('');
+    document.getElementById('rank-dots').innerHTML = RANKS.map(function(r, i){
+      return '<button class="rank-dot" data-i="' + i + '" aria-label="Show ' + r.name + '"></button>';
+    }).join('');
+    focusedRankIdx = currentRankIdx;
+    layoutRankCarousel();
+  }
+
+  function layoutRankCarousel(){
+    var viewport = document.getElementById('rank-viewport');
+    var track = document.getElementById('rank-track');
+    var slides = track.querySelectorAll('.rank-slide');
+    var vw = viewport.clientWidth;
+    var slideW = Math.min(300, Math.round(vw * 0.7));
+    var gap = 14;
+    slides.forEach(function(s){ s.style.width = slideW + 'px'; s.classList.toggle('focused', +s.dataset.i === focusedRankIdx); });
+    track.style.gap = gap + 'px';
+    var offset = (vw - slideW) / 2 - focusedRankIdx * (slideW + gap);
+    track.style.transform = 'translateX(' + offset + 'px)';
+    document.querySelectorAll('.rank-dot').forEach(function(d){ d.classList.toggle('active', +d.dataset.i === focusedRankIdx); });
+    document.getElementById('rank-prev').disabled = focusedRankIdx === 0;
+    document.getElementById('rank-next').disabled = focusedRankIdx === RANKS.length - 1;
+  }
+  function focusRank(i){ focusedRankIdx = Math.max(0, Math.min(RANKS.length - 1, i)); layoutRankCarousel(); }
+  document.getElementById('rank-prev').addEventListener('click', function(){ focusRank(focusedRankIdx - 1); });
+  document.getElementById('rank-next').addEventListener('click', function(){ focusRank(focusedRankIdx + 1); });
+  // Delegated (not one addEventListener per dot) so clicks still work after renderRankStrip()
+  // rebuilds #rank-dots' children on every sign-in/out refresh.
+  document.getElementById('rank-dots').addEventListener('click', function(e){
+    var dot = e.target.closest('.rank-dot');
+    if (dot) focusRank(+dot.dataset.i);
+  });
+  (function(){
+    var vp = document.getElementById('rank-viewport');
+    var startX = null;
+    vp.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, { passive:true });
+    vp.addEventListener('touchend', function(e){
+      if (startX === null) return;
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) focusRank(focusedRankIdx + (dx < 0 ? 1 : -1));
+      startX = null;
+    });
+  })();
+  window.addEventListener('resize', layoutRankCarousel);
+
+  /* ============== planets grid ============== */
+  function renderPlanetsGrid(roadmap, stage1Done){
+    // The Loop's card names the first not-done-and-not-locked unit — same "what's next" logic
+    // the-loop.html's own hero CTA uses, since Units 1-9 no longer collapse to one canonical
+    // "in_progress" unit (they're all 'unlocked', browsable in any order).
+    var nextUnit = roadmap.find(function(u){ return (u.status === 'unlocked' || u.status === 'in_progress') && u.file; });
+    document.getElementById('planets-grid').innerHTML = PLANETS.map(function(p){
+      // Each locked planet names the ONE planet directly before it in the real unlock chain
+      // (Loop -> Core -> PyCraft -> Nova), not always "The Loop" -- PyCraft opens after The Core
+      // clears, and Nova opens after PyCraft clears, not straight off The Loop.
+      var nextUnitLabel = nextUnit
+        ? (nextUnit.n === 'M1' ? nextUnit.title : ('Unit ' + nextUnit.n + ' of 10 &middot; ' + nextUnit.title))
+        : (stage1Done ? 'All missions cleared!' : '');
+      var missionLine = p.key === 'loop'
+        ? nextUnitLabel
+        : 'Charts open once ' + p.unlocksAfter + ' is cleared';
+      var cta = p.active
+        ? '<span class="planet-cta cta-active">&#9654; Enter ' + p.name + '</span>'
+        : '<span class="planet-cta cta-locked">&#128274; Coming Soon</span>';
+      var inner =
+        '<div class="planet-card-body">' +
+          '<div class="planet-name">' + p.name + '</div>' +
+          '<div class="planet-blurb">' + p.blurb + '</div>' +
+          '<div class="planet-mission">' + missionLine + '</div>' +
+          cta +
+        '</div>' +
+        '<div class="planet-card-art"><img src="' + p.img + '" alt="' + p.name + '" class="planet-art-img"></div>';
+      return p.active
+        ? '<a class="planet-card active" style="--pc:' + p.pc + '" href="' + p.href + '">' + inner + '</a>'
+        : '<div class="planet-card locked" style="--pc:' + p.pc + '">' + inner + '</div>';
+    }).join('');
+  }
+
+  // Recomputes everything live-data-dependent (rank + rank strip + planets grid) from a real
+  // results list — called once at load (signed-out default: []) and again every time CodingAuth
+  // reports a sign-in/out, so the hero and planet cards never go stale.
+  function renderLiveData(resultsList){
+    var roadmap = computeFlowRoadmap({ roadmap: FLOW_CODING_DATA.roadmap, results: resultsList });
+    var stage1Done = roadmap.filter(function(u){ return u.n !== 'M1'; }).every(function(u){ return u.status === 'done'; });
+    var m1 = roadmap.find(function(u){ return u.n === 'M1'; });
+    currentRankIdx = (m1 && m1.status === 'done') ? 1 : 0;
+    renderRankStrip();
+    renderPlanetsGrid(roadmap, stage1Done);
+  }
+  renderLiveData([]); // signed-out default, shown immediately before auth even resolves
+
+  /* ============== hero reacts to real sign-in state ============== */
+  document.getElementById('hero-signin-btn').onclick = function(){ CodingAuth.openAuth('signin'); };
+  function updateHeroForAuth(state){
+    var rankEl = document.getElementById('hero-rank');
+    var signinBtn = document.getElementById('hero-signin-btn');
+    if (state.user){
+      signinBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px"><polyline points="2 12 6 12 8 6 12 16 14 9 16 12 18 12"/></svg>View My Progress';
+      signinBtn.onclick = function(){ location.href = 'my-progress.html'; };
+      CodingAuth.fetchResults().then(function(rows){
+        renderLiveData(rows.map(function(r){ return { unit: r.unit_key }; }));
+        rankEl.textContent = RANKS[currentRankIdx].name.toUpperCase();
+      });
+    } else {
+      renderLiveData([]);
+      rankEl.textContent = 'CADET';
+      signinBtn.textContent = 'Sign In / Create Account';
+      signinBtn.onclick = function(){ CodingAuth.openAuth('signin'); };
+    }
+  }
+  CodingAuth.onChange(updateHeroForAuth);
+</script>
+</body>
+</html>

@@ -1,0 +1,1489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — Capstone Project [DEMO]</title>
+<link rel="icon" type="image/png" href="../assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../flow-academy.css">
+<style>
+  :root {
+    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42;
+    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+    --amber: #FFC24B; --amber-tint: #3A2B0E;
+    --danger: #FF6B7F; --danger-tint: #3A1620;
+    --success: #4BE39A; --success-tint: #113526;
+    --nova: #C77DFF; --nova-tint: #241238;
+    --tool: #FF6BCF; --tool-tint: #3A1030;
+    --list: #2DD4BF; --list-tint: #0E2E2B;
+    --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1px 1px at 10% 20%, var(--star), transparent),
+      radial-gradient(1px 1px at 80% 10%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, var(--star), transparent),
+      radial-gradient(1px 1px at 60% 40%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 90% 80%, var(--star), transparent),
+      radial-gradient(1px 1px at 25% 85%, var(--star), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px; line-height: 1.6;
+  }
+  h1, h2, h3, .display { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+  a { color: var(--cyan); }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
+
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
+  #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover { color: var(--cyan); }
+
+  .demo-ribbon { background: linear-gradient(90deg, var(--amber-tint), #1a1330); border: 1px solid var(--amber); color: var(--amber); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; text-align: center; padding: 8px 14px; border-radius: 10px; letter-spacing: .3px; margin-bottom: 10px; }
+
+  .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
+  .hud.show { display: flex; }
+  .hud .cadet { color: var(--ink); font-weight: 600; }
+  .hud .xp { color: var(--amber); font-weight: 700; }
+  .hud .tx { margin-left: auto; }
+  .hud-bar { flex-basis: 100%; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .hud-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--success)); transition: width 0.5s ease; }
+
+  .screen { display: none; flex-direction: column; gap: 20px; }
+  .screen.active { display: flex; }
+
+  .boot-card { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 20px; padding: 40px 28px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 20px; }
+  .boot-card .logo { height: 52px; width: auto; filter: drop-shadow(0 0 14px #38e6ee66); }
+  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* ---------------- boot-screen two-mission preview cards ----------------
+     Photo carries only a short "MISSION X · ..." tag; the full caption sits
+     in its own body area below the photo, on the card's own panel background
+     -- not overlaid on the art, per Lui's "no text overlaid on photos" note. */
+  .mission-preview-row { display: flex; gap: 14px; width: 100%; flex-wrap: wrap; justify-content: center; margin: 2px 0 4px; }
+  .mission-preview-card {
+    flex: 1 1 260px; max-width: 320px;
+    border-radius: 16px; border: 1px solid var(--line); background: var(--bg-panel);
+    overflow: hidden; display: flex; flex-direction: column; text-align: left;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .mission-preview-card:hover { transform: translateY(-2px); border-color: var(--cyan); }
+  .mission-preview-photo { position: relative; height: 148px; background-size: cover; background-position: center; }
+  .mission-preview-photo::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,14,30,0) 58%, rgba(10,14,30,.8) 100%);
+  }
+  .mission-preview-tag { position: absolute; left: 12px; bottom: 9px; z-index: 1; font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.85); }
+  .mission-preview-body { padding: 11px 14px 14px; }
+  .mission-preview-cap { font-size: 13.5px; color: var(--ink); line-height: 1.4; }
+
+  button.primary { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.03em; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); border: none; padding: 12px 24px; border-radius: 999px; box-shadow: 0 6px 16px #38e6ee33; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  button.ghost { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 13px; background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: transform .12s ease, border-color .12s ease, color .12s ease; }
+  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+  button.ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .transmission-tag { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); }
+  .tx-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tx-nav { display: flex; gap: 8px; }
+  .tx-nav-btn {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .tx-nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .tx-nav-btn:disabled { opacity: .35; cursor: default; }
+  .dialogue { background: var(--bg-panel); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
+  .dialogue .avatar { font-size: 26px; flex-shrink: 0; }
+  .dialogue p { margin: 0 0 8px; }
+  .dialogue p:last-child { margin-bottom: 0; }
+
+  .panel { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; position: relative; overflow: hidden; }
+  .panel h2 { font-size: 18px; color: var(--ink); }
+  .panel .sub { color: var(--ink-soft); font-size: 14.5px; }
+  .panel > * { position: relative; z-index: 1; }
+  .panel.skinned { background-size: cover; background-position: center; }
+  .panel.skinned::before { content: ''; position: absolute; inset: 0; background: rgba(19,26,51,.84); z-index: 0; }
+
+  .chip-order { display: flex; flex-direction: column; gap: 8px; min-height: 40px; padding: 10px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--line); }
+  .num { font-family: "JetBrains Mono", monospace; font-weight: 700; margin-right: 6px; }
+  .empty-hint { color: var(--ink-soft); font-size: 13.5px; }
+
+  .order-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cyan-tint); border: 1.5px solid var(--cyan); border-radius: 10px;
+    padding: 7px 8px 7px 13px;
+  }
+  .order-row .order-label { flex: 1; font-size: 14px; text-align: left; }
+  .order-row .order-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .order-row .order-btns button {
+    font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+    width: 30px; height: 30px; padding: 0; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg-raised); color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .order-row .order-btns button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .order-row .order-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-row .order-btns button.remove:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+  .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
+  .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
+  .repeat-card.event-card { border-color: var(--cyan); background: var(--cyan-tint); }
+  .repeat-card.event-card.open { box-shadow: 0 0 0 2px var(--cyan); }
+  .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .repeat-card.block-card { border-color: var(--tool); background: var(--tool-tint); }
+  .repeat-card.block-card.open { box-shadow: 0 0 0 2px var(--tool); }
+  .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
+  .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .repeat-move-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .repeat-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; }
+  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; padding-left: 14px; border-left: 2px dashed var(--line); }
+  .repeat-done-btn { align-self: flex-start; font-family: "Orbitron", sans-serif; font-weight: 600; font-size: 11.5px; background: var(--success); color: #06281B; border: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
+
+  .cond-select { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 600; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 4px 6px; }
+  .cond-select:hover { border-color: var(--nova); }
+  .cond-select:disabled { opacity: 0.5; }
+
+  .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cmd-btn { font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 14px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+  .cmd-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .cmd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .cmd-btn.repeat-btn { border-color: var(--amber); }
+  .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .cmd-btn.event-btn { border-color: var(--cyan); }
+  .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .cmd-btn.condition-btn { border-color: var(--nova); }
+  .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
+  .cmd-btn.score-btn { border-color: var(--success); }
+  .cmd-btn.score-btn:hover { color: var(--success); border-color: var(--success); }
+  .cmd-btn.block-btn { border-color: var(--tool); }
+  .cmd-btn.block-btn:hover { color: var(--tool); border-color: var(--tool); }
+  .cmd-btn.list-btn { border-color: var(--list); }
+  .cmd-btn.list-btn:hover { color: var(--list); border-color: var(--list); }
+
+  .score-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--amber); background: var(--amber-tint); border: 1px solid var(--amber); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .cargo-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--list); background: var(--list-tint); border: 1px solid var(--list); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; margin-left: 8px; }
+
+  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
+  .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.wall::after { content: "☄️"; font-size: 16px; }
+  .cell.beacon { background: var(--cyan-tint); }
+  .cell.beacon::after { content: "⚡"; font-size: 16px; }
+  .cell.goal { background: var(--success-tint); }
+  .rover { position: absolute; transform-origin: 50% 50%; }
+  .rover-shape {
+    width: 100%; height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 3px rgba(56,230,238,0.5));
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .mission-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .puzzle-msg, .mission-msg { font-size: 14.5px; font-weight: 600; min-height: 20px; }
+  .puzzle-msg.ok, .mission-msg.ok { color: var(--success); }
+  .puzzle-msg.bad, .mission-msg.bad { color: var(--danger); }
+
+  .result-box { display: none; background: var(--success-tint); border-radius: 12px; padding: 16px 18px; font-size: 15px; }
+  .result-box.show { display: block; }
+  .result-box strong { font-family: "Orbitron", sans-serif; }
+  .post-debrief-nav { display: none; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .post-debrief-nav.show { display: flex; }
+
+  /* ---------------- full-screen game layout (Beat 1) — command deck left, mission stage right,
+     Scratch-style: takes over the whole viewport instead of living in the scrolling page column. ---------------- */
+  .screen.fullscreen-mission { display: none; }
+  .screen.fullscreen-mission.active { display: flex; position: fixed; inset: 0; z-index: 40; background: var(--bg); flex-direction: column; }
+  /* 2026-08-30: this screen used to pin every one of its color variables to the dark palette
+     always, then carve narrow exceptions back out (first just the dialogue box, then the control
+     rail and program list too) as Lui kept asking for more of the HUD to actually respond to the
+     light/dark toggle. Lui's own question cut through it: every other unit just uses the live
+     --ink/--bg-panel/--*-tint variables directly and the site-wide toggle re-themes the whole page
+     for free -- why was Capstone any different? It shouldn't have been. The pinning is gone
+     entirely now; `.dialogue.compact`, `.cmd-btn`, `.chip-order`, `.empty-hint`, the Repeat/Event/
+     Condition chip cards, and this topbar all use the exact same shared var(--bg-panel)/var(--ink)/
+     var(--*-tint) rules as every other unit's lesson page, completely unmodified, so the same
+     toggle -- and even the same light-mode variable VALUES already defined once in flow-academy.css
+     -- just works here too. The only things that stay theme-independent are the actual mission-
+     world visuals: the space-photo backdrop (.stage-bg) and the grid's hazard-cell overlays
+     (wall/beacon/goal) a few rules down, which were never text-on-a-panel to begin with -- they're
+     the game world's own art, same in any theme, exactly like a game's play-field doesn't re-skin
+     itself when you switch your OS to light mode even though its menus do.
+     What's still special to Capstone, and legitimately so: a couple of HUD surfaces (the dialogue
+     box, the d-pad buttons, the translucent grid-textured wash behind the whole command deck) were
+     built as SEE-THROUGH glass over that art in earlier rounds (Lui's own "make it transparent,
+     I insist" ask) rather than the plain opaque var(--bg-panel) box every other unit's dialogue/
+     button uses -- so instead of a flat color they use color-mix() to take a translucent slice of
+     the live --bg-panel/--bg/--cyan, which keeps the glass look while still tracking the toggle
+     automatically (see .dialogue.compact, .dpad-btn, and .game-palette-col below). And the second
+     toggle button, #theme-toggle-mission, still has to exist here (as opposed to just reusing the
+     one already in #topbar) for a structural reason unrelated to any of this: unlike every other
+     unit's plain in-flow page, this screen is a fixed full-viewport overlay (.fullscreen-mission.
+     active, z-index 40) that visually covers #topbar while it's open, so the shared button is
+     physically unreachable until you leave the mission -- this duplicate is the only way to reach
+     the toggle while still inside it. */
+  .game-topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--bg-raised); }
+  .game-topbar-left { display: flex; align-items: center; gap: 14px; }
+  .game-topbar-right { display: flex; align-items: center; gap: 12px; }
+  .game-xp { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .game-xp span { color: var(--amber); font-weight: 700; }
+  /* Same look as the shared #theme-toggle button (flow-academy.css) -- duplicated here under its
+     own id since an element can't share an id with the one already in #topbar underneath this
+     full-screen overlay, and this screen needs its own click target since #topbar is hidden. */
+  #theme-toggle-mission { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor: pointer; padding: 0; flex-shrink: 0; }
+  #theme-toggle-mission:hover { border-color: var(--cyan); color: var(--cyan); }
+  /* game-body is now one full-bleed stage: the art fills the whole area, and the command deck
+     floats ON TOP of it as a translucent, grid-textured HUD panel instead of a solid sidebar that
+     cuts real screen space away from the mission art. This is also what frees up the extra height
+     the program list needed -- it's no longer sharing a hard-capped column width with the stage. */
+  .game-body { flex: 1 1 auto; position: relative; min-height: 0; overflow: hidden; --palette-w: min(640px, 58vw); }
+  /* The art (.stage-bg) stays full-bleed behind everything, including behind the command panel.
+     The grid itself, though, centers only in the space to the RIGHT of the panel (offset by the
+     same --palette-w the panel uses) so widening the panel can never overlap/hide the grid --
+     the two sizes are locked together via one shared custom property instead of two numbers that
+     could drift out of sync. */
+  .stage-bg { position: absolute; inset: 0; background-size: cover; background-position: center 32%; opacity: .8; background-color: var(--bg); } /* tuned to sit between the empty starfield band (too high) and the bright sun low in the source photo (too low) — centers the vortex/cloud art instead */
+  .game-stage-col { position: absolute; inset: 0; left: var(--palette-w); display: flex; align-items: center; justify-content: center; }
+  .stage-grid-wrap { position: relative; z-index: 1; }
+  .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
+  .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
+  .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.beacon { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
+  /* wall/turbulence icons doubled in size on the full-screen stage specifically (base .cell::after
+     is 16px, used as-is by every other unit/Beat 2) -- scoped here so nothing else is affected. */
+  .stage-grid-wrap .cell.wall::after { font-size: 32px; }
+  .stage-grid-wrap .cell.beacon::after { font-size: 32px; }
+
+  /* Command deck overlay: genuinely see-through (matches the stage grid's own translucent-cell
+     look) with visible HUD gridlines, not a mostly-opaque panel -- individual controls below
+     (buttons, chips, dialogue) each carry their own readable background, so this outer layer can
+     stay this light without hurting legibility. Built with color-mix() off the live --cyan/--bg
+     instead of a flat rgba() specifically so this glass tint re-themes with the toggle instead of
+     staying dark-tinted forever: in light mode --bg and --cyan are already light-mode colors (per
+     flow-academy.css), so this becomes a light glass wash for free, no separate override needed. */
+  .game-palette-col {
+    position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+    width: var(--palette-w); /* widened to actually use the open art strip left of the grid, not
+                                 just the old narrow 380px sliver -- this is what gives the program
+                                 list real room instead of a 2-line box. Shares --palette-w with
+                                 .game-stage-col's offset above so the grid is never covered. */
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    overflow-y: auto;
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  }
+  /* Same glass idea as the wash above, just a denser slice of --bg-panel so text sits on something
+     solid enough to read -- var(--ink) is the plain, live, unpinned text color used everywhere else
+     on the site, so this box and its text now track the toggle exactly like every other unit's
+     .dialogue box (which uses a flat var(--bg-panel)); the only difference here is opacity. */
+  .dialogue.compact { padding: 10px 12px; font-size: 13px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact .avatar { font-size: 18px; }
+
+  /* Two sub-columns inside the command deck: a slim control rail (dpad, add-block buttons,
+     run/reset/clear) on the left, and the program list taking up all the remaining height and
+     width to its right -- this is what actually gives the program list real room, rather than
+     stacking every control above it in one column and leaving it whatever's left over. Nothing
+     theme-specific lives here anymore: `.cmd-btn`/`.chip-order`/`.empty-hint`/the Repeat-Event-
+     Condition chip cards below are the exact same shared rules every other unit uses (plain
+     var(--bg-panel)/var(--ink)/var(--*-tint)), so they already track the toggle with no override
+     needed at all -- see the comment on .screen.fullscreen-mission near the top of this block. */
+  .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  .control-rail { flex: 0 0 150px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
+  .control-rail .cmd-palette { flex-direction: column; }
+  .control-rail .cmd-btn { width: 100%; text-align: center; font-size: 12.5px; padding: 8px 6px; }
+  .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
+  .control-rail .mission-actions button { width: 100%; }
+  .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
+
+  /* d-pad: 4 absolute-direction buttons in a cross layout, reads as a real game controller.
+     Icons are plain CSS triangles (not emoji) tinted the app's own cyan so they read as a
+     unified control, one shape rotated per direction. */
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover { border-color: var(--cyan); }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: drop-shadow(0 0 3px rgba(56,230,238,.7)); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
+
+  @media (max-width: 760px) {
+    .game-palette-col { left: 0; right: 0; top: 0; bottom: auto; width: auto; max-width: none; max-height: 54vh; border-right: none; border-bottom: 1px solid rgba(56,230,238,.35); }
+    .game-stage-col { left: 0; } /* panel docks along the top on mobile instead of the left, so the grid centers across the full width again */
+    /* Phone-width fallback: drop the side-by-side rail/program-list split entirely and go back to
+       one simple stacked column (dpad, then buttons, then the program list) -- side-by-side just
+       doesn't fit a phone-width column. Both this row and its children size to their own natural
+       content (flex: 0 0 auto) instead of being forced to share a small flex-grow allowance --
+       the outer panel's own overflow-y:auto scrolls the whole stack if it runs taller than 54vh. */
+    .palette-cols { flex-direction: column; flex: 0 0 auto; }
+    .control-rail { flex: 0 0 auto; }
+    .palette-cols .chip-order { flex: 0 0 auto; min-height: 160px; }
+    /* .stage-bg's "cover" sizing barely crops on a narrow, tall phone viewport (the container's own
+       aspect ratio is already close to the source photo's), so the plain desktop background-position
+       tweak above does almost nothing here -- caught only by actually screenshotting this layout at
+       phone width, where the bright sun low in the photo was still fully visible. Zooming in further
+       with an explicit background-size (rather than cover's minimal-covering scale) recreates the
+       same amount of vertical crop room the desktop view gets, so the same sun-avoiding framing holds. */
+    .stage-bg { background-size: 370% auto; background-position: center 30%; }
+  }
+
+  /* ---------------- cutscene screens: full-bleed art with a bottom gradient for legible text ---------------- */
+  .cutscene-shot {
+    background-size: cover; background-position: center; border-radius: 20px;
+    min-height: 340px; display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 26px; position: relative; overflow: hidden; border: 1px solid var(--line);
+  }
+  .cutscene-shot::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,14,30,0) 35%, rgba(10,14,30,.93) 100%);
+  }
+  .cutscene-caption { position: relative; z-index: 1; }
+  .cutscene-caption h2 { font-size: 1.3rem; margin-bottom: 6px; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .cutscene-caption p { color: var(--ink-soft); margin: 0 0 16px; max-width: 50ch; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
+
+  /* Reviewer nav -- always pinned bottom-right, above everything including Beat 1's full-screen
+     overlay (z-index 40), so Lui can step through every screen without playing either mission. */
+  #reviewNav {
+    position: fixed; right: 16px; bottom: 16px; z-index: 100;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(10,14,30,.92); border: 1px solid #38E6EE66; border-radius: 999px;
+    padding: 8px 10px 8px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+    font-family: "JetBrains Mono", monospace; font-size: 12px; color: #9AA3CC;
+  }
+  #reviewNav button {
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px;
+    background: #171F42; border: 1.5px solid #2B3560; color: #E9ECFF;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  }
+  #reviewNav button:hover:not(:disabled) { border-color: #38E6EE; color: #38E6EE; }
+  #reviewNav button:disabled { opacity: .35; cursor: not-allowed; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="topbar">
+    <div class="topbar-left">
+      <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="theme-toggle" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Deferred to DOMContentLoaded: this script tag sits early in <body> (right after the shared
+    // topbar), but #theme-toggle-mission lives much further down inside <section id="scr-beat1">
+    // -- querying for it immediately, at parse time, would always return null since that markup
+    // hasn't been parsed yet. Waiting for DOMContentLoaded lets both buttons be found reliably.
+    document.addEventListener('DOMContentLoaded', function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      // Two buttons drive the same shared theme now: #theme-toggle (in the normal page topbar,
+      // hidden behind Beat 1's full-screen overlay while it's active) and #theme-toggle-mission
+      // (the full-screen mission screen's own topbar, needed only because that overlay physically
+      // covers the first button while it's open -- see the comment on .screen.fullscreen-mission).
+      // Both stay in sync and either one re-themes the whole page, mission screen included.
+      var btns = [document.getElementById('theme-toggle'), document.getElementById('theme-toggle-mission')].filter(Boolean);
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        btns.forEach(function(btn){
+          btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+          btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        });
+      }
+      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      btns.forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+          try { localStorage.setItem('flow_theme', next); } catch (e) {}
+          apply(next);
+        });
+      });
+    });
+  </script>
+
+  <div class="demo-ribbon">🛠️ DEMO BUILD — standalone for review. Sign-in and saving aren't wired in yet, so nothing played here is stored.</div>
+
+  <div class="hud" id="hud">
+    <span>CADET: <span class="cadet" id="hudName">—</span></span>
+    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span class="tx" id="hudTx">BEAT 1/2</span>
+    <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- BOOT -->
+  <section class="screen active" id="scr-boot">
+    <div class="boot-card">
+      <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
+      <h1>FLOW ACADEMY</h1>
+      <div class="tagline">The Loop · Capstone Project</div>
+      <p style="color:var(--ink-soft); max-width: 52ch;">This is it, Cadet — the final step of The Loop. No new lessons today. Two real missions, back to back — everything from Units 1–9, combined and working for real.</p>
+      <div class="mission-preview-row">
+        <div class="mission-preview-card">
+          <div class="mission-preview-photo" style="background-image:url('../assets/loop_capstone_04decklanding.jpg')">
+            <div class="mission-preview-tag">MISSION 1 · DESCENT</div>
+          </div>
+          <div class="mission-preview-body">
+            <div class="mission-preview-cap">Taking Rover-7 down through the descent corridor and landing it yourself.</div>
+          </div>
+        </div>
+        <div class="mission-preview-card">
+          <div class="mission-preview-photo" style="background-image:url('../assets/rover_6_exploration.jpg')">
+            <div class="mission-preview-tag">MISSION 2 · EXPLORATION</div>
+          </div>
+          <div class="mission-preview-body">
+            <div class="mission-preview-cap">Rolling Rover-6 out to patrol the surface and log a sample.</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="primary" id="beginCapstoneBtn">Begin Capstone →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEAT 1: DESCENT — full-screen game layout: command deck left, mission stage right -->
+  <section class="screen fullscreen-mission" id="scr-beat1">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <button class="ghost" type="button" onclick="showScreen('scr-boot')">🏠 Home</button>
+        <div class="transmission-tag">Beat 1 of 2 · Descent</div>
+      </div>
+      <div class="game-topbar-right">
+        <button id="theme-toggle-mission" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span id="hudXp">0</span></span>
+      </div>
+    </div>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Barriers dead ahead, Cadet — react to each one. There's a turbulence pocket somewhere on the way down too, and it needs its own response the instant you hit it. Fly it with the direction pad — Up/Down/Left/Right, your point of view — and land it clean using all REPEAT, EVENT, and CONDITION for the steady part of the descent.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail" id="paletteWrap1">
+            <div class="dpad">
+              <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+              <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+              <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+              <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
+            </div>
+            <div class="cmd-palette" id="palette1">
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+              <button class="cmd-btn event-btn" type="button" id="addEvent1">⚡ Add Event</button>
+              <button class="cmd-btn condition-btn" type="button" id="addCondition1">🔀 Add Condition</button>
+              <!-- Score/Block/List tools aren't needed for Beat 1's win condition -- kept in the DOM
+                   (hidden) only so the shared game engine's element references stay valid. -->
+              <button class="cmd-btn score-btn" type="button" data-cmd="S+" style="display:none">🔢 +1 Score</button>
+              <button class="cmd-btn score-btn" type="button" data-cmd="SR" style="display:none">↺ Reset Score</button>
+              <button class="cmd-btn block-btn" type="button" id="addBlock1" style="display:none">🧩 Define Block</button>
+              <button class="cmd-btn block-btn" type="button" id="callBlock1" style="display:none">▶ Call Block</button>
+              <button class="cmd-btn list-btn" type="button" data-cmd="LA" style="display:none">📦 Add Cargo</button>
+              <button class="cmd-btn list-btn" type="button" data-cmd="LF" style="display:none">⏮ Remove 1st Cargo</button>
+              <button class="cmd-btn list-btn" type="button" data-cmd="LL" style="display:none">⏭ Remove Last Cargo</button>
+            </div>
+            <div class="mission-actions">
+              <button class="ghost" id="reset1">Reset</button>
+              <button class="ghost" id="clear1">Clear</button>
+              <button class="primary" id="run1">▶ Run Commands</button>
+            </div>
+          </div>
+          <div class="chip-order" id="prog1"></div>
+        </div>
+        <div class="score-readout" id="score1" style="display:none">SCORE: 0</div>
+        <div class="cargo-readout" id="cargo1" style="display:none">CARGO: [ ]</div>
+        <p class="mission-msg" id="msg1"></p>
+        <button class="primary" id="toApproachBtn" disabled>Continue →</button>
+      </div>
+      <div class="stage-bg" style="background-image:url('../assets/loop_capstone_01atmosphere.jpg')"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" id="rover1Img" src="../assets/rover_7.png" alt="Rover-7 descending" draggable="false"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUTSCENE: FINAL APPROACH -->
+  <section class="screen" id="scr-cutscene-approach">
+    <div class="cutscene-shot" style="background-image:url('../assets/loop_capstone_02deck.jpg')">
+      <div class="cutscene-caption">
+        <h2>Final Approach</h2>
+        <p>The outpost's landing deck comes into view below. Rover-7 eases in for touchdown.</p>
+        <button class="primary" onclick="showScreen('scr-cutscene-landing')">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CUTSCENE: TOUCHDOWN -->
+  <section class="screen" id="scr-cutscene-landing">
+    <div class="cutscene-shot" style="background-image:url('../assets/loop_capstone_03decklanding.jpg')">
+      <div class="cutscene-caption">
+        <h2>Touchdown</h2>
+        <p>Rover-7 is down. Systems nominal. Ramp's about to drop.</p>
+        <button class="primary" onclick="document.getElementById('hudTx').textContent='BEAT 2/2'; showScreen('scr-beat2')">Continue →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEAT 2: EXPLORATION -->
+  <section class="screen" id="scr-beat2">
+    <div class="tx-header">
+      <div class="transmission-tag">Beat 2 of 2</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-cutscene-landing')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-boot')">Home ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Ramp's down, Cadet — Rover-6, roll out. There's a sample site ahead. Patrol out to it using a loop nested inside another loop, and make sure your Scan block actually fires and logs something the moment you get there.</p></div>
+    </div>
+
+    <div class="panel skinned" id="panel2" style="background-image:url('../assets/rover_6_exploration.jpg')">
+      <h2>Beat 2 · Exploration — Surface Patrol</h2>
+      <p class="sub">Reach the sample site using a genuine loop nested inside another loop, an EVENT that fires your Scan block on arrival, and a LOG that ends with exactly one sample recorded.</p>
+      <div class="score-readout" id="score2">SAMPLES: 0</div>
+      <div class="cargo-readout" id="cargo2">LOG: [ ]</div>
+      <div class="cmd-palette" id="palette2">
+        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+        <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent2">⚡ Add Event</button>
+        <button class="cmd-btn condition-btn" type="button" id="addCondition2">🔀 Add Condition</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Sample</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Samples</button>
+        <button class="cmd-btn block-btn" type="button" id="addBlock2">🧩 Define Block: Scan</button>
+        <button class="cmd-btn block-btn" type="button" id="callBlock2">▶ Call Scan</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LA">📦 Log Sample</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LF">⏮ Remove 1st Log Entry</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LL">⏭ Remove Last Log Entry</button>
+      </div>
+      <div class="chip-order" id="prog2"></div>
+      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" id="rover2Img" src="../assets/rover_6_right.png" alt="Rover-6 exploring" draggable="false"></div></div></div>
+      <div class="mission-actions">
+        <button class="primary" id="run2">▶ Run Patrol</button>
+        <button class="ghost" id="reset2">Reset Rover</button>
+        <button class="ghost" id="clear2">Clear Program</button>
+      </div>
+      <p class="mission-msg" id="msg2"></p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toReturnBtn" disabled>Continue →</button>
+    </div>
+  </section>
+
+  <!-- CUTSCENE: HEADING HOME -->
+  <section class="screen" id="scr-cutscene-return">
+    <div class="cutscene-shot" style="background-image:url('../assets/rover_7_exploration.jpg')">
+      <div class="cutscene-caption">
+        <h2>Heading Home</h2>
+        <p>Sample logged, Rover-6 redocked. Rover-7, take us home.</p>
+        <button class="primary" onclick="showScreen('scr-debrief')">Continue to Debrief →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEBRIEF -->
+  <section class="screen" id="scr-debrief">
+    <div class="tx-header">
+      <div class="transmission-tag">Debrief</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-cutscene-return')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" disabled>Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Capstone complete, Cadet. Every concept from Units 1 through 9, combined and working, for real. The Loop is fully cleared.</p></div>
+    </div>
+    <div class="panel">
+      <h2>🏆 The Loop — Cleared</h2>
+      <div class="result-box show" id="resultBox"></div>
+      <div class="post-debrief-nav show" id="postDebriefNav">
+        <button class="ghost" onclick="location.href='../the-loop.html'">🏠 Back to The Loop</button>
+        <button class="ghost" id="prevUnitBtn">⬅ Previous Unit</button>
+        <button class="ghost" id="nextUnitBtn" style="display:none">Next Unit ➡</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Flow Academy · The Loop · Capstone Project — demo build</footer>
+</main>
+
+<!-- Reviewer nav: steps through every screen in fixed order (boot -> Beat 1 -> cutscenes -> Beat 2
+     -> cutscene -> debrief) without needing to actually solve either mission. Fixed to the bottom
+     right on top of every screen, including Beat 1's full-screen overlay (z-index above it). -->
+<div id="reviewNav">
+  <button id="reviewPrevBtn" type="button">◀ Prev Pg</button>
+  <span id="reviewPageLabel">1 / 7</span>
+  <button id="reviewNextBtn" type="button">Next Pg ▶</button>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>window.FLOW_BASE = '../';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+<script>
+  // ================= State =================
+  let cadetName = 'Cadet';
+  let xp = 0;
+  const XP_TARGET = 100;
+
+  function addXp(n) {
+    xp += n;
+    document.getElementById('hudXp').textContent = xp;
+    document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    if (typeof syncReviewNav === 'function') syncReviewNav(id);
+    // Every mission's grid is built once at page load, while its screen is still hidden
+    // (display:none), so fitGridToStage's very first pass sees a 0-width stage and skips itself
+    // rather than compute a bogus scale off a hidden element. Firing a resize event here gives
+    // it a real, visible layout to measure the moment the screen actually becomes active.
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  // ================= Reviewer nav: step through every screen in order without playing =================
+  // Lets Lui flip through boot -> Beat 1 -> both cutscenes -> Beat 2 -> return cutscene -> debrief
+  // directly, bypassing the normal play-through gating (Continue buttons disabled until a mission
+  // is solved, etc). Independent of showScreen()'s normal callers -- just calls the same function.
+  const REVIEW_SCREENS = ['scr-boot', 'scr-beat1', 'scr-cutscene-approach', 'scr-cutscene-landing', 'scr-beat2', 'scr-cutscene-return', 'scr-debrief'];
+  function syncReviewNav(activeId) {
+    const idx = REVIEW_SCREENS.indexOf(activeId);
+    const label = document.getElementById('reviewPageLabel');
+    const prevBtn = document.getElementById('reviewPrevBtn');
+    const nextBtn = document.getElementById('reviewNextBtn');
+    if (!label || !prevBtn || !nextBtn) return;
+    label.textContent = (idx === -1 ? '?' : idx + 1) + ' / ' + REVIEW_SCREENS.length;
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx === -1 || idx >= REVIEW_SCREENS.length - 1;
+  }
+  document.getElementById('reviewPrevBtn').addEventListener('click', () => {
+    const idx = REVIEW_SCREENS.indexOf(document.querySelector('.screen.active').id);
+    if (idx > 0) showScreen(REVIEW_SCREENS[idx - 1]);
+  });
+  document.getElementById('reviewNextBtn').addEventListener('click', () => {
+    const idx = REVIEW_SCREENS.indexOf(document.querySelector('.screen.active').id);
+    if (idx !== -1 && idx < REVIEW_SCREENS.length - 1) showScreen(REVIEW_SCREENS[idx + 1]);
+  });
+  syncReviewNav('scr-boot');
+
+  document.querySelectorAll('.quiz-q').forEach(q => {}); // no quiz on this demo build — Capstone is graded by whether the missions work, not a written check
+
+  // Demo build: sign-in is NOT required to play. If a real account happens to be signed in, its
+  // display name is used for flavor only — nothing here is saved to Supabase yet.
+  document.getElementById("beginCapstoneBtn").addEventListener('click', () => {
+    cadetName = (window.CodingAuth && CodingAuth.user && CodingAuth.displayName) || 'Cadet';
+    document.getElementById('hudName').textContent = cadetName;
+    document.getElementById('hud').classList.add('show');
+    showScreen('scr-beat1');
+  });
+
+  // ================= Rover engine (same as every other unit / Milestone Test 1) =================
+  const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
+  const ROT = { N: 0, E: 90, S: 180, W: 270 };
+  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
+  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
+  // Screen-relative direction pad (Beat 1): Up/Down/Left/Right always mean the same compass move
+  // no matter which way the rover is drawn facing -- left is the user's left, right is the user's
+  // right, matching how every other absolute-direction command in the app already reads.
+  const DIR_MAP = { UP: 'N', DOWN: 'S', LEFT: 'W', RIGHT: 'E' };
+  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right', UP: '⬆️ Up', DOWN: '⬇️ Down', LEFT: '⬅️ Left', RIGHT: '➡️ Right', 'S+': '🔢 +1', SR: '↺ Reset', CB: '▶ Call Block', LA: '📦 Log/Add', LF: '⏮ Remove 1st', LL: '⏭ Remove Last' };
+  const COND_LABEL = { wall: '☄️ Barrier Ahead', beacon: '⚡ On Turbulence/Site' };
+
+  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  class MissionFail extends Error {}
+
+  function createLoopRoverGame(cfg) {
+    const mission = cfg.mission;
+    let program = cfg.initialProgram ? JSON.parse(JSON.stringify(cfg.initialProgram)) : [];
+    let openStack = [];
+    let state = { ...mission.start, rotDeg: ROT[mission.start.dir], lastDir: mission.start.dir };
+    let score = cfg.initialScore || 0;
+    let cargoList = [...(cfg.initialCargo || [])];
+    let running = false;
+    let succeeded = false;
+    let attempts = 0;
+    let eventTriggered = false;
+    let conditionFiredTrue = false;
+    let conditionFiredWithCombinator = false;
+    let blockCallCount = 0;
+    let usedRepeat = false;
+    let usedNestedRepeat = false;
+
+    function containsRepeat(items) {
+      return items.some(it => it.type === 'repeat' || (it.children && containsRepeat(it.children)));
+    }
+    function containsNestedRepeat(items) {
+      for (const item of items) {
+        if (item.type === 'repeat') {
+          if (item.children.some(c => c.type === 'repeat')) return true;
+          if (containsNestedRepeat(item.children)) return true;
+        } else if (item.children && containsNestedRepeat(item.children)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
+    function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function checkCond(key, st) {
+      if (key === 'wall') {
+        // Absolute-direction missions (Beat 1) have no persistent facing to check "ahead" against,
+        // so this reads the direction of the last Up/Down/Left/Right command instead -- the same
+        // idea as "ahead", just anchored to what the cadet last did rather than which way a sprite
+        // happens to be drawn.
+        const facingDir = cfg.directionMode === 'absolute' ? st.lastDir : st.dir;
+        const d = DELTA[facingDir];
+        const nr = st.r + d.dr, nc = st.c + d.dc;
+        return !inBounds(nr, nc) || isWall(nr, nc);
+      }
+      if (key === 'beacon') {
+        return !!(mission.beacon && st.r === mission.beacon.r && st.c === mission.beacon.c);
+      }
+      return false;
+    }
+    function evalCondition(item, st) {
+      const a = checkCond(item.condA, st);
+      if (item.combinator === 'none') return a;
+      const b = checkCond(item.condB, st);
+      return item.combinator === 'and' ? (a && b) : (a || b);
+    }
+    function updateScoreDisplay() { cfg.scoreEl.textContent = cfg.scoreLabel + ': ' + score; }
+    function updateCargoDisplay() { cfg.cargoEl.textContent = cfg.cargoLabel + ': [' + cargoList.join(', ') + ']'; }
+
+    function buildGrid() {
+      cfg.gridEl.innerHTML = '';
+      cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
+      cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
+      for (let r = 0; r < mission.rows; r++) {
+        for (let c = 0; c < mission.cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (isWall(r, c)) cell.classList.add('wall');
+          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
+          if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
+          cfg.gridEl.appendChild(cell);
+        }
+      }
+      cfg.gridEl.appendChild(cfg.roverEl);
+      fitGridToStage();
+    }
+
+    // Scales the whole grid down (never up) with a CSS transform when its natural pixel size
+    // (mission.cols/rows * mission.cellPx) is wider than the stage column actually has room for --
+    // caught on Beat 1's widened 5-col grid (2026-08-30): at phone width .game-stage-col is only
+    // ~390px wide, but a 5 x 92px grid is 460px natural width, and since the stage column just
+    // centers its content with flex, the overflow was rendered clipped ~35px off BOTH edges instead
+    // of visibly shrunk -- invisible failure, not an error. Runs after every buildGrid() and again
+    // on resize, so it's a no-op wherever the grid already fits (every existing mission, and Beat 1
+    // itself above phone width) and only engages where it's actually needed.
+    function fitGridToStage() {
+      const stageCol = cfg.gridEl.closest('.game-stage-col');
+      const wrap = cfg.gridEl.closest('.stage-grid-wrap') || cfg.gridEl.parentElement;
+      if (!stageCol || !wrap) return;
+      // While this mission's screen isn't the active one (display:none), the stage column has no
+      // real layout box -- clientWidth/Height read 0. Skip rather than divide by a fake size; the
+      // resize event showScreen() fires when a screen becomes active re-runs this with real numbers.
+      if (!stageCol.clientWidth || !stageCol.clientHeight) return;
+      const naturalW = mission.cols * mission.cellPx;
+      const naturalH = mission.rows * mission.cellPx;
+      const availW = stageCol.clientWidth - 16;
+      const availH = stageCol.clientHeight - 16;
+      const scale = Math.min(1, availW / naturalW, availH / naturalH);
+      wrap.style.transform = scale < 0.999 ? `scale(${scale})` : '';
+    }
+    window.addEventListener('resize', fitGridToStage);
+
+    function updateRoverPosition(animate) {
+      const x = state.c * mission.cellPx + mission.cellPx * 0.15;
+      const y = state.r * mission.cellPx + mission.cellPx * 0.15;
+      cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.left = x + 'px';
+      cfg.roverEl.style.top = y + 'px';
+      // Missions with a real left/right sprite pair (Beat 2's Rover-6) skin direction by swapping
+      // the actual image instead of rotating an icon -- rotation stays off for those so the two
+      // never fight each other.
+      if (!cfg.roverSprites && !cfg.noRotate) cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
+    }
+
+    function findBlockDef() { return program.find(it => it.type === 'block') || null; }
+
+    function updateContainerBtns() {
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
+      cfg.addEventBtn.disabled = running || openStack.length !== 0;
+      cfg.addConditionBtn.disabled = running || openStack.length !== 0;
+      cfg.addBlockBtn.disabled = running || openStack.length !== 0 || !!findBlockDef();
+      const blockDef = findBlockDef();
+      cfg.callBlockBtn.disabled = running || !blockDef || blockDef.children.length === 0 || topType === 'block';
+    }
+
+    function currentTarget() {
+      return openStack.length ? openStack[openStack.length - 1].children : program;
+    }
+
+    function renderItems(items, containerEl, hintMode) {
+      containerEl.innerHTML = '';
+      if (items.length === 0) {
+        const span = document.createElement('span');
+        span.className = 'empty-hint';
+        span.textContent = hintMode === 'top'
+          ? 'Add commands (or a Repeat / Event / Condition block) from the panel above.'
+          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+        containerEl.appendChild(span);
+        return;
+      }
+      items.forEach((item, i) => {
+        if (item.type === 'cmd') {
+          const row = document.createElement('div');
+          row.className = 'order-row';
+          const label = document.createElement('span');
+          label.className = 'order-label';
+          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + CMD_LABEL[item.cmd];
+          row.appendChild(label);
+
+          const btns = document.createElement('div');
+          btns.className = 'order-btns';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const rmBtn = document.createElement('button');
+          rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
+          rmBtn.disabled = running;
+          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
+
+          btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+          row.appendChild(btns);
+          containerEl.appendChild(row);
+        } else if (item.type === 'repeat' || item.type === 'event' || item.type === 'block') {
+          const isRepeat = item.type === 'repeat';
+          const isBlock = item.type === 'block';
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card' + (isRepeat ? '' : isBlock ? ' block-card' : ' event-card') + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head';
+
+          if (isRepeat) {
+            const minus = document.createElement('button');
+            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
+            minus.disabled = running;
+            minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
+            const plus = document.createElement('button');
+            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
+            plus.disabled = running;
+            plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
+            const label = document.createElement('span');
+            label.textContent = '🔁 Repeat × ' + item.count;
+            head.append(minus, label, plus);
+          } else if (isBlock) {
+            const label = document.createElement('span');
+            label.textContent = '🧩 ' + item.name + ' Block';
+            head.append(label);
+          } else {
+            const label = document.createElement('span');
+            label.textContent = cfg.eventLabel || '⚡ On Signal';
+            head.append(label);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', isRepeat ? 'Remove loop' : isBlock ? 'Remove block' : 'Remove event');
+          remove.disabled = running;
+          remove.addEventListener('click', () => {
+            if (running) return;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+            renderProgram();
+          });
+          actions.append(upBtn, downBtn, remove);
+          head.appendChild(actions);
+          card.appendChild(head);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
+
+          if (isInnermostOpen) {
+            const done = document.createElement('button');
+            done.type = 'button';
+            done.className = 'repeat-done-btn';
+            done.textContent = '✅ Done adding to this ' + (isRepeat ? 'loop' : isBlock ? 'block' : 'event');
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
+            card.appendChild(done);
+          }
+          containerEl.appendChild(card);
+        } else if (item.type === 'condition') {
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card condition-card' + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head';
+
+          const ifLabel = document.createElement('span');
+          ifLabel.textContent = '🔀 IF';
+          head.appendChild(ifLabel);
+
+          const condASel = document.createElement('select');
+          condASel.className = 'cond-select';
+          condASel.disabled = running;
+          ['wall', 'beacon'].forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k; opt.textContent = COND_LABEL[k];
+            if (item.condA === k) opt.selected = true;
+            condASel.appendChild(opt);
+          });
+          condASel.addEventListener('change', () => { item.condA = condASel.value; });
+          head.appendChild(condASel);
+
+          const combSel = document.createElement('select');
+          combSel.className = 'cond-select';
+          combSel.disabled = running;
+          [['none', '(just this)'], ['and', 'AND'], ['or', 'OR']].forEach(([v, l]) => {
+            const opt = document.createElement('option');
+            opt.value = v; opt.textContent = l;
+            if (item.combinator === v) opt.selected = true;
+            combSel.appendChild(opt);
+          });
+          combSel.addEventListener('change', () => { item.combinator = combSel.value; renderProgram(); });
+          head.appendChild(combSel);
+
+          if (item.combinator !== 'none') {
+            const condBSel = document.createElement('select');
+            condBSel.className = 'cond-select';
+            condBSel.disabled = running;
+            ['wall', 'beacon'].forEach(k => {
+              const opt = document.createElement('option');
+              opt.value = k; opt.textContent = COND_LABEL[k];
+              if (item.condB === k) opt.selected = true;
+              condBSel.appendChild(opt);
+            });
+            condBSel.addEventListener('change', () => { item.condB = condBSel.value; });
+            head.appendChild(condBSel);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove condition');
+          remove.disabled = running;
+          remove.addEventListener('click', () => {
+            if (running) return;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+            renderProgram();
+          });
+          actions.append(upBtn, downBtn, remove);
+          head.appendChild(actions);
+          card.appendChild(head);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
+
+          if (isInnermostOpen) {
+            const done = document.createElement('button');
+            done.type = 'button';
+            done.className = 'repeat-done-btn';
+            done.textContent = '✅ Done adding to this IF';
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
+            card.appendChild(done);
+          }
+          containerEl.appendChild(card);
+        }
+      });
+    }
+
+    function renderProgram() {
+      renderItems(program, cfg.programListEl, 'top');
+      updateContainerBtns();
+    }
+
+    cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (running) return;
+        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
+        renderProgram();
+      });
+    });
+
+    cfg.addRepeatBtn.addEventListener('click', () => {
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
+      const newRepeat = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(newRepeat);
+      openStack.push(newRepeat);
+      renderProgram();
+    });
+
+    cfg.addEventBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0) return;
+      const newEvent = { type: 'event', trigger: 'signal', children: [] };
+      currentTarget().push(newEvent);
+      openStack.push(newEvent);
+      renderProgram();
+    });
+
+    cfg.addConditionBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0) return;
+      const newCondition = { type: 'condition', condA: 'wall', combinator: 'none', condB: 'beacon', children: [] };
+      currentTarget().push(newCondition);
+      openStack.push(newCondition);
+      renderProgram();
+    });
+
+    cfg.addBlockBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0 || findBlockDef()) return;
+      const newBlock = { type: 'block', name: cfg.blockName || 'Block', children: [] };
+      currentTarget().push(newBlock);
+      openStack.push(newBlock);
+      renderProgram();
+    });
+
+    cfg.callBlockBtn.addEventListener('click', () => {
+      if (running) return;
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      if (topType === 'block') return;
+      const blockDef = findBlockDef();
+      if (!blockDef || blockDef.children.length === 0) return;
+      currentTarget().push({ type: 'cmd', cmd: 'CB' });
+      renderProgram();
+    });
+
+    cfg.clearBtn.addEventListener('click', () => {
+      if (running) return;
+      program = []; openStack = [];
+      renderProgram();
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+    });
+
+    cfg.resetBtn.addEventListener('click', () => {
+      if (running) return;
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir], lastDir: mission.start.dir };
+      score = cfg.initialScore || 0;
+      updateScoreDisplay();
+      cargoList = [...(cfg.initialCargo || [])];
+      updateCargoDisplay();
+      if (cfg.roverSprites && cfg.roverImgEl) cfg.roverImgEl.src = cfg.roverSprites.right;
+      updateRoverPosition(true);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+    });
+
+    function collectHandlers(items) {
+      const handlers = {};
+      items.forEach(item => {
+        if (item.type === 'event') {
+          handlers[item.trigger] = handlers[item.trigger] || [];
+          handlers[item.trigger].push(item);
+        }
+      });
+      return handlers;
+    }
+
+    async function moveStep(dir, handlers, inHandler) {
+      state.lastDir = dir;
+      const d = DELTA[dir];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      updateRoverPosition(true);
+      await wait(400);
+
+      if (!inHandler && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
+        const list = (handlers && handlers['signal']) || [];
+        if (list.length) {
+          eventTriggered = true;
+          for (const handler of list) {
+            for (const child of handler.children) {
+              await executeOne(child.cmd, handlers, true);
+            }
+          }
+        }
+      }
+    }
+
+    async function executeOne(cmd, handlers, inHandler) {
+      if (cmd === 'L') {
+        state.dir = TURN_L[state.dir]; state.rotDeg -= 90;
+        if (cfg.roverSprites && cfg.roverImgEl) cfg.roverImgEl.src = cfg.roverSprites.left;
+        updateRoverPosition(true); await wait(400);
+      }
+      else if (cmd === 'R') {
+        state.dir = TURN_R[state.dir]; state.rotDeg += 90;
+        if (cfg.roverSprites && cfg.roverImgEl) cfg.roverImgEl.src = cfg.roverSprites.right;
+        updateRoverPosition(true); await wait(400);
+      }
+      else if (cmd === 'F') {
+        await moveStep(state.dir, handlers, inHandler);
+      } else if (cmd === 'UP' || cmd === 'DOWN' || cmd === 'LEFT' || cmd === 'RIGHT') {
+        await moveStep(DIR_MAP[cmd], handlers, inHandler);
+      } else if (cmd === 'S+') {
+        score += 1;
+        updateScoreDisplay();
+        await wait(250);
+      } else if (cmd === 'SR') {
+        score = 0;
+        updateScoreDisplay();
+        await wait(250);
+      } else if (cmd === 'CB') {
+        blockCallCount++;
+        const blockDef = findBlockDef();
+        if (blockDef) {
+          for (const child of blockDef.children) {
+            await executeOne(child.cmd, handlers, inHandler);
+          }
+        }
+      } else if (cmd === 'LA') {
+        cargoList.push(cargoList.length + 1);
+        updateCargoDisplay();
+        await wait(250);
+      } else if (cmd === 'LF') {
+        cargoList.shift();
+        updateCargoDisplay();
+        await wait(250);
+      } else if (cmd === 'LL') {
+        cargoList.pop();
+        updateCargoDisplay();
+        await wait(250);
+      }
+    }
+
+    async function runItems(items, handlers, inHandler) {
+      for (const item of items) {
+        if (item.type === 'cmd') {
+          await executeOne(item.cmd, handlers, inHandler);
+        } else if (item.type === 'repeat') {
+          for (let n = 0; n < item.count; n++) {
+            await runItems(item.children, handlers, inHandler);
+          }
+        } else if (item.type === 'condition') {
+          const result = evalCondition(item, state);
+          if (result) {
+            conditionFiredTrue = true;
+            if (item.combinator !== 'none') conditionFiredWithCombinator = true;
+            await runItems(item.children, handlers, inHandler);
+          }
+        }
+      }
+    }
+
+    cfg.runBtn.addEventListener('click', async () => {
+      if (running || program.length === 0) return;
+      running = true;
+      attempts++;
+      usedRepeat = containsRepeat(program);
+      usedNestedRepeat = containsNestedRepeat(program);
+      const handlers = collectHandlers(program);
+      eventTriggered = false;
+      conditionFiredTrue = false;
+      conditionFiredWithCombinator = false;
+      blockCallCount = 0;
+      score = cfg.initialScore || 0;
+      updateScoreDisplay();
+      cargoList = [...(cfg.initialCargo || [])];
+      updateCargoDisplay();
+      cfg.runBtn.disabled = true;
+      updateContainerBtns();
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir], lastDir: mission.start.dir };
+      if (cfg.roverSprites && cfg.roverImgEl) cfg.roverImgEl.src = cfg.roverSprites.right;
+      updateRoverPosition(false);
+      await wait(150);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+
+      try {
+        await runItems(program, handlers, false);
+        if (state.r === mission.goal.r && state.c === mission.goal.c) {
+          let blockedMsg = null;
+          if (cfg.requireNestedRepeat && !usedNestedRepeat) {
+            blockedMsg = '🛰 Rover reached the goal — but Command Control won\'t log this as complete. Prove you can nest a REPEAT inside another REPEAT — not just one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
+          } else if (cfg.requireRepeat && !usedRepeat) {
+            blockedMsg = '🛰 Rover reached the goal — but Command Control won\'t log this as complete. Rebuild this route using at least one Repeat, then run it again.';
+          } else if (cfg.requireEventUsed && !eventTriggered) {
+            blockedMsg = '🛰 Rover reached the goal — but Command Control won\'t log this as complete. Wire up an EVENT and make sure your route genuinely passes over the trigger cell so it actually fires, then run it again.';
+          } else if (cfg.requireConditionUsed && !conditionFiredTrue) {
+            blockedMsg = '🛰 Rover reached the goal — but Command Control won\'t log this as complete. Build an IF block and make sure its condition is actually TRUE at some point during the run.';
+          } else if (cfg.targetScore !== undefined && score !== cfg.targetScore) {
+            blockedMsg = '🛰 Rover reached the goal — but ' + cfg.scoreLabel + ' reads ' + score + ', not ' + cfg.targetScore + '. Command Control checks the exact final value. Adjust and run it again.';
+          } else if (cfg.requireBlockCallCount && blockCallCount < cfg.requireBlockCallCount) {
+            blockedMsg = '🛰 Rover reached the goal — but Command Control needs your Block actually CALLED ' + cfg.requireBlockCallCount + ' time' + (cfg.requireBlockCallCount === 1 ? '' : 's') + ' during this run (it ran ' + blockCallCount + '). Add more Call commands to your route and run it again.';
+          } else if (cfg.requireListEndState && JSON.stringify(cargoList) !== JSON.stringify(cfg.requireListEndState)) {
+            blockedMsg = '🛰 Rover reached the goal — but ' + cfg.cargoLabel + ' reads [' + cargoList.join(', ') + '], not [' + cfg.requireListEndState.join(', ') + ']. Command Control checks the exact final list, in the exact same order. Adjust and run it again.';
+          }
+          if (blockedMsg) {
+            cfg.msgEl.textContent = blockedMsg;
+            cfg.msgEl.className = 'mission-msg bad';
+          } else {
+            succeeded = true;
+            cfg.msgEl.textContent = '🎉 MISSION COMPLETE!';
+            cfg.msgEl.className = 'mission-msg ok';
+            if (cfg.onSuccess) cfg.onSuccess();
+          }
+        } else {
+          cfg.msgEl.textContent = 'Rover stopped short of the goal. Adjust your sequence and try again.';
+          cfg.msgEl.className = 'mission-msg bad';
+        }
+      } catch (e) {
+        if (e instanceof MissionFail) {
+          cfg.msgEl.textContent = e.message;
+          cfg.msgEl.className = 'mission-msg bad';
+        } else { throw e; }
+      } finally {
+        running = false;
+        cfg.runBtn.disabled = false;
+        updateContainerBtns();
+      }
+    });
+
+    buildGrid();
+    updateRoverPosition(false);
+    updateScoreDisplay();
+    updateCargoDisplay();
+    renderProgram();
+
+    return {
+      get succeeded() { return succeeded; },
+      get attempts() { return attempts; },
+      get finalScore() { return score; },
+      get blockCallCount() { return blockCallCount; },
+      get finalCargo() { return [...cargoList]; }
+    };
+  }
+
+  // ---------------- Beat 1 · Descent — Platform Corridor ----------------
+  // Widened to 6 rows x 5 cols (2026-08-30, per Lui's "expand to W5*L6" -- confirmed OK even though
+  // the engine only ever checks "did this fire at least once," never a count: requireConditionUsed/
+  // requireEventUsed stay true after their first use, so a player could route around a *second*
+  // instance of the same trigger type with plain Left/Right instead of a second block -- that's
+  // fine, it doesn't undermine the forcing rule, it just means extra hazards buy real navigation
+  // difficulty rather than a harder version of the concept check itself. `mission.walls` was
+  // already an array (multiple static obstacles need no engine change); `mission.beacon` is a
+  // single object, so only one Event trigger cell exists per mission -- two would need an engine
+  // change, out of scope here.
+  // Layout (2026-08-30, re-randomized per Lui's ask): previously a single fixed layout (start/
+  // wall1 at c2, wall2 at c1, beacon/goal at c0) that never changed between plays -- Lui asked
+  // whether it shuffles on load (it didn't) and then asked for exactly this: a fresh column draw
+  // every time the PAGE loads (not every Reset/retry within one attempt -- Reset only resets rover
+  // position/score, it never rebuilds `beat1Mission`, so a player who fails and hits Reset keeps
+  // retrying the SAME layout rather than having it change underneath them mid-attempt).
+  // Rows stay fixed exactly as specified: wall #1 on row 2 (r1), wall #2 on row 3 (r2), the
+  // turbulence/event trigger fixed on row 4 (r3), the landing pad fixed on row 6 (r5) -- only the
+  // COLUMN of each is randomized, with three constraints, also exactly as specified:
+  //   - wall #1's column always matches the start column, so "IF Barrier Ahead" still genuinely
+  //     evaluates true the instant the mission begins, no matter which column gets drawn (Condition
+  //     stays load-bearing regardless of layout).
+  //   - wall #2's column is never the same as wall #1's.
+  //   - the turbulence trigger's column is never the same as EITHER wall's column.
+  //   - the landing pad's column is fully free (any of the 5 columns, no exclusion) -- it sits on
+  //     its own row with nothing else on it, so there's no cell to collide with regardless.
+  // This keeps the mission always solvable no matter what's drawn: the first dodge (whichever of
+  // Left/Right actually has room, since a wall drawn at the very edge only leaves one legal
+  // direction) always clears wall #1 by construction; wall #2, being in a different column from
+  // wall #1, either sits directly in the path chosen for dodge #1 (needing a second plain-command
+  // dodge, exactly like the fixed layout before) or doesn't (a hazard the chosen route simply
+  // avoids for free) -- both are valid outcomes per Lui's own "use left/right to avoid it, that's
+  // fine" ruling from the previous round. Whatever column the player ends up in before the final
+  // REPEAT+EVENT descent, they can always reach the goal's column first with plain Left/Right,
+  // since nothing else occupies rows 4-5.
+  function pickCol(excludeCols) {
+    const options = [];
+    for (let c = 0; c < 5; c++) if (!excludeCols.includes(c)) options.push(c);
+    return options[Math.floor(Math.random() * options.length)];
+  }
+  const beat1ColWall1 = pickCol([]);
+  const beat1ColWall2 = pickCol([beat1ColWall1]);
+  const beat1ColBeacon = pickCol([beat1ColWall1, beat1ColWall2]);
+  const beat1ColGoal = pickCol([]);
+  const beat1Mission = {
+    rows: 6, cols: 5, cellPx: 92,
+    start: { r: 0, c: beat1ColWall1, dir: 'S' },
+    beacon: { r: 3, c: beat1ColBeacon },
+    walls: [{ r: 1, c: beat1ColWall1 }, { r: 2, c: beat1ColWall2 }],
+    goal: { r: 5, c: beat1ColGoal }
+  };
+  const beat1 = createLoopRoverGame({
+    gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
+    roverImgEl: document.getElementById('rover1Img'),
+    noRotate: true, // Rover-7's art is a fixed cinematic angle, not a top-down icon -- rotating it
+                     // 90/180/270deg on turns would look broken, so it stays in this pose and only
+                     // translates between cells (turning is a logic-only state change here).
+    programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
+    runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
+    clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('paletteWrap1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
+    addConditionBtn: document.getElementById('addCondition1'), scoreEl: document.getElementById('score1'),
+    addBlockBtn: document.getElementById('addBlock1'), callBlockBtn: document.getElementById('callBlock1'),
+    cargoEl: document.getElementById('cargo1'),
+    scoreLabel: 'SCORE', cargoLabel: 'CARGO', blockName: 'Dodge', eventLabel: '⚡ On Turbulence',
+    mission: beat1Mission,
+    directionMode: 'absolute', // Up/Down/Left/Right pad, screen-relative -- see moveStep/checkCond
+    initialScore: 0,
+    initialCargo: [],
+    requireRepeat: true,
+    requireEventUsed: true,
+    requireConditionUsed: true,
+    onSuccess: () => { document.getElementById('toApproachBtn').disabled = false; addXp(40); }
+  });
+
+  // ---------------- Beat 2 · Exploration — Surface Patrol ----------------
+  // Same shape as Milestone Test 1's Checkpoint 1 (a nested-repeat structural check on an open
+  // corridor crossing a trigger cell), plus a Custom Block ("Scan") + List (sample log) layered on
+  // top: the Scan block increments the sample count AND logs one entry, called via an EVENT that
+  // fires when the patrol crosses the sample site mid-route.
+  const beat2Mission = { rows: 5, cols: 6, cellPx: 56, start: { r: 4, c: 1, dir: 'E' }, beacon: { r: 4, c: 3 }, walls: [], goal: { r: 4, c: 5 } };
+  const beat2 = createLoopRoverGame({
+    gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
+    roverImgEl: document.getElementById('rover2Img'),
+    roverSprites: { left: '../assets/rover_6_left.png', right: '../assets/rover_6_right.png' },
+    programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
+    runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
+    clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
+    addConditionBtn: document.getElementById('addCondition2'), scoreEl: document.getElementById('score2'),
+    addBlockBtn: document.getElementById('addBlock2'), callBlockBtn: document.getElementById('callBlock2'),
+    cargoEl: document.getElementById('cargo2'),
+    scoreLabel: 'SAMPLES', cargoLabel: 'LOG', blockName: 'Scan', eventLabel: '⚡ On Sample Site',
+    mission: beat2Mission,
+    initialScore: 0,
+    initialCargo: [],
+    requireNestedRepeat: true,
+    requireEventUsed: true,
+    targetScore: 1,
+    requireBlockCallCount: 1,
+    requireListEndState: [1],
+    onSuccess: () => { document.getElementById('toReturnBtn').disabled = false; addXp(60); }
+  });
+
+  document.getElementById('toApproachBtn').addEventListener('click', () => showScreen('scr-cutscene-approach'));
+  document.getElementById('toReturnBtn').addEventListener('click', () => showScreen('scr-cutscene-return'));
+
+  // ================= Debrief (no quiz — Capstone is graded by whether the missions actually
+  // work, not a written check; this fires as soon as the Debrief screen is shown) =================
+  const PREV_UNIT_FILE = 'milestone_test_1.html';
+  const NEXT_UNIT_FILE = null; // Capstone is the final unit of Stage 1
+  document.getElementById('prevUnitBtn').onclick = () => location.href = PREV_UNIT_FILE;
+  if (NEXT_UNIT_FILE) { document.getElementById('nextUnitBtn').style.display = ''; document.getElementById('nextUnitBtn').onclick = () => location.href = NEXT_UNIT_FILE; }
+
+  const debriefObserver = new MutationObserver(() => {
+    if (document.getElementById('scr-debrief').classList.contains('active')) {
+      const box = document.getElementById('resultBox');
+      box.innerHTML = '<strong>' + cadetName + ' — Capstone Complete</strong><br>Total XP: ' + xp
+        + '<br>Beat 1 (Descent): ' + (beat1.succeeded ? '✅' : '—') + ' (' + beat1.attempts + ' run' + (beat1.attempts === 1 ? '' : 's') + ')'
+        + ' · Beat 2 (Exploration): ' + (beat2.succeeded ? '✅' : '—') + ' (' + beat2.attempts + ' run' + (beat2.attempts === 1 ? '' : 's') + ')'
+        + '<br><br>🛠️ Demo build — this result is shown here only and is not saved to any account yet.';
+    }
+  });
+  debriefObserver.observe(document.getElementById('scr-debrief'), { attributes: true, attributeFilter: ['class'] });
+</script>
+</body>
+</html>

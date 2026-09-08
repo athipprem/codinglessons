@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  // Runs before first paint so the page never flashes the wrong theme on load.
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — Milestone Test 1</title>
+<link rel="icon" type="image/png" href="../assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../flow-academy.css">
+<style>
+  :root {
+    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42;
+    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+    --amber: #FFC24B; --amber-tint: #3A2B0E;
+    --danger: #FF6B7F; --danger-tint: #3A1620;
+    --success: #4BE39A; --success-tint: #113526;
+    --nova: #C77DFF; --nova-tint: #241238;
+    --tool: #FF6BCF; --tool-tint: #3A1030;
+    --list: #2DD4BF; --list-tint: #0E2E2B;
+    --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1px 1px at 10% 20%, var(--star), transparent),
+      radial-gradient(1px 1px at 80% 10%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, var(--star), transparent),
+      radial-gradient(1px 1px at 60% 40%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 90% 80%, var(--star), transparent),
+      radial-gradient(1px 1px at 25% 85%, var(--star), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px; line-height: 1.6;
+  }
+  h1, h2, h3, .display { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+  a { color: var(--cyan); }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
+
+  /* ---------------- Flow Academy topbar ---------------- */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
+  #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover { color: var(--cyan); }
+
+  .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
+  .hud.show { display: flex; }
+  .hud .cadet { color: var(--ink); font-weight: 600; }
+  .hud .xp { color: var(--amber); font-weight: 700; }
+  .hud .tx { margin-left: auto; }
+  .hud-bar { flex-basis: 100%; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .hud-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--success)); transition: width 0.5s ease; }
+
+  .screen { display: none; flex-direction: column; gap: 20px; }
+  .screen.active { display: flex; }
+
+  .boot-card { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 20px; padding: 40px 28px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 40px; }
+  .boot-card .logo { height: 52px; width: auto; filter: drop-shadow(0 0 14px #38e6ee66); }
+  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .boot-card input { font-family: inherit; font-size: 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); width: 100%; max-width: 280px; text-align: center; }
+  .boot-card label { font-size: 14px; color: var(--ink-soft); }
+
+  button.primary { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.03em; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); border: none; padding: 12px 24px; border-radius: 999px; box-shadow: 0 6px 16px #38e6ee33; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  button.ghost { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 13px; background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: transform .12s ease, border-color .12s ease, color .12s ease; }
+  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+  button.ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .transmission-tag { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); }
+  .tx-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tx-nav { display: flex; gap: 8px; }
+  .tx-nav-btn {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .tx-nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .tx-nav-btn:disabled { opacity: .35; cursor: default; }
+  #lastResultCard {
+    margin-top: 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg-panel); font-size: .86rem; color: var(--ink-soft); text-align: left;
+  }
+  #lastResultCard strong { color: var(--ink); }
+  .dialogue { background: var(--bg-panel); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
+  .dialogue .avatar { font-size: 26px; flex-shrink: 0; }
+  .dialogue p { margin: 0 0 8px; }
+  .dialogue p:last-child { margin-bottom: 0; }
+
+  .panel { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel h2 { font-size: 18px; color: var(--ink); }
+  .panel .sub { color: var(--ink-soft); font-size: 14.5px; }
+
+  .field-manual { background: var(--amber-tint); border-left: 4px solid var(--amber); border-radius: 10px; padding: 14px 18px; font-size: 15px; }
+  .field-manual h3 { font-size: 15px; margin-bottom: 6px; color: var(--ink); }
+  .field-manual ol { margin: 6px 0 0; padding-left: 20px; }
+  .field-manual li { margin: 4px 0; }
+
+  .chip-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; align-items: flex-start; }
+  .chip-order { display: flex; flex-direction: column; gap: 8px; min-height: 40px; padding: 10px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--line); }
+  .step-chip, .cmd-chip { font-size: 14px; padding: 8px 13px; border-radius: 10px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); cursor: pointer; font-family: inherit; }
+  .step-chip:hover, .cmd-chip:hover { border-color: var(--cyan); }
+  .step-chip.placed, .cmd-chip { background: var(--cyan-tint); border-color: var(--cyan); }
+  .num { font-family: "JetBrains Mono", monospace; font-weight: 700; margin-right: 6px; }
+  .empty-hint { color: var(--ink-soft); font-size: 13.5px; }
+
+  .order-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cyan-tint); border: 1.5px solid var(--cyan); border-radius: 10px;
+    padding: 7px 8px 7px 13px;
+  }
+  .order-row .order-label { flex: 1; font-size: 14px; text-align: left; }
+  .order-row .order-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .order-row .order-btns button {
+    font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+    width: 30px; height: 30px; padding: 0; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg-raised); color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .order-row .order-btns button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .order-row .order-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-row .order-btns button.remove:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+  .debrief-note {
+    display: none; background: var(--bg-panel); border-left: 3px solid var(--cyan);
+    border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--ink-soft);
+  }
+  .debrief-note.show { display: block; }
+  .debrief-note strong { color: var(--ink); }
+  .debrief-note ul { margin: 6px 0 0; padding-left: 20px; }
+  .debrief-note li { margin: 3px 0; }
+
+  .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
+  .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
+  .repeat-card.event-card { border-color: var(--cyan); background: var(--cyan-tint); }
+  .repeat-card.event-card.open { box-shadow: 0 0 0 2px var(--cyan); }
+  .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .repeat-card.block-card { border-color: var(--tool); background: var(--tool-tint); }
+  .repeat-card.block-card.open { box-shadow: 0 0 0 2px var(--tool); }
+  .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
+  .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .repeat-move-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .repeat-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; }
+  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; padding-left: 14px; border-left: 2px dashed var(--line); }
+  .repeat-done-btn { align-self: flex-start; font-family: "Orbitron", sans-serif; font-weight: 600; font-size: 11.5px; background: var(--success); color: #06281B; border: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
+
+  .cond-select { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 600; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 4px 6px; }
+  .cond-select:hover { border-color: var(--nova); }
+  .cond-select:disabled { opacity: 0.5; }
+
+  .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cmd-btn { font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 14px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+  .cmd-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .cmd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .cmd-btn.repeat-btn { border-color: var(--amber); }
+  .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .cmd-btn.event-btn { border-color: var(--cyan); }
+  .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .cmd-btn.condition-btn { border-color: var(--nova); }
+  .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
+  .cmd-btn.score-btn { border-color: var(--success); }
+  .cmd-btn.score-btn:hover { color: var(--success); border-color: var(--success); }
+  .cmd-btn.block-btn { border-color: var(--tool); }
+  .cmd-btn.block-btn:hover { color: var(--tool); border-color: var(--tool); }
+  .cmd-btn.list-btn { border-color: var(--list); }
+  .cmd-btn.list-btn:hover { color: var(--list); border-color: var(--list); }
+
+  .score-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--amber); background: var(--amber-tint); border: 1px solid var(--amber); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .cargo-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--list); background: var(--list-tint); border: 1px solid var(--list); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; margin-left: 8px; }
+
+  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
+  .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.wall::after { content: "🚧"; font-size: 16px; }
+  .cell.beacon { background: var(--cyan-tint); }
+  .cell.beacon::after { content: "📡"; font-size: 16px; }
+  .cell.goal { background: var(--success-tint); }
+  .rover { position: absolute; transform-origin: 50% 50%; }
+  .rover-shape {
+    width: 100%; height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 3px rgba(56,230,238,0.5));
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .quiz-q:first-of-type { border-top: none; padding-top: 0; }
+  .qtext { font-weight: 700; }
+  .choice { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; background: var(--bg-panel); }
+  .choice:hover { border-color: var(--cyan); }
+  .choice input { margin-top: 3px; accent-color: var(--cyan); }
+  .choice.correct { border-color: var(--success); background: var(--success-tint); }
+  .choice.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel);
+  }
+  .yn-text { flex: 1; }
+  .yn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .yn-btn {
+    font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.03em;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: transparent;
+    color: var(--ink-soft); cursor: pointer;
+  }
+  .yn-btn:hover { border-color: var(--cyan); color: var(--ink); }
+  .yn-btn.selected-yes { border-color: var(--cyan); background: var(--cyan-tint); color: var(--cyan); }
+  .yn-btn.selected-no { border-color: var(--ink-soft); background: var(--bg-raised); color: var(--ink); }
+  .yn-row.correct { border-color: var(--success); background: var(--success-tint); }
+  .yn-row.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row.correct .yn-btn.selected-yes, .yn-row.correct .yn-btn.selected-no { border-color: var(--success); background: transparent; color: var(--success); }
+  .yn-row.incorrect .yn-btn.selected-yes, .yn-row.incorrect .yn-btn.selected-no { border-color: var(--danger); background: transparent; color: var(--danger); }
+
+  .mission-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .puzzle-msg, .mission-msg { font-size: 14.5px; font-weight: 600; min-height: 20px; }
+  .puzzle-msg.ok, .mission-msg.ok { color: var(--success); }
+  .puzzle-msg.bad, .mission-msg.bad { color: var(--danger); }
+
+  .result-box { display: none; background: var(--success-tint); border-radius: 12px; padding: 16px 18px; font-size: 15px; }
+  .result-box.show { display: block; }
+  .result-box strong { font-family: "Orbitron", sans-serif; }
+  .post-debrief-nav { display: none; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .post-debrief-nav.show { display: flex; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="topbar">
+    <div class="topbar-left">
+      <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="theme-toggle" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      var btn = document.getElementById('theme-toggle');
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      btn.addEventListener('click', function(){
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        apply(next);
+      });
+    })();
+  </script>
+
+  <div class="hud" id="hud">
+    <span>CADET: <span class="cadet" id="hudName">—</span></span>
+    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span class="tx" id="hudTx">CHECKPOINT 1/2</span>
+    <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- BOOT -->
+  <section class="screen active" id="scr-boot">
+    <div class="boot-card">
+      <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
+      <h1>FLOW ACADEMY</h1>
+      <div class="tagline">The Loop · Milestone Test 1</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">No new lessons today, Cadet. Milestone Test 1 checks whether everything from Units 1–9 — Sequence, Loops, Nested Loops, Events, Conditions, Variables, Custom Blocks, Lists, and Debugging — actually holds up when it's mixed together instead of tested one skill at a time. Two combined missions, then a Final Systems Check spanning all nine concepts. Command Control only unlocks the Capstone Project once this is cleared.</p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="primary" id="beginBtn">Begin Milestone Test →</button>
+        <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
+      </div>
+      <div id="lastResultCard" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- CHECKPOINT 1 -->
+  <section class="screen" id="scr-t1">
+    <div class="tx-header">
+      <div class="transmission-tag">Checkpoint 1 of 2</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" disabled>◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div>
+        <p><strong>COMMANDER:</strong> Platform Sierra needs one continuous route, Cadet — no separate exercises this time. There's a barrier dead ahead of Rover-7, a signal beacon somewhere along the route, and the flag beyond both. Build a route that checks for the barrier, reacts to the beacon, AND uses a loop nested inside another loop to cover the distance. All three, in one working program.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Combined Systems Check I · Platform Sierra</h2>
+      <p class="sub">Reach the flag using a genuine loop-inside-a-loop, an EVENT that actually fires off the beacon, and an IF condition that actually evaluates true — all three, in the same successful run.</p>
+      <div class="score-readout" id="score1">SCORE: 0</div>
+      <div class="cargo-readout" id="cargo1">CARGO: [ ]</div>
+      <div class="cmd-palette" id="palette1">
+        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+        <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent1">🔔 Add Event</button>
+        <button class="cmd-btn condition-btn" type="button" id="addCondition1">🔀 Add Condition</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
+        <button class="cmd-btn block-btn" type="button" id="addBlock1">🧩 Define Block: U-Turn</button>
+        <button class="cmd-btn block-btn" type="button" id="callBlock1">▶ Call U-Turn</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LA">📦 Add Cargo</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LF">⏮ Remove 1st Cargo</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LL">⏭ Remove Last Cargo</button>
+      </div>
+      <div class="chip-order" id="prog1"></div>
+      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="mission-actions">
+        <button class="primary" id="run1">▶ Run Program</button>
+        <button class="ghost" id="reset1">Reset Rover</button>
+        <button class="ghost" id="clear1">Clear Program</button>
+      </div>
+      <p class="mission-msg" id="msg1"></p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toT2Btn" disabled>Continue to Checkpoint 2 →</button>
+    </div>
+  </section>
+
+  <!-- CHECKPOINT 2 -->
+  <section class="screen" id="scr-t2">
+    <div class="tx-header">
+      <div class="transmission-tag">Checkpoint 2 of 2</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Platform Tango's program is already written, Cadet — and it's short by exactly one step in two different places. The U-Turn block is defined and called once, and the route moves forward once. Compare what's there against what Command Control actually needs — SCORE at 2, CARGO at exactly [1, 2], and the flag reached — then add exactly what's missing. Don't rebuild it from scratch.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Combined Systems Check II · Platform Tango</h2>
+      <p class="sub">Fix the gap: reach the flag with SCORE at exactly 2, CARGO at exactly [1, 2], and U-Turn called at least twice.</p>
+      <div class="score-readout" id="score2">SCORE: 0</div>
+      <div class="cargo-readout" id="cargo2">CARGO: [ ]</div>
+      <div class="cmd-palette" id="palette2">
+        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+        <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Event</button>
+        <button class="cmd-btn condition-btn" type="button" id="addCondition2">🔀 Add Condition</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
+        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
+        <button class="cmd-btn block-btn" type="button" id="addBlock2">🧩 Define Block: U-Turn</button>
+        <button class="cmd-btn block-btn" type="button" id="callBlock2">▶ Call U-Turn</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LA">📦 Add Cargo</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LF">⏮ Remove 1st Cargo</button>
+        <button class="cmd-btn list-btn" type="button" data-cmd="LL">⏭ Remove Last Cargo</button>
+      </div>
+      <div class="chip-order" id="prog2"></div>
+      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="mission-actions">
+        <button class="primary" id="run2">▶ Run Program</button>
+        <button class="ghost" id="reset2">Reset Rover</button>
+        <button class="ghost" id="clear2">Clear Program</button>
+      </div>
+      <p class="mission-msg" id="msg2"></p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
+    </div>
+  </section>
+
+  <!-- FINAL SYSTEMS CHECK -->
+  <section class="screen" id="scr-final">
+    <div class="tx-header">
+      <div class="transmission-tag">Final Systems Check</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" disabled>Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Milestone 1 as cleared and unlocks the Capstone Project.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Final Systems Check</h2>
+      <p class="sub">Nothing is graded until you click Debrief. Questions 1 through 9: choose the one best answer. The final question works differently — read the note on it.</p>
+
+      <div class="quiz-q" data-qid="q1">
+        <div class="qtext">1. Sequence — Rover-7 needs to plant a flag, THEN take a photo of it — never the other way around. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">Order matters — commands run exactly in the order you place them, so Plant Flag must be listed before Take Photo</label>
+        <label class="choice"><input type="radio" name="q1" value="1">Order never matters — the computer finds the best order automatically</label>
+        <label class="choice"><input type="radio" name="q1" value="2">Only the LAST command in a list ever actually runs</label>
+        <label class="choice"><input type="radio" name="q1" value="3">Commands run in a random order every time, so arranging them doesn't matter</label>
+        <div class="debrief-note" id="explainQ1"></div>
+      </div>
+      <div class="quiz-q" data-qid="q2">
+        <div class="qtext">2. Loops — Rover-7 needs to move Forward exactly 5 times in a row. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">Type Forward once and hope it repeats automatically</label>
+        <label class="choice"><input type="radio" name="q2" value="1">Use a REPEAT block set to 5, with Forward as its one child command</label>
+        <label class="choice"><input type="radio" name="q2" value="2">Use five separate Custom Blocks, one for each Forward</label>
+        <label class="choice"><input type="radio" name="q2" value="3">Use an IF block checking Wall Ahead five times</label>
+        <div class="debrief-note" id="explainQ2"></div>
+      </div>
+      <div class="quiz-q" data-qid="q3">
+        <div class="qtext">3. Nested Loops — every day this week, Rover-7 must patrol 3 checkpoints, and this whole 3-checkpoint patrol repeats for 4 days. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q3" value="0">One REPEAT 4 with a REPEAT 3 nested inside it, patrol commands inside the inner REPEAT</label>
+        <label class="choice"><input type="radio" name="q3" value="1">One REPEAT 12 with no other loops needed</label>
+        <label class="choice"><input type="radio" name="q3" value="2">Twelve separate Custom Blocks, one per checkpoint-day combination</label>
+        <label class="choice"><input type="radio" name="q3" value="3">An IF block checking the day number 12 times</label>
+        <div class="debrief-note" id="explainQ3"></div>
+      </div>
+      <div class="quiz-q" data-qid="q4">
+        <div class="qtext">4. Events — Rover-7 should turn on its lights the moment it detects a beacon signal, and not before. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q4" value="0">Put "turn on lights" as the very first command, before the rover even moves</label>
+        <label class="choice"><input type="radio" name="q4" value="1">Put "turn on lights" inside an EVENT block set to trigger on the beacon signal</label>
+        <label class="choice"><input type="radio" name="q4" value="2">Put "turn on lights" inside a REPEAT block</label>
+        <label class="choice"><input type="radio" name="q4" value="3">Events can only ever run once per program, so this can't work</label>
+        <div class="debrief-note" id="explainQ4"></div>
+      </div>
+      <div class="quiz-q" data-qid="q5">
+        <div class="qtext">5. Conditions — Rover-7 should turn right ONLY if there's a wall directly ahead, and just keep going straight otherwise. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q5" value="0">Always turn right no matter what, since it's safer</label>
+        <label class="choice"><input type="radio" name="q5" value="1">Use a REPEAT block set to check for walls</label>
+        <label class="choice"><input type="radio" name="q5" value="2">Use an IF block with the condition Wall Ahead, and put Turn Right inside it</label>
+        <label class="choice"><input type="radio" name="q5" value="3">Conditions can only be used inside Custom Blocks, never on their own</label>
+        <div class="debrief-note" id="explainQ5"></div>
+      </div>
+      <div class="quiz-q" data-qid="q6">
+        <div class="qtext">6. Variables — Rover-7's mission log needs a running SCORE that goes up every time it collects a sample, and resets to 0 if it hits a hazard. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q6" value="0">Write down the score once at the very start and never touch it again</label>
+        <label class="choice"><input type="radio" name="q6" value="1">A variable like SCORE is a named box that holds a changing number — add to it with +1 Score, and reset it with Reset Score, whenever those events happen</label>
+        <label class="choice"><input type="radio" name="q6" value="2">Use a brand-new Custom Block every single time the score needs to change, instead of a variable</label>
+        <label class="choice"><input type="radio" name="q6" value="3">Scores can't be tracked by a program — a human has to count separately</label>
+        <div class="debrief-note" id="explainQ6"></div>
+      </div>
+      <div class="quiz-q" data-qid="q7">
+        <div class="qtext">7. Custom Blocks — Rover-7 needs to do the exact same 3-step U-Turn maneuver at 4 different points in one mission. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q7" value="0">Define the maneuver once as a Custom Block, then Call it at each of the 4 points</label>
+        <label class="choice"><input type="radio" name="q7" value="1">Type out all 3 steps by hand, 4 separate times, in 4 different places</label>
+        <label class="choice"><input type="radio" name="q7" value="2">Custom Blocks can only be used one time per mission, so this isn't possible</label>
+        <label class="choice"><input type="radio" name="q7" value="3">Put all 4 uses inside a single REPEAT with no defined block</label>
+        <div class="debrief-note" id="explainQ7"></div>
+      </div>
+      <div class="quiz-q" data-qid="q8">
+        <div class="qtext">8. Lists — Rover-7 is collecting cargo one item at a time, and later needs to drop off the FIRST item it picked up, not the most recent one. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q8" value="0">Use a single variable, since it can only hold one item's information at a time — this works fine for many items too</label>
+        <label class="choice"><input type="radio" name="q8" value="1">Use Remove Last Cargo, since first and last are always the same item</label>
+        <label class="choice"><input type="radio" name="q8" value="2">Lists can only ever grow, never shrink</label>
+        <label class="choice"><input type="radio" name="q8" value="3">Use a list (like Cargo) that tracks items in order, and Remove 1st Cargo to take off the earliest one specifically</label>
+        <div class="debrief-note" id="explainQ8"></div>
+      </div>
+      <div class="quiz-q" data-qid="q9">
+        <div class="qtext">9. Debugging — Rover-7's program runs and consistently stops 2 cells short of the flag, every single time. Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q9" value="0">Delete the whole program and start over from nothing, without checking what went wrong</label>
+        <label class="choice"><input type="radio" name="q9" value="1">Compare where it actually stops against where it should stop, then adjust the exact piece responsible (like a REPEAT count) by that same amount</label>
+        <label class="choice"><input type="radio" name="q9" value="2">Assume the flag moved and leave the program unchanged</label>
+        <label class="choice"><input type="radio" name="q9" value="3">Add unrelated new blocks until something happens to work</label>
+        <div class="debrief-note" id="explainQ9"></div>
+      </div>
+      <div class="quiz-q" data-qid="qT">
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>10. Go through every situation below and decide: does this genuinely show ONE of the nine coding concepts you've learned actually being used in real life — or is it something else entirely?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Before leaving for school, you always put on socks before shoes — never the other way around</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">You practice the same 10 piano scales, in the same order, every single day this month</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Every week, you do your full daily chore routine each of the 7 days — a whole routine repeating inside a whole week repeating</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">You only put on your raincoat the moment it actually starts raining — not before, not on a fixed schedule</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">You bring an umbrella only if it's raining AND you don't already have a ride — if either isn't true, you leave it at home</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="5"><div class="yn-text">You keep a running tally of how many books you've read this year, updating the number every time you finish one</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="6"><div class="yn-text">You learned one exact way to tie your shoelaces, and now you reuse that same exact method every single time, without re-learning it</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="7"><div class="yn-text">You keep a running grocery list, adding new items as you think of them and crossing off the first one you actually go get</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="8"><div class="yn-text">Your paper airplane keeps veering left, so you check exactly which fold is uneven compared to the instructions, instead of balling it up and starting a totally different design</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="9"><div class="yn-text">The sky is blue</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="10"><div class="yn-text">You randomly pick a different snack every day with no pattern, reason, or reaction to anything</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="11"><div class="yn-text">You do a homework worksheet exactly once, and never touch that subject again for the rest of the year</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="debrief-note" id="explainQT"></div>
+      </div>
+
+      <div class="mission-actions" style="flex-direction:column; align-items:flex-start;">
+        <button class="primary" id="finishBtn">📡 Debrief &amp; Save Results</button>
+        <p class="puzzle-msg" id="finishMsg"></p>
+        <div class="result-box" id="resultBox"></div>
+        <div class="post-debrief-nav" id="postDebriefNav">
+          <button class="ghost" onclick="location.href='../the-loop.html'">🏠 Back to The Loop</button>
+          <button class="ghost" id="prevUnitBtn" style="display:none">⬅ Previous Unit</button>
+          <button class="ghost" id="nextUnitBtn" style="display:none">Next Unit ➡</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Flow Academy · The Loop · Milestone Test 1</footer>
+</main>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>window.FLOW_BASE = '../';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+<script>
+  // ================= State =================
+  let cadetName = 'Cadet';
+  let xp = 0;
+  let debriefed = false;
+  const XP_TARGET = 100;
+
+  // ================= Review mode =================
+  let isReviewMode = false;
+  let savedRawPayload = null; // this unit's most recent saved raw_payload, once fetched
+
+  function checkForSavedResult() {
+    if (!window.CodingAuth || !CodingAuth.user || typeof CodingAuth.fetchResults !== 'function') return;
+    CodingAuth.fetchResults().then((results) => {
+      const mine = (results || []).find(r => String(r.unit_key) === 'M1');
+      if (mine && mine.raw_payload) {
+        savedRawPayload = mine.raw_payload;
+        document.getElementById('reviewBtn').style.display = '';
+        const card = document.getElementById('lastResultCard');
+        card.innerHTML = '<strong>Last result:</strong> XP ' + (mine.xp_earned || 0)
+          + ' · Concept quiz ' + mine.concept_score + '/' + mine.concept_out_of
+          + ' · Transfer check ' + mine.life_score + '/' + mine.life_out_of
+          + '<br>Mission 1: ' + (mine.mission1_succeeded ? '✅' : '—') + ' (' + mine.mission1_attempts + ' run' + (mine.mission1_attempts === 1 ? '' : 's') + ')'
+          + ' · Mission 2: ' + (mine.mission2_succeeded ? '✅' : '—') + ' (' + mine.mission2_attempts + ' run' + (mine.mission2_attempts === 1 ? '' : 's') + ')';
+        card.style.display = '';
+      }
+    });
+  }
+  if (window.CodingAuth && typeof CodingAuth.onChange === 'function') {
+    CodingAuth.onChange(() => checkForSavedResult());
+  }
+
+  function prefillReviewAnswers() {
+    if (!savedRawPayload || !savedRawPayload.quiz) return;
+    const q = savedRawPayload.quiz;
+    QUESTION_IDS.forEach((qid) => {
+      const key = qid + '_answer';
+      if (q[key] !== undefined && q[key] !== null) {
+        const input = document.querySelector('input[name="' + qid + '"][value="' + q[key] + '"]');
+        if (input) input.checked = true;
+      }
+    });
+    if (q.transfer_check && q.transfer_check.answers) {
+      Object.keys(q.transfer_check.answers).forEach((idx) => {
+        const val = q.transfer_check.answers[idx];
+        qtAnswers[idx] = val;
+        const row = document.querySelector('.yn-row[data-idx="' + idx + '"]');
+        if (row) {
+          row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+          const btn = row.querySelector('.yn-btn[data-val="' + val + '"]');
+          if (btn) btn.classList.add(val === 'yes' ? 'selected-yes' : 'selected-no');
+        }
+      });
+    }
+  }
+
+  function addXp(n) {
+    xp += n;
+    document.getElementById('hudXp').textContent = xp;
+    document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ================= Load-time randomization =================
+  // Reshuffle quiz answer order so answers can't be memorized by screen position.
+  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event / Add
+  // Condition / +1 Score / Reset Score / Define Block / Call Block / Add Cargo / Remove 1st /
+  // Remove Last) is deliberately NOT shuffled — it's a fixed toolbar, same order every load and
+  // every unit, so cadets build muscle memory for the tool itself instead of re-reading button
+  // positions each time. The List commands are appended last since they're this unit's new tools,
+  // in teaching order (Repeat → Event → Condition → Variable → Custom Block → List).
+  function shuffleDomChildren(container, selector, anchor) {
+    const items = Array.from(container.querySelectorAll(selector));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    items.forEach(el => container.insertBefore(el, anchor || null));
+  }
+  document.querySelectorAll('.quiz-q').forEach(q => {
+    shuffleDomChildren(q, '.choice, .yn-row', q.querySelector('.debrief-note'));
+  });
+
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    // No name field — the cadet must be signed in (coding-auth.js disables this button and shows
+    // a "Sign In" note until then), so the name comes straight from the real account profile.
+    if (!window.CodingAuth || !CodingAuth.user) { CodingAuth && CodingAuth.openAuth('signin'); return; }
+    cadetName = CodingAuth.displayName || 'Cadet';
+    document.getElementById('hudName').textContent = cadetName;
+    document.getElementById('hud').classList.add('show');
+    showScreen('scr-t1');
+  });
+
+  document.getElementById('reviewBtn').addEventListener('click', () => {
+    isReviewMode = true;
+    document.getElementById('finishBtn').textContent = '📡 Debrief';
+    prefillReviewAnswers();
+    document.getElementById('beginBtn').click();
+  });
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  document.getElementById('toT2Btn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'CHECKPOINT 2/2';
+    showScreen('scr-t2');
+  });
+  document.getElementById('toFinalBtn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'FINAL SYSTEMS CHECK';
+    showScreen('scr-final');
+  });
+
+  // ================= Rover engine w/ REPEAT + EVENT + CONDITION + VARIABLE + CUSTOM BLOCK support =================
+  const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
+  const ROT = { N: 0, E: 90, S: 180, W: 270 };
+  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
+  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
+  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right', 'S+': '🔢 +1 Score', SR: '↺ Reset Score', CB: '▶ Call U-Turn', LA: '📦 Add Cargo', LF: '⏮ Remove 1st Cargo', LL: '⏭ Remove Last Cargo' };
+  const COND_LABEL = { wall: '🧱 Wall Ahead', beacon: '📡 On Beacon' };
+
+  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  class MissionFail extends Error {}
+
+  // Reshuffle each mission's destination cell on every load (walls/beacon/start stay put — only
+  // the goal moves), so the flag isn't always in the same corner from a past run. BFS guarantees
+  // the new goal is reachable, and never lands on the beacon cell.
+  function bfsReachable(mission) {
+    const key = (r, c) => r + ',' + c;
+    const visited = new Set([key(mission.start.r, mission.start.c)]);
+    const queue = [[mission.start.r, mission.start.c]];
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([nr, nc]) => {
+        if (nr < 0 || nr >= mission.rows || nc < 0 || nc >= mission.cols) return;
+        if (mission.walls.some(w => w.r === nr && w.c === nc)) return;
+        const k = key(nr, nc);
+        if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
+      });
+    }
+    return visited;
+  }
+  function randomizeGoal(mission, minDist) {
+    const reachable = bfsReachable(mission);
+    const candidates = [];
+    reachable.forEach(k => {
+      const [r, c] = k.split(',').map(Number);
+      if (r === mission.start.r && c === mission.start.c) return;
+      if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) return;
+      if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
+      candidates.push({ r, c });
+    });
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
+  }
+
+  function createLoopRoverGame(cfg) {
+    const mission = cfg.mission;
+    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
+    // {type:'event', trigger, children}, {type:'condition', condA, combinator, condB, children},
+    // or {type:'block', name, children} -- a Custom Block definition. 'cmd' items now include 'S+'
+    // (+1 Score), 'SR' (Reset Score), 'CB' (Call U-Turn), and 'LA'/'LF'/'LL' (List Add/Remove-1st/
+    // Remove-Last) alongside F/L/R -- they're all flat leaf commands like movement, so they compose
+    // everywhere a cmd already could (top level, inside a repeat, inside an event's/condition's/
+    // block's own flat children) with no new container rules.
+    // A 'block' definition itself, like 'event', can ONLY ever be added at true top level (nothing
+    // else open) and can only ever hold flat commands -- no nested containers, and only one U-Turn
+    // block may exist per mission (H.14: mutually exclusive with repeat/event/condition; the Call
+    // button is disabled while the block's own definition is open, so it can't call itself).
+    // Debugging missions seed the program tree pre-populated with an already-broken attempt
+    // (cfg.initialProgram) instead of starting empty -- deep-cloned so each mission gets its own
+    // independent copy. Every other unit's missions start from program = [] as before.
+    let program = cfg.initialProgram ? JSON.parse(JSON.stringify(cfg.initialProgram)) : [];
+    let openStack = [];
+    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+    let score = cfg.initialScore || 0;
+    let cargoList = [...(cfg.initialCargo || [])];
+    let running = false;
+    let succeeded = false;
+    let attempts = 0;
+    let eventTriggered = false;
+    let conditionFiredTrue = false;
+    let conditionFiredWithCombinator = false;
+    let blockCallCount = 0;
+    let usedRepeat = false;
+    let usedNestedRepeat = false;
+
+    // Static structural checks (like Units 2/3) -- a repeat/nested-repeat just needs to genuinely
+    // exist in the accepted program, not be the load-bearing part of the path.
+    function containsRepeat(items) {
+      return items.some(it => it.type === 'repeat' || (it.children && containsRepeat(it.children)));
+    }
+    function containsNestedRepeat(items) {
+      for (const item of items) {
+        if (item.type === 'repeat') {
+          if (item.children.some(c => c.type === 'repeat')) return true;
+          if (containsNestedRepeat(item.children)) return true;
+        } else if (item.children && containsNestedRepeat(item.children)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
+    function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function checkCond(key, st) {
+      if (key === 'wall') {
+        const d = DELTA[st.dir];
+        const nr = st.r + d.dr, nc = st.c + d.dc;
+        return !inBounds(nr, nc) || isWall(nr, nc);
+      }
+      if (key === 'beacon') {
+        return !!(mission.beacon && st.r === mission.beacon.r && st.c === mission.beacon.c);
+      }
+      return false;
+    }
+    function evalCondition(item, st) {
+      const a = checkCond(item.condA, st);
+      if (item.combinator === 'none') return a;
+      const b = checkCond(item.condB, st);
+      return item.combinator === 'and' ? (a && b) : (a || b);
+    }
+    function updateScoreDisplay() { cfg.scoreEl.textContent = 'SCORE: ' + score; }
+    function updateCargoDisplay() { cfg.cargoEl.textContent = 'CARGO: [' + cargoList.join(', ') + ']'; }
+
+    function buildGrid() {
+      cfg.gridEl.innerHTML = '';
+      cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
+      cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
+      for (let r = 0; r < mission.rows; r++) {
+        for (let c = 0; c < mission.cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (isWall(r, c)) cell.classList.add('wall');
+          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
+          if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
+          cfg.gridEl.appendChild(cell);
+        }
+      }
+      cfg.gridEl.appendChild(cfg.roverEl);
+    }
+
+    function updateRoverPosition(animate) {
+      const x = state.c * mission.cellPx + mission.cellPx * 0.15;
+      const y = state.r * mission.cellPx + mission.cellPx * 0.15;
+      cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.left = x + 'px';
+      cfg.roverEl.style.top = y + 'px';
+      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
+    }
+
+    function findBlockDef() { return program.find(it => it.type === 'block') || null; }
+
+    function updateContainerBtns() {
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
+      cfg.addEventBtn.disabled = running || openStack.length !== 0;
+      cfg.addConditionBtn.disabled = running || openStack.length !== 0;
+      cfg.addBlockBtn.disabled = running || openStack.length !== 0 || !!findBlockDef();
+      const blockDef = findBlockDef();
+      cfg.callBlockBtn.disabled = running || !blockDef || blockDef.children.length === 0 || topType === 'block';
+    }
+
+    function currentTarget() {
+      return openStack.length ? openStack[openStack.length - 1].children : program;
+    }
+
+    function renderItems(items, containerEl, hintMode) {
+      containerEl.innerHTML = '';
+      if (items.length === 0) {
+        const span = document.createElement('span');
+        span.className = 'empty-hint';
+        span.textContent = hintMode === 'top'
+          ? 'Add commands (or a Repeat / Event / Condition block) from the panel above.'
+          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+        containerEl.appendChild(span);
+        return;
+      }
+      items.forEach((item, i) => {
+        if (item.type === 'cmd') {
+          const row = document.createElement('div');
+          row.className = 'order-row';
+          const label = document.createElement('span');
+          label.className = 'order-label';
+          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + CMD_LABEL[item.cmd];
+          row.appendChild(label);
+
+          const btns = document.createElement('div');
+          btns.className = 'order-btns';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const rmBtn = document.createElement('button');
+          rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
+          rmBtn.disabled = running;
+          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
+
+          btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+          row.appendChild(btns);
+          containerEl.appendChild(row);
+        } else if (item.type === 'repeat' || item.type === 'event' || item.type === 'block') {
+          const isRepeat = item.type === 'repeat';
+          const isBlock = item.type === 'block';
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card' + (isRepeat ? '' : isBlock ? ' block-card' : ' event-card') + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head';
+
+          if (isRepeat) {
+            const minus = document.createElement('button');
+            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
+            minus.disabled = running;
+            minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
+            const plus = document.createElement('button');
+            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
+            plus.disabled = running;
+            plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
+            const label = document.createElement('span');
+            label.textContent = '🔁 Repeat × ' + item.count;
+            head.append(minus, label, plus);
+          } else if (isBlock) {
+            const label = document.createElement('span');
+            label.textContent = '🧩 ' + item.name + ' Block';
+            head.append(label);
+          } else {
+            const label = document.createElement('span');
+            label.textContent = '🔔 On Signal Beacon';
+            head.append(label);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', isRepeat ? 'Remove loop' : isBlock ? 'Remove block' : 'Remove event');
+          remove.disabled = running;
+          remove.addEventListener('click', () => {
+            if (running) return;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+            renderProgram();
+          });
+          actions.append(upBtn, downBtn, remove);
+          head.appendChild(actions);
+          card.appendChild(head);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
+
+          if (isInnermostOpen) {
+            const done = document.createElement('button');
+            done.type = 'button';
+            done.className = 'repeat-done-btn';
+            done.textContent = '✅ Done adding to this ' + (isRepeat ? 'loop' : isBlock ? 'block' : 'event');
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
+            card.appendChild(done);
+          }
+          containerEl.appendChild(card);
+        } else if (item.type === 'condition') {
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card condition-card' + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head';
+
+          const ifLabel = document.createElement('span');
+          ifLabel.textContent = '🔀 IF';
+          head.appendChild(ifLabel);
+
+          const condASel = document.createElement('select');
+          condASel.className = 'cond-select';
+          condASel.disabled = running;
+          ['wall', 'beacon'].forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k; opt.textContent = COND_LABEL[k];
+            if (item.condA === k) opt.selected = true;
+            condASel.appendChild(opt);
+          });
+          condASel.addEventListener('change', () => { item.condA = condASel.value; });
+          head.appendChild(condASel);
+
+          const combSel = document.createElement('select');
+          combSel.className = 'cond-select';
+          combSel.disabled = running;
+          [['none', '(just this)'], ['and', 'AND'], ['or', 'OR']].forEach(([v, l]) => {
+            const opt = document.createElement('option');
+            opt.value = v; opt.textContent = l;
+            if (item.combinator === v) opt.selected = true;
+            combSel.appendChild(opt);
+          });
+          combSel.addEventListener('change', () => { item.combinator = combSel.value; renderProgram(); });
+          head.appendChild(combSel);
+
+          if (item.combinator !== 'none') {
+            const condBSel = document.createElement('select');
+            condBSel.className = 'cond-select';
+            condBSel.disabled = running;
+            ['wall', 'beacon'].forEach(k => {
+              const opt = document.createElement('option');
+              opt.value = k; opt.textContent = COND_LABEL[k];
+              if (item.condB === k) opt.selected = true;
+              condBSel.appendChild(opt);
+            });
+            condBSel.addEventListener('change', () => { item.condB = condBSel.value; });
+            head.appendChild(condBSel);
+          }
+
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
+          upBtn.disabled = running || i === 0;
+          upBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i - 1], items[i]] = [items[i], items[i - 1]];
+            renderProgram();
+          });
+          const downBtn = document.createElement('button');
+          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
+          downBtn.disabled = running || i === items.length - 1;
+          downBtn.addEventListener('click', () => {
+            if (running) return;
+            [items[i + 1], items[i]] = [items[i], items[i + 1]];
+            renderProgram();
+          });
+          const remove = document.createElement('button');
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove condition');
+          remove.disabled = running;
+          remove.addEventListener('click', () => {
+            if (running) return;
+            items.splice(i, 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+            renderProgram();
+          });
+          actions.append(upBtn, downBtn, remove);
+          head.appendChild(actions);
+          card.appendChild(head);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen);
+          card.appendChild(childrenEl);
+
+          if (isInnermostOpen) {
+            const done = document.createElement('button');
+            done.type = 'button';
+            done.className = 'repeat-done-btn';
+            done.textContent = '✅ Done adding to this IF';
+            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
+            card.appendChild(done);
+          }
+          containerEl.appendChild(card);
+        }
+      });
+    }
+
+    function renderProgram() {
+      renderItems(program, cfg.programListEl, 'top');
+      updateContainerBtns();
+    }
+
+    cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (running) return;
+        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
+        renderProgram();
+      });
+    });
+
+    cfg.addRepeatBtn.addEventListener('click', () => {
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
+      const newRepeat = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(newRepeat);
+      openStack.push(newRepeat);
+      renderProgram();
+    });
+
+    cfg.addEventBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0) return;
+      const newEvent = { type: 'event', trigger: 'signal', children: [] };
+      currentTarget().push(newEvent);
+      openStack.push(newEvent);
+      renderProgram();
+    });
+
+    cfg.addConditionBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0) return;
+      const newCondition = { type: 'condition', condA: 'wall', combinator: 'none', condB: 'beacon', children: [] };
+      currentTarget().push(newCondition);
+      openStack.push(newCondition);
+      renderProgram();
+    });
+
+    cfg.addBlockBtn.addEventListener('click', () => {
+      if (running || openStack.length !== 0 || findBlockDef()) return;
+      const newBlock = { type: 'block', name: 'U-Turn', children: [] };
+      currentTarget().push(newBlock);
+      openStack.push(newBlock);
+      renderProgram();
+    });
+
+    // Call U-Turn is a flat leaf command like +1 Score, but it needs its own guard (not the generic
+    // [data-cmd] wiring below): it must never be placeable while the U-Turn block's own definition
+    // is the open container, since that would let the block call itself and recurse forever.
+    cfg.callBlockBtn.addEventListener('click', () => {
+      if (running) return;
+      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      if (topType === 'block') return;
+      const blockDef = findBlockDef();
+      if (!blockDef || blockDef.children.length === 0) return;
+      currentTarget().push({ type: 'cmd', cmd: 'CB' });
+      renderProgram();
+    });
+
+    cfg.clearBtn.addEventListener('click', () => {
+      if (running) return;
+      program = []; openStack = [];
+      renderProgram();
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+    });
+
+    cfg.resetBtn.addEventListener('click', () => {
+      if (running) return;
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      score = cfg.initialScore || 0;
+      updateScoreDisplay();
+      cargoList = [...(cfg.initialCargo || [])];
+      updateCargoDisplay();
+      updateRoverPosition(true);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+    });
+
+    // Collects top-level 'event' items into a trigger -> [handler,...] map. Events aren't tied to
+    // their position in the program -- wherever they sit in the list, they're "listening" for the
+    // whole run, per the Field Manual. 'condition' items are NOT collected here -- they're checked
+    // in-place, exactly when runItems reaches them (see below), not registered as handlers.
+    function collectHandlers(items) {
+      const handlers = {};
+      items.forEach(item => {
+        if (item.type === 'event') {
+          handlers[item.trigger] = handlers[item.trigger] || [];
+          handlers[item.trigger].push(item);
+        }
+      });
+      return handlers;
+    }
+
+    async function executeOne(cmd, handlers, inHandler) {
+      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; updateRoverPosition(true); await wait(400); }
+      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; updateRoverPosition(true); await wait(400); }
+      else if (cmd === 'F') {
+        const d = DELTA[state.dir];
+        const nr = state.r + d.dr, nc = state.c + d.dc;
+        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+        state.r = nr; state.c = nc;
+        updateRoverPosition(true);
+        await wait(400);
+
+        // Trigger check: only after an actual move, only outside of a handler's own reaction (so a
+        // handler that itself steps onto the beacon can't re-fire itself), and only if a handler for
+        // this beacon's trigger is actually registered in the program.
+        if (!inHandler && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
+          const list = (handlers && handlers['signal']) || [];
+          if (list.length) {
+            eventTriggered = true;
+            for (const handler of list) {
+              for (const child of handler.children) {
+                await executeOne(child.cmd, handlers, true);
+              }
+            }
+          }
+        }
+      } else if (cmd === 'S+') {
+        score += 1;
+        updateScoreDisplay();
+        await wait(250);
+      } else if (cmd === 'SR') {
+        score = 0;
+        updateScoreDisplay();
+        await wait(250);
+      } else if (cmd === 'CB') {
+        // Calling a Custom Block just replays its exact recorded steps, in order, right now --
+        // same mechanism as an event handler's inline execution above, just triggered by an
+        // explicit Call command instead of a beacon trigger.
+        blockCallCount++;
+        const blockDef = findBlockDef();
+        if (blockDef) {
+          for (const child of blockDef.children) {
+            await executeOne(child.cmd, handlers, inHandler);
+          }
+        }
+      } else if (cmd === 'LA') {
+        // Add Cargo always appends the NEXT number in order onto the end (list length + 1) --
+        // deterministic on purpose, so there's no separate number-entry UI to teach: the cadet
+        // only ever needs to reason about WHERE a value lands, not WHAT arbitrary value to type.
+        cargoList.push(cargoList.length + 1);
+        updateCargoDisplay();
+        await wait(250);
+      } else if (cmd === 'LF') {
+        cargoList.shift();
+        updateCargoDisplay();
+        await wait(250);
+      } else if (cmd === 'LL') {
+        cargoList.pop();
+        updateCargoDisplay();
+        await wait(250);
+      }
+    }
+
+    async function runItems(items, handlers, inHandler) {
+      for (const item of items) {
+        if (item.type === 'cmd') {
+          await executeOne(item.cmd, handlers, inHandler);
+        } else if (item.type === 'repeat') {
+          for (let n = 0; n < item.count; n++) {
+            await runItems(item.children, handlers, inHandler);
+          }
+        } else if (item.type === 'condition') {
+          // Checked right here, right now -- using the rover's real state at this exact point in
+          // the program, not once at the start and not on a schedule.
+          const result = evalCondition(item, state);
+          if (result) {
+            conditionFiredTrue = true;
+            if (item.combinator !== 'none') conditionFiredWithCombinator = true;
+            await runItems(item.children, handlers, inHandler);
+          }
+        }
+        // 'event' and 'block' items are declarations, not inline steps -- skipped here on
+        // purpose. A block's children only ever run when a 'CB' (Call) leaf command reaches
+        // them, exactly like an event's children only ever run when its trigger fires.
+      }
+    }
+
+    cfg.runBtn.addEventListener('click', async () => {
+      if (running || program.length === 0) return;
+      running = true;
+      attempts++;
+      usedRepeat = containsRepeat(program);
+      usedNestedRepeat = containsNestedRepeat(program);
+      const handlers = collectHandlers(program);
+      eventTriggered = false;
+      conditionFiredTrue = false;
+      conditionFiredWithCombinator = false;
+      blockCallCount = 0;
+      score = cfg.initialScore || 0;
+      updateScoreDisplay();
+      cargoList = [...(cfg.initialCargo || [])];
+      updateCargoDisplay();
+      cfg.runBtn.disabled = true;
+      updateContainerBtns();
+      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      updateRoverPosition(false);
+      await wait(150);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+
+      try {
+        await runItems(program, handlers, false);
+        if (state.r === mission.goal.r && state.c === mission.goal.c) {
+          let blockedMsg = null;
+          if (cfg.requireNestedRepeat && !usedNestedRepeat) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can nest a REPEAT inside another REPEAT — not just use one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
+          } else if (cfg.requireRepeat && !usedRepeat) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT block. Rebuild this route using at least one Repeat, then run it again.';
+          } else if (cfg.requireEventUsed && !eventTriggered) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Wire up an ON SIGNAL BEACON handler and make sure your route genuinely passes over the beacon (📡) so it actually fires, then run it again.';
+          } else if (cfg.requireCombinedConditionUsed && !conditionFiredWithCombinator) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control needs a COMBINED condition (AND or OR) to actually fire TRUE during this run. Combine two checks in your IF block, place it where it\'s genuinely true, then run it again.';
+          } else if (cfg.requireConditionUsed && !conditionFiredTrue) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Build an IF block and make sure its condition is actually TRUE at some point during the run.';
+          } else if (cfg.targetScore !== undefined && score !== cfg.targetScore) {
+            blockedMsg = '🛰 Rover reached the flag — but SCORE reads ' + score + ', not ' + cfg.targetScore + '. Command Control checks the exact final value, not just whether you used +1 Score. Adjust your Score commands and run it again.';
+          } else if (cfg.requireBlockCallCount && blockCallCount < cfg.requireBlockCallCount) {
+            blockedMsg = '🛰 Rover reached the flag — but Command Control needs your U-Turn block actually CALLED ' + cfg.requireBlockCallCount + ' time' + (cfg.requireBlockCallCount === 1 ? '' : 's') + ' during this run (it ran ' + blockCallCount + '). Add more Call U-Turn commands to your route and run it again.';
+          } else if (cfg.requireListEndState && JSON.stringify(cargoList) !== JSON.stringify(cfg.requireListEndState)) {
+            blockedMsg = '🛰 Rover reached the flag — but CARGO reads [' + cargoList.join(', ') + '], not [' + cfg.requireListEndState.join(', ') + ']. Command Control checks the exact final list, in the exact same order. Adjust your Cargo commands and run it again.';
+          }
+          if (blockedMsg) {
+            cfg.msgEl.textContent = blockedMsg;
+            cfg.msgEl.className = 'mission-msg bad';
+          } else {
+            succeeded = true;
+            cfg.msgEl.textContent = cfg.targetScore !== undefined
+              ? '🎉 MISSION COMPLETE — Rover reached the flag with SCORE at exactly ' + score + '!'
+              : '🎉 MISSION COMPLETE — Rover reached the flag!';
+            cfg.msgEl.className = 'mission-msg ok';
+            if (cfg.onSuccess) cfg.onSuccess();
+          }
+        } else {
+          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+          cfg.msgEl.className = 'mission-msg bad';
+        }
+      } catch (e) {
+        if (e instanceof MissionFail) {
+          cfg.msgEl.textContent = e.message;
+          cfg.msgEl.className = 'mission-msg bad';
+        } else { throw e; }
+      } finally {
+        running = false;
+        cfg.runBtn.disabled = false;
+        updateContainerBtns();
+      }
+    });
+
+    buildGrid();
+    updateRoverPosition(false);
+    updateScoreDisplay();
+    updateCargoDisplay();
+    renderProgram();
+
+    return {
+      get succeeded() { return succeeded; },
+      get attempts() { return attempts; },
+      get finalScore() { return score; },
+      get blockCallCount() { return blockCallCount; },
+      get finalCargo() { return [...cargoList]; },
+      get usedNestedRepeatOnSuccess() { return succeeded && usedNestedRepeat; },
+      get eventTriggeredOnSuccess() { return succeeded && eventTriggered; },
+      get conditionFiredOnSuccess() { return succeeded && conditionFiredTrue; }
+    };
+  }
+
+  // Checkpoint 1 · Platform Sierra — FIXED goal (a hand-designed combined puzzle needs to be
+  // reliably solvable exactly one way, like Unit 9's debugging missions, so BFS goal-shuffling is
+  // deliberately skipped here). 5 rows x 6 cols. Start faces N with a wall directly ahead, so an
+  // IF WALL AHEAD placed first genuinely evaluates true immediately (Condition). Turning right then
+  // faces E down an open corridor to the goal 4 cells away -- built with an outer REPEAT 2 [ inner
+  // REPEAT 2 [ Forward ] ] (Nested Loop, structural check only -- it doesn't need to be the most
+  // efficient path). A beacon sits 2 cells into that corridor, so an EVENT registered anywhere at
+  // top level genuinely fires mid-run when the rover passes over it (Event). All three forcing
+  // flags must be satisfied in the SAME successful run.
+  const mission1Def = { rows: 5, cols: 6, cellPx: 56, start: { r: 4, c: 1, dir: 'N' }, beacon: { r: 4, c: 3 }, walls: [{ r: 3, c: 1 }], goal: { r: 4, c: 5 } };
+  const mission1 = createLoopRoverGame({
+    gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
+    programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
+    runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
+    clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
+    addConditionBtn: document.getElementById('addCondition1'), scoreEl: document.getElementById('score1'),
+    addBlockBtn: document.getElementById('addBlock1'), callBlockBtn: document.getElementById('callBlock1'),
+    cargoEl: document.getElementById('cargo1'),
+    mission: mission1Def,
+    initialScore: 0,
+    initialCargo: [],
+    requireNestedRepeat: true,
+    requireEventUsed: true,
+    requireConditionUsed: true,
+    onSuccess: () => { document.getElementById('toT2Btn').disabled = false; addXp(30); }
+  });
+
+  // Checkpoint 2 · Platform Tango — a debugging-style pre-populated program, short by exactly one
+  // step in two different places at once: the U-Turn block is already defined (S+ then LA, so
+  // every call adds 1 to Score AND appends the next cargo number) and called once, and there's one
+  // Forward already placed. The goal sits 2 cells north, so the single Forward stops 1 short. Fix
+  // requires ADDING (not removing) a 2nd Forward and a 2nd Call U-Turn -- reaching SCORE 2, CARGO
+  // [1, 2], and the flag, combining Debugging + Variables + Custom Blocks + Lists in one gap-fix.
+  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: null, walls: [], goal: { r: 2, c: 2 } };
+  const mission2 = createLoopRoverGame({
+    gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
+    programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
+    runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
+    clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
+    addConditionBtn: document.getElementById('addCondition2'), scoreEl: document.getElementById('score2'),
+    addBlockBtn: document.getElementById('addBlock2'), callBlockBtn: document.getElementById('callBlock2'),
+    cargoEl: document.getElementById('cargo2'),
+    mission: mission2Def,
+    initialScore: 0,
+    initialCargo: [],
+    initialProgram: [
+      { type: 'block', name: 'U-Turn', children: [ { type: 'cmd', cmd: 'S+' }, { type: 'cmd', cmd: 'LA' } ] },
+      { type: 'cmd', cmd: 'CB' },
+      { type: 'cmd', cmd: 'F' }
+    ],
+    targetScore: 2,
+    requireBlockCallCount: 2,
+    requireListEndState: [1, 2],
+    onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(40); }
+  });
+
+  // ================= Finish / Debrief =================
+  const QUESTION_IDS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'];
+  const QUIZ_ANSWERS = { q1: 0, q2: 1, q3: 0, q4: 1, q5: 2, q6: 1, q7: 0, q8: 3, q9: 1 };
+  const QT_CORRECT = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  const QT_ALL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+  const Q_EXPLAIN = {
+    q1: {
+      correct: 0,
+      why: {
+        0: "Right. Commands run in exactly the order you place them — Plant Flag has to be listed before Take Photo, or the photo happens too early.",
+        1: "The computer never reorders anything for you — it runs your list top to bottom, exactly as written.",
+        2: "Every command runs, in order — not just the last one.",
+        3: "Programs are never random by default — the same order runs the same way every time."
+      },
+      codeLife: "Why it matters for coding: Sequence is the foundation every other concept builds on — a loop, an event, a condition all still run their own steps in order. Why it matters in life: recipes, routines, and instructions all depend on doing step 1 before step 2."
+    },
+    q2: {
+      correct: 1,
+      why: {
+        0: "Typing Forward once only moves the rover once — nothing repeats on its own.",
+        1: "Right. A REPEAT block set to 5 with Forward inside it runs that one command 5 times, without retyping it.",
+        2: "Five separate Custom Blocks works, but it's the exact repetition a REPEAT block exists to avoid.",
+        3: "An IF block checks something true or false — it doesn't make anything happen 5 times by itself."
+      },
+      codeLife: "Why it matters for coding: a REPEAT block turns 'do this 5 times' into one clean instruction instead of five copy-pasted ones. Why it matters in life: any daily habit — brushing teeth, practicing scales — is the same one routine repeating."
+    },
+    q3: {
+      correct: 0,
+      why: {
+        0: "Right. The OUTER REPEAT 4 handles the 4 days, and the INNER REPEAT 3 (nested inside it) handles the 3 checkpoints each day — a loop inside a loop.",
+        1: "One REPEAT 12 loses the structure — it can't tell 'day 1's 3rd checkpoint' from 'day 2's 1st checkpoint' the way two nested loops naturally can.",
+        2: "Twelve separate blocks work but throw away the whole point of nesting — nothing is actually being reused.",
+        3: "Checking a day number with IF doesn't create any repetition at all."
+      },
+      codeLife: "Why it matters for coding: nested loops let a repeating pattern (checkpoints) live inside a bigger repeating pattern (days) without writing either one out by hand. Why it matters in life: a daily routine (inner loop) repeating every day of the week (outer loop) is exactly this shape."
+    },
+    q4: {
+      correct: 1,
+      why: {
+        0: "Running it first means the lights turn on before the beacon is ever detected — that's not reacting to anything.",
+        1: "Right. An EVENT block set to the beacon signal only runs its contents the moment that signal actually happens — not before.",
+        2: "A REPEAT just runs its contents a fixed number of times — it doesn't wait for a signal.",
+        3: "Events can fire every time their trigger happens during a run, not just once."
+      },
+      codeLife: "Why it matters for coding: Events let a program react the instant something happens, instead of guessing when to check. Why it matters in life: reflexes — grabbing an umbrella the moment it starts raining — work the exact same way."
+    },
+    q5: {
+      correct: 2,
+      why: {
+        0: "Always turning right ignores whether a wall is actually there — it isn't reacting to anything real.",
+        1: "A REPEAT just runs a fixed number of times — it can't check whether a wall exists.",
+        2: "Right. An IF block with the Wall Ahead condition only runs Turn Right when that condition is actually true.",
+        3: "Conditions work perfectly well on their own, at the top level of a program — no Custom Block required."
+      },
+      codeLife: "Why it matters for coding: a Condition (IF) lets a program make a genuine either/or decision instead of always doing the same thing. Why it matters in life: deciding to bring an umbrella only if it's actually raining is the same kind of decision."
+    },
+    q6: {
+      correct: 1,
+      why: {
+        0: "Writing it once and never updating it means the score can never actually go up or reset — it isn't tracking anything.",
+        1: "Right. A variable like SCORE is a named box that holds a number which can change — +1 Score adds to it, Reset Score sets it back to 0, whenever those events happen.",
+        2: "A new Custom Block for every single change is possible but pointless busywork — a variable is built exactly for values that change.",
+        3: "Programs track changing values constantly — that's what variables are for."
+      },
+      codeLife: "Why it matters for coding: a variable is the tool for anything that changes over the course of a run — score, position, count. Why it matters in life: a running tally, like books read this year, is a value that keeps changing and needs to be tracked, not just noted once."
+    },
+    q7: {
+      correct: 0,
+      why: {
+        0: "Right. Defining U-Turn once as a Custom Block and Calling it at each of the 4 points means the exact same steps run every time, without retyping them.",
+        1: "Typing the same 3 steps out 4 separate times works, but it's exactly the repeated typing a Custom Block exists to avoid.",
+        2: "A Custom Block can be called as many times as needed in one mission — there's no one-use limit.",
+        3: "A REPEAT runs its own contents in a row — it doesn't let you re-use a maneuver at 4 different unrelated points in a program."
+      },
+      codeLife: "Why it matters for coding: a Custom Block means writing a maneuver once and reusing it everywhere, instead of retyping it. Why it matters in life: a skill you learned once — like tying your shoelaces one specific way — gets reused forever without re-learning it."
+    },
+    q8: {
+      correct: 3,
+      why: {
+        0: "A single variable can only hold one value at a time — it can't hold an ordered collection of many cargo items.",
+        1: "Remove Last Cargo removes the most RECENT item, not the first one picked up — those are usually different items.",
+        2: "Lists can shrink too — Remove 1st Cargo and Remove Last Cargo both take items off.",
+        3: "Right. A list (like Cargo) keeps items in order, and Remove 1st Cargo specifically takes off the earliest one — exactly what's needed."
+      },
+      codeLife: "Why it matters for coding: a list tracks many values in a specific order, and lets you target the first, the last, or anywhere in between. Why it matters in life: a running grocery list — adding items as you think of them, crossing off the oldest one first — is exactly this."
+    },
+    q9: {
+      correct: 1,
+      why: {
+        0: "Deleting everything throws away a program that's almost entirely correct — only one piece is actually wrong.",
+        1: "Right. Comparing the actual stopping point against where it should stop shows the gap is exactly 2 cells — so the responsible piece (like a REPEAT count) gets adjusted by exactly that amount.",
+        2: "A consistent, repeatable shortfall is a real clue, not evidence the flag moved.",
+        3: "Adding unrelated blocks without first diagnosing the actual gap is guessing, not debugging."
+      },
+      codeLife: "Why it matters for coding: debugging means comparing actual vs. intended, then fixing only the specific piece responsible for the gap. Why it matters in life: most real fixes — a recipe, a plan — come from noticing exactly where things went off track, not starting over from zero."
+    }
+  };
+
+  // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
+  // (built at render time, based on what THIS cadet actually checked) carry the correctness signal.
+  // Each target item (0-8) names both parts explicitly where the concept has two named parts
+  // (outer/inner loop, trigger/reaction, the two sides of a combined condition).
+  const QT_EXPLAIN = {
+    0: "putting socks before shoes is doing steps in a fixed, meaningful ORDER — Sequence.",
+    1: "practicing the same 10 scales, in the same order, every day is REPEATING one fixed routine over and over — a Loop.",
+    2: "a daily chore routine repeating inside a whole week repeating is a loop nested inside another loop — a Nested Loop, with the WEEK as the OUTER loop and the DAILY routine as the INNER loop.",
+    3: "putting on a raincoat only the moment it starts raining — not before, not on a schedule — is reacting to a TRIGGER (rain starting) with a REACTION (coat goes on) exactly when it happens — an Event.",
+    4: "bringing an umbrella only when BOTH 'it's raining' AND 'no ride available' are true is a combined AND condition — two checks joined together, both required.",
+    5: "a running tally that updates every time a book is finished is a named value that keeps CHANGING over time — a Variable.",
+    6: "learning one exact shoelace method once and reusing that same method every time, without re-learning it, is defining a reusable procedure once and calling it repeatedly — a Custom Block.",
+    7: "a grocery list that grows as items are added and shrinks from the front as the earliest item is picked up is tracking many values in order — a List.",
+    8: "checking exactly which fold is uneven, compared to the instructions, instead of starting over blind, is comparing actual vs. intended and fixing the specific broken piece — Debugging.",
+    9: "the sky's color is just a fact sitting there — it's not a process, a repeated action, or a reaction to anything, so none of the nine concepts apply.",
+    10: "picking with no pattern, no repetition, and no reaction to any trigger is genuine randomness — none of the nine concepts, which are all about order, repetition, or reacting to something, apply here.",
+    11: "doing something exactly once and never again is a one-off action — there's no repetition (no Loop), no changing tracked value (no Variable), and no trigger being reacted to (no Event), so none of the nine concepts apply."
+  };
+
+  // Final Systems Check's transfer check is a forced-choice YES/NO on every item, not a checkbox
+  // list — same interaction-mode shift as every unit's own Q3, just scaled to 12 items spanning
+  // all 9 concepts (H.5). Every item requires an explicit click before debriefing is allowed.
+  const qtAnswers = {};
+  document.querySelector('.quiz-q[data-qid="qT"]').addEventListener('click', (e) => {
+    const btn = e.target.closest('.yn-btn');
+    if (!btn) return;
+    const row = btn.closest('.yn-row');
+    const idx = Number(row.dataset.idx);
+    qtAnswers[idx] = btn.dataset.val;
+    row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+    btn.classList.add(btn.dataset.val === 'yes' ? 'selected-yes' : 'selected-no');
+  });
+
+  document.getElementById('finishBtn').addEventListener('click', () => {
+    const msg = document.getElementById('finishMsg');
+    const answered = {};
+    let allConceptAnswered = true;
+    QUESTION_IDS.forEach((qid) => {
+      const picked = document.querySelector('input[name="' + qid + '"]:checked');
+      answered[qid] = picked;
+      if (!picked) allConceptAnswered = false;
+    });
+    const qtAnsweredCount = QT_ALL.filter(i => qtAnswers[i] !== undefined).length;
+
+    if (!allConceptAnswered || qtAnsweredCount < QT_ALL.length) {
+      msg.textContent = 'Answer questions 1 through 9, and YES or NO for every situation in the final question, before debriefing.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    // Guard against repeated clicks re-scoring/re-adding XP/re-saving: once a valid debrief has
+    // been processed once, lock it. Without this, mashing the button kept stacking XP and firing
+    // duplicate saves to Supabase on every extra click.
+    if (debriefed) return;
+    debriefed = true;
+    document.getElementById('finishBtn').disabled = true;
+
+    const correctness = {};
+    QUESTION_IDS.forEach((qid) => {
+      const chosen = answered[qid];
+      const correctVal = String(QUIZ_ANSWERS[qid]);
+      correctness[qid] = chosen.value === correctVal;
+      document.querySelectorAll('.quiz-q[data-qid="' + qid + '"] .choice').forEach(label => {
+        const input = label.querySelector('input');
+        if (input.value === correctVal) label.classList.add('correct');
+        else if (input === chosen) label.classList.add('incorrect');
+      });
+    });
+    const conceptScore = QUESTION_IDS.filter(qid => correctness[qid]).length;
+
+    let qtHits = 0, qtMisses = 0, qtFalsePositives = 0, qtCorrectRejections = 0;
+    QT_ALL.forEach(i => {
+      const truthYes = QT_CORRECT.includes(i);
+      const said = qtAnswers[i];
+      const row = document.querySelector(`.yn-row[data-idx="${i}"]`);
+      const correct = (truthYes && said === 'yes') || (!truthYes && said === 'no');
+      row.classList.add(correct ? 'correct' : 'incorrect');
+      if (truthYes && said === 'yes') qtHits++;
+      else if (truthYes && said === 'no') qtMisses++;
+      else if (!truthYes && said === 'yes') qtFalsePositives++;
+      else qtCorrectRejections++;
+    });
+    const qtScore = qtHits + qtCorrectRejections;
+    const qtOutOf = QT_ALL.length;
+
+    addXp(conceptScore * 10 + qtScore * 4);
+
+    // ---- Debrief explanations (concept quiz) ----
+    QUESTION_IDS.forEach((qid) => {
+      const box = document.getElementById('explain' + qid.charAt(0).toUpperCase() + qid.slice(1));
+      const chosen = answered[qid];
+      const isCorrect = correctness[qid];
+      box.innerHTML = '<strong>' + (isCorrect ? '✅ Correct.' : '❌ Not quite.') + '</strong> ' + Q_EXPLAIN[qid].why[chosen.value]
+        + (isCorrect ? '' : '<br><br><strong>Correct answer:</strong> ' + Q_EXPLAIN[qid].why[Q_EXPLAIN[qid].correct])
+        + '<br><br>' + Q_EXPLAIN[qid].codeLife;
+      box.classList.add('show');
+    });
+
+    // ---- Debrief explanations (transfer check) — target items first, decoys second (H.6) ----
+    let qtHtml = '<strong>Transfer check review:</strong>';
+    qtHtml += '<p style="margin:10px 0 4px; font-weight:700;">These ARE genuine examples of one of the nine concepts — YES is correct:</p><ul>';
+    QT_CORRECT.forEach(i => {
+      const lead = qtAnswers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
+      qtHtml += '<li>' + lead + QT_EXPLAIN[i] + '</li>';
+    });
+    qtHtml += '</ul>';
+    const qtDecoys = QT_ALL.filter(i => !QT_CORRECT.includes(i));
+    qtHtml += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT genuine examples of any of the nine concepts — NO is correct:</p><ul>';
+    qtDecoys.forEach(i => {
+      const lead = qtAnswers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
+      qtHtml += '<li>' + lead + QT_EXPLAIN[i] + '</li>';
+    });
+    qtHtml += '</ul>';
+    const qtBox = document.getElementById('explainQT');
+    qtBox.innerHTML = qtHtml;
+    qtBox.classList.add('show');
+
+    const rawPayload = {
+      unit_number: 'M1',
+      unit_title: 'Milestone Test 1',
+      stage: 1,
+      cadet_name: cadetName,
+      completed_at: new Date().toISOString(),
+      xp_earned: xp,
+      auto_stats: {
+        checkpoint_1_sierra: {
+          succeeded: mission1.succeeded, attempts: mission1.attempts,
+          used_nested_repeat: mission1.usedNestedRepeatOnSuccess,
+          used_event: mission1.eventTriggeredOnSuccess,
+          used_condition: mission1.conditionFiredOnSuccess
+        },
+        checkpoint_2_tango: {
+          succeeded: mission2.succeeded, attempts: mission2.attempts,
+          final_score: mission2.finalScore, final_cargo: mission2.finalCargo,
+          block_call_count: mission2.blockCallCount
+        }
+      },
+      quiz: Object.assign(
+        { concept_score: conceptScore, concept_out_of: QUESTION_IDS.length },
+        ...QUESTION_IDS.map(qid => ({ [qid + '_correct']: correctness[qid], [qid + '_answer']: answered[qid].value })),
+        { transfer_check: { score: qtScore, out_of: qtOutOf, hits: qtHits, misses: qtMisses, false_positives: qtFalsePositives, correct_rejections: qtCorrectRejections, answers: qtAnswers, correct_set: QT_CORRECT } }
+      )
+    };
+
+    msg.textContent = ''; msg.className = '';
+    const box = document.getElementById('resultBox');
+    box.classList.add('show');
+    const summaryHtml = '<strong>' + cadetName + ' — Milestone 1 Complete</strong><br>Total XP: ' + xp
+      + ' · Concept quiz: ' + conceptScore + '/' + QUESTION_IDS.length + ' · Transfer check: ' + qtScore + '/' + qtOutOf
+      + '<br>Checkpoint 1 (Sierra): ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
+      + ' · Checkpoint 2 (Tango): ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
+    if (isReviewMode) {
+      box.innerHTML = summaryHtml + '<br><br>📋 Review mode — not saved (you already have a saved result for this unit).';
+    } else {
+      box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
+
+      // Results save straight to the signed-in cadet's Supabase account — the Capstone Project
+      // unlocks automatically on The Loop once this is saved.
+      CodingAuth.saveResult({
+        unit_key: 'M1',
+        unit_title: 'Milestone Test 1',
+        xp_earned: xp,
+        concept_score: conceptScore,
+        concept_out_of: QUESTION_IDS.length,
+        life_score: qtScore,
+        life_out_of: qtOutOf,
+        mission1_succeeded: mission1.succeeded,
+        mission1_attempts: mission1.attempts,
+        mission2_succeeded: mission2.succeeded,
+        mission2_attempts: mission2.attempts,
+        raw_payload: rawPayload
+      }).then((res) => {
+        box.innerHTML = summaryHtml + (res.saved
+          ? '<br><br>✅ Saved to your account — the Capstone Project unlocks on The Loop. Check My Progress any time from the menu up top.'
+          : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
+      });
+    }
+
+    // NEXT_UNIT_FILE stays null until the Capstone Project is actually built — per H.10, Next only
+    // ever appears once the neighboring file genuinely exists.
+    const PREV_UNIT_FILE = 'unit_09_debugging.html';
+    const NEXT_UNIT_FILE = null;
+    const nav = document.getElementById('postDebriefNav');
+    nav.classList.add('show');
+    const prevBtn = document.getElementById('prevUnitBtn');
+    const nextBtn = document.getElementById('nextUnitBtn');
+    if (PREV_UNIT_FILE) { prevBtn.style.display = ''; prevBtn.onclick = () => location.href = PREV_UNIT_FILE; }
+    if (NEXT_UNIT_FILE) { nextBtn.style.display = ''; nextBtn.onclick = () => location.href = NEXT_UNIT_FILE; }
+  });
+</script>
+</body>
+</html>

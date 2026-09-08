@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  // Runs before first paint so the page never flashes the wrong theme on load.
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — The Loop</title>
+<link rel="icon" type="image/png" href="assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="flow-academy.css">
+<style>
+  /* ---------------- about blurb ---------------- */
+  #about-section { max-width: 800px; margin: 0 auto 40px; text-align:center; }
+  #about-section p { font-size: 1.02rem; line-height:1.7; color: var(--ink-soft); }
+  #about-section p b { color: var(--ink); }
+
+  /* ---------------- mission roadmap grid ---------------- */
+  #roadmap-section { margin-bottom: 20px; }
+  #roadmap-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .mission-card { display:flex; flex-direction:column; gap:6px; background: var(--bg-raised); border: 2px solid var(--line); border-radius: 16px; padding: 16px 14px; text-decoration:none; color:inherit; transition: transform .15s ease, border-color .15s ease; height: 132px; }
+  .mission-card.done { border-color: var(--success); }
+  .mission-card.in_progress { border-color: var(--cyan); box-shadow: 0 0 0 3px #38e6ee22; }
+  .mission-card.locked { opacity:.55; cursor: default; }
+  .mission-card:not(.locked):hover { transform: translateY(-3px); }
+  .mission-num { font-family:"JetBrains Mono",monospace; font-size:.7rem; color: var(--ink-soft); font-weight:700; letter-spacing:.03em; }
+  .mission-title { font-family:"Orbitron",sans-serif; font-weight:800; font-size:.95rem; line-height:1.25; }
+  .mission-status { font-size:.72rem; margin-top:auto; padding-top:6px; font-weight:700; }
+  .mission-status.done { color: var(--success); }
+  .mission-status.in_progress { color: var(--cyan); }
+  .mission-status.unlocked { color: var(--amber); }
+  .mission-status.locked { color: var(--locked-text); }
+
+  /* ---------------- light mode: "Cosmic Vibes" frame on every unlocked mission card (done or
+     in_progress) — same 5-color gradient-ring treatment as index.html's planet cards, so the
+     look is consistent across both pages. Locked cards are untouched (still dimmed/neutral).
+     in_progress keeps its cyan glow on top of the gradient so "current" still reads apart from
+     "done" at a glance. Index-only precedent from earlier this session; here on The Loop too. ---------------- */
+  html[data-theme="light"] .mission-card:not(.locked) {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, #483D8B 0%, #00BFFF 28%, #8A2BE2 52%, #FF8C00 76%, #FFD700 100%) border-box;
+  }
+  html[data-theme="light"] .mission-card.in_progress { box-shadow: 0 0 0 3px #38e6ee33; }
+</style>
+</head>
+<body>
+
+<section id="hero" role="img" aria-label="The Loop — Flow Academy's campus, and cadets working in the Loop Arena">
+  <div class="hero-bg-slide active" style="background-image:url('assets/flow_banner_theloop1.jpg')"></div>
+  <div class="hero-bg-slide" style="background-image:url('assets/flow_banner_theloop2.jpg')"></div>
+  <div id="hero-dots">
+    <button class="hero-dot active" data-i="0" aria-label="Show banner 1"></button>
+    <button class="hero-dot" data-i="1" aria-label="Show banner 2"></button>
+  </div>
+  <div id="topnav">
+    <a id="brand" href="index.html"><img src="assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="theme-toggle" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      var btn = document.getElementById('theme-toggle');
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      btn.addEventListener('click', function(){
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        apply(next);
+      });
+    })();
+  </script>
+  <div class="hero-inner">
+    <h1>FLOW ACADEMY<br><span class="accent">@ THE LOOP</span></h1>
+    <div class="tagline" id="hero-tagline">Mission Log: Loading…</div>
+    <div id="hero-ctas">
+      <a class="cta-btn cta-primary" id="hero-enter-btn" href="#roadmap-section">&#128640; Enter Missions</a>
+      <a class="cta-btn cta-ghost" href="index.html">&larr; Back to Mission Control</a>
+    </div>
+  </div>
+</section>
+
+<div id="page">
+
+  <section id="about-section">
+    <div class="sec-title">WHAT IS THE LOOP?</div>
+    <p>The Loop is a dry, platform-studded world where nothing moves unless a cadet tells it to — <b>in exactly the order they said it.</b> This is where Rover-7 first got stranded, and where every platform since has proven the same thing: a computer is honest to a fault, and being precise is a skill, not a personality trait. Sequence, loops, nested loops, events, conditions, debugging — ten platforms, one skill at a time, building to <b>Milestone Test 1</b>, the first time everything learned has to hold up combined.</p>
+  </section>
+
+  <section id="roadmap-section">
+    <div class="sec-title">MISSION ROADMAP</div>
+    <div class="sec-sub">Clear the platform by completing the first 9 units to unlock the Milestone Test 1 and Capstone Project.</div>
+    <div id="roadmap-grid"></div>
+  </section>
+
+  <footer>
+    Copyright &copy; 2026 Luikishi. All rights reserved. Have fun !
+  </footer>
+</div>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="flow_coding_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="coding-auth.js"></script>
+<script>
+  /* ============== hero banner carousel — switches between the 2 Loop banners ============== */
+  (function(){
+    var slides = document.querySelectorAll('.hero-bg-slide');
+    var dots = document.querySelectorAll('.hero-dot');
+    var idx = 0, timer;
+    function show(i){
+      idx = i;
+      slides.forEach(function(s, j){ s.classList.toggle('active', j === i); });
+      dots.forEach(function(d, j){ d.classList.toggle('active', j === i); });
+    }
+    function next(){ show((idx + 1) % slides.length); }
+    function startAuto(){ stopAuto(); timer = setInterval(next, 6500); }
+    function stopAuto(){ if (timer) clearInterval(timer); }
+    dots.forEach(function(d){
+      d.addEventListener('click', function(){ show(parseInt(d.dataset.i, 10)); startAuto(); });
+    });
+    if (slides.length > 1) startAuto();
+  })();
+
+  /* ============== mission roadmap grid — App Dev's own project data (flow_coding_data.js),
+     separate from the legacy Code Cadet build under Lessons/. EVERY unit, including Unit 1,
+     is locked until the cadet is actually signed in — signing in is what reveals real
+     progression (Unit 1 unlocked by default, the rest per completed Supabase results). ============== */
+  var heroBtn = document.getElementById('hero-enter-btn');
+  var heroTagline = document.getElementById('hero-tagline');
+
+  // Shared by both signed-out and signed-in render paths -- "Mission Log: X units completed.
+  // Y more to explore!" replaces the old static "Planet 1 of 4..." tagline. Moved here from
+  // index.html's hero (which used to show a near-identical line computed once from stale data);
+  // this version is always computed fresh from whatever roadmap was just rendered.
+  function updateMissionLogTagline(roadmap){
+    var total = roadmap.length;
+    var done = roadmap.filter(function(u){ return u.status === 'done'; }).length;
+    var remaining = total - done;
+    heroTagline.textContent = 'Mission Log: ' + done + ' unit' + (done === 1 ? '' : 's') + ' completed. '
+      + remaining + ' more to explore!';
+  }
+
+  function cardHtml(u){
+    var statusLabel = u.status === 'done' ? '&#10003; Done'
+      : u.status === 'in_progress' ? '&#9679; Current'
+      : u.status === 'unlocked' ? '&#9654; Explore'
+      : '&#128274; Locked';
+    var inner =
+      '<div class="mission-num">' + (u.n === 'M1' ? 'MILESTONE' : u.n === 10 ? 'FINAL' : 'UNIT ' + u.n) + '</div>' +
+      '<div class="mission-title">' + u.title + '</div>' +
+      '<div class="mission-status ' + u.status + '">' + statusLabel + '</div>';
+    var clickable = u.file && (u.status === 'done' || u.status === 'in_progress' || u.status === 'unlocked');
+    return clickable
+      ? '<a class="mission-card ' + u.status + '" href="' + u.file + '">' + inner + '</a>'
+      : '<div class="mission-card ' + u.status + '">' + inner + '</div>';
+  }
+
+  // Signed-out state: every card forced locked, regardless of roadmap position — no progress
+  // is knowable (or unlockable) without an account. The hero CTA opens sign-in instead of
+  // linking anywhere, since nothing is actually playable yet.
+  function renderSignedOutLocked(){
+    var lockedRoadmap = FLOW_CODING_DATA.roadmap.map(function(u){ return { n: u.n, title: u.title, file: u.file, status: 'locked' }; });
+    document.getElementById('roadmap-grid').innerHTML = lockedRoadmap.map(cardHtml).join('');
+    updateMissionLogTagline(lockedRoadmap);
+    heroBtn.setAttribute('href', '#');
+    heroBtn.onclick = function(e){ e.preventDefault(); if (window.CodingAuth) CodingAuth.openAuth('signin'); };
+  }
+
+  // Signed-in state: real computed roadmap from the cadet's actual Supabase results.
+  function renderRoadmap(resultsList){
+    var data = { roadmap: FLOW_CODING_DATA.roadmap, results: resultsList };
+    var roadmap = computeFlowRoadmap(data);
+    document.getElementById('roadmap-grid').innerHTML = roadmap.map(cardHtml).join('');
+    updateMissionLogTagline(roadmap);
+
+    heroBtn.onclick = null;
+    // Units 1-9 no longer collapse to one canonical "in_progress" unit (they're all 'unlocked'
+    // browsable at once) -- so the hero CTA picks the first not-yet-done, not-locked unit in
+    // roadmap order (an 'unlocked' unit 1-9, or the 'in_progress' Unit 10/M1 once all nine are done).
+    var currentUnit = roadmap.find(function(u){ return (u.status === 'unlocked' || u.status === 'in_progress') && u.file; });
+    heroBtn.setAttribute('href', currentUnit ? currentUnit.file : '#roadmap-section');
+  }
+
+  renderSignedOutLocked(); // shown immediately, before auth even resolves
+  if (window.CodingAuth){
+    CodingAuth.onChange(function(state){
+      if (state.user){
+        CodingAuth.fetchResults().then(function(rows){
+          // fetchResults() returns raw coding_results rows — computeFlowRoadmap only needs { unit }
+          renderRoadmap(rows.map(function(r){ return { unit: r.unit_key }; }));
+        });
+      } else {
+        renderSignedOutLocked();
+      }
+    });
+  }
+
+  /* ============== modal plumbing shared with coding-auth.js ============== */
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+</body>
+</html>
