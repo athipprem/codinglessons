@@ -198,8 +198,9 @@
      screen-relative direction directly (Up/Down/Left/Right), no separate turn-then-forward step.
      Replaces the old turnpad + Forward/Turn Left/Turn Right buttons entirely. */
   .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
-  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .dpad-btn:hover { border-color: var(--cyan); }
+  /* Frame color matches the other cmd buttons (Add Repeat/Add Event's permanent amber border) --
+     always-on, not hover-gated, same as theirs. */
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--amber); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .dpad-btn:hover .dpad-tri { background: var(--ink); }
   .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .dpad-up { grid-column: 2; grid-row: 1; }
@@ -361,7 +362,6 @@
   #scr-t2 .transmission-tag { color: var(--purple); }
   #scr-t2 .dialogue { border-left-color: var(--purple); }
   #scr-t2 .dpad-tri { background: var(--purple); }
-  #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
   #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
   #scr-t2 .game-palette-col {
     background:
@@ -385,7 +385,6 @@
   #scr-t3 .transmission-tag { color: var(--orange); }
   #scr-t3 .dialogue { border-left-color: var(--orange); }
   #scr-t3 .dpad-tri { background: var(--orange); }
-  #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
   #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
   #scr-t3 .game-palette-col {
     background:
