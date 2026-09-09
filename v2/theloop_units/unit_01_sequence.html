@@ -81,9 +81,10 @@
   /* ---------------- Flow Academy topbar (replaces the old plain text back-link) ---------------- */
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
   #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
-  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
-  #brand:hover { color: var(--cyan); }
+  #brand, .brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo, .brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover, .brand:hover { color: var(--cyan); }
+  .game-topbar-left .brand { flex-shrink: 0; }
 
   /* HUD */
   .hud {
@@ -133,6 +134,15 @@
     width: 100%; max-width: 280px; text-align: center;
   }
   .boot-card label { font-size: 14px; color: var(--ink-soft); }
+  /* Light-mode-only Cosmic Vibes frame on the boot/landing card -- matches the exact rainbow gradient
+     index.html/the-loop.html already use for their own light-mode card borders (same hex stops), per
+     Lui's reference swatch. Dark mode is untouched (boot-card never had a frame there either). */
+  html[data-theme="light"] .boot-card {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, #483D8B 0%, #00BFFF 28%, #8A2BE2 52%, #FF8C00 76%, #FFD700 100%) border-box;
+  }
 
   button.primary {
     font-family: "Orbitron", sans-serif;
@@ -341,9 +351,13 @@
      the "crop it to show the stars & galaxy up top" look, built from gradients instead of a photo. */
   .stage-bg {
     position: absolute; inset: 0;
+    /* The two base nebula blobs are hardcoded to their vivid dark-mode hex (not var(--cyan)/
+       var(--amber)) so this backdrop stays equally vivid in light mode -- those vars get deliberately
+       darkened in light mode for plain-text readability elsewhere, which otherwise made this backdrop
+       look pale/washed-out in light mode (same root cause + fix as the hero-accent gradient). */
     background:
-      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, var(--cyan) 26%, transparent), transparent 70%),
-      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, var(--amber) 18%, transparent), transparent 70%),
+      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, #38E6EE 26%, transparent), transparent 70%),
+      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, #FFC24B 18%, transparent), transparent 70%),
       radial-gradient(1px 1px at 8% 10%, var(--star), transparent),
       radial-gradient(1px 1px at 18% 22%, var(--star), transparent),
       radial-gradient(1.5px 1.5px at 34% 6%, var(--star), transparent),
@@ -444,11 +458,18 @@
      index.html/the-loop.html's own light-mode treatment) is completely untouched; Lui's
      complaint was dark-mode specific. */
   html:not([data-theme="light"]) .dialogue { border-left-color: var(--purple); }
-  html:not([data-theme="light"]) .panel {
+  /* .panel's cosmic-vibes gradient border (pg2/scr-t1 and pg5/scr-final) now applies in BOTH themes.
+     --purple/--green/--orange are theme-invariant (never redefined for light mode) so those three
+     stops carry over unchanged -- but --cyan/--amber get deliberately DARKENED in light mode for
+     plain-text readability elsewhere (see the .hero-inner h1 .accent fix in flow-academy.css for the
+     same root cause), which would otherwise leave 2 of the 5 stops looking dim/muddy against the
+     other 3. Hardcoding those two stops to their vivid dark-mode hex values keeps the frame equally
+     bright in both themes, same fix pattern as the hero accent. */
+  .panel {
     border: 2px solid transparent;
     background:
       linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
-      linear-gradient(135deg, var(--purple) 0%, var(--cyan) 30%, var(--green) 55%, var(--orange) 80%, var(--amber) 100%) border-box;
+      linear-gradient(135deg, var(--purple) 0%, #38E6EE 30%, var(--green) 55%, var(--orange) 80%, #FFC24B 100%) border-box;
   }
   /* Grid: goal + wall cells were low-opacity/pale on both missions -- richer fills, and the goal
      cell gets a soft green glow instead of a flat tint. */
@@ -459,53 +480,66 @@
   html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
     background: color-mix(in srgb, var(--danger) 48%, transparent);
   }
+  /* Mission 1/2's purple + orange theming below now applies in BOTH themes -- Lui's call: light mode
+     was "too pale," keep the same purple/orange as dark mode instead of a washed-out light variant.
+     --purple/--orange/--green/their -ink variants are theme-invariant so most of this un-gates safely
+     as-is. The one exception is --purple-tint/--orange-tint: those were only ever given a DARK value
+     (a near-black wash meant to sit under light dark-mode text), so used verbatim in light mode an
+     order-row chip would render near-black with dark ink text on it -- unreadable. Give them a light
+     override here (same idea as flow-academy.css's own --amber-tint/--nova-tint light values) so the
+     chip stays a pale, readable purple/orange wash in light mode while every border/icon/button stays
+     exactly as vivid as dark mode. */
+  html[data-theme="light"] {
+    --purple-tint: #F3E9FE;
+    --orange-tint: #FFF2DC;
+  }
   /* Mission 1 (Platform Alpha) -- purple zone. */
-  html:not([data-theme="light"]) #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .transmission-tag { color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .dialogue { border-left-color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
-  html:not([data-theme="light"]) #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .game-palette-col {
+  #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  #scr-t2 .transmission-tag { color: var(--purple); }
+  #scr-t2 .dialogue { border-left-color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
+  #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
+  #scr-t2 .game-palette-col {
     background:
       repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
       repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
       color-mix(in srgb, var(--bg) 30%, transparent);
     border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
   }
-  html:not([data-theme="light"]) #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
-  html:not([data-theme="light"]) #scr-t2 .order-row.active-step { outline-color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
-  html:not([data-theme="light"]) #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
-  html:not([data-theme="light"]) #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
-  html:not([data-theme="light"]) #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
-  html:not([data-theme="light"]) #scr-t2 .stage-bg::before,
-  html:not([data-theme="light"]) #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
-  html:not([data-theme="light"]) #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
-  html:not([data-theme="light"]) #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+  #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  #scr-t2 .order-row.active-step { outline-color: var(--purple); }
+  #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  #scr-t2 .stage-bg::before,
+  #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
 
   /* Mission 2 (Platform Bravo) -- orange zone. */
-  html:not([data-theme="light"]) #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .transmission-tag { color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .dialogue { border-left-color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
-  html:not([data-theme="light"]) #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .game-palette-col {
+  #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  #scr-t3 .transmission-tag { color: var(--orange); }
+  #scr-t3 .dialogue { border-left-color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
+  #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
+  #scr-t3 .game-palette-col {
     background:
       repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
       repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
       color-mix(in srgb, var(--bg) 30%, transparent);
     border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
   }
-  html:not([data-theme="light"]) #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
-  html:not([data-theme="light"]) #scr-t3 .order-row.active-step { outline-color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
-  html:not([data-theme="light"]) #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
-  html:not([data-theme="light"]) #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
-  html:not([data-theme="light"]) #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
-  html:not([data-theme="light"]) #scr-t3 .stage-bg::before,
-  html:not([data-theme="light"]) #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
-  html:not([data-theme="light"]) #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
-  html:not([data-theme="light"]) #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
+  #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  #scr-t3 .order-row.active-step { outline-color: var(--orange); }
+  #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  #scr-t3 .stage-bg::before,
+  #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
 
   /* life connection / quiz reuse */
   textarea {
@@ -582,7 +616,7 @@
     <div class="topbar-left">
       <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     </div>
-    <div style="display:flex; align-items:center; gap:10px;">
+    <div style="display:flex; align-items:center; gap:10px;" id="topbarRightHome">
       <button id="theme-toggle" class="theme-toggle-btn" type="button"></button>
       <div id="acct-wrap">
         <button id="acct-btn"></button>
@@ -698,11 +732,10 @@
   <section class="screen fullscreen-mission" id="scr-t2">
     <div class="game-topbar">
       <div class="game-topbar-left">
-        <button type="button" class="ghost" onclick="showScreen('scr-t1')">◀ Prev</button>
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
         <div class="transmission-tag">Transmission 2 of 3</div>
-        <button type="button" class="ghost" onclick="showScreen('scr-t3')">Next ▶</button>
       </div>
-      <div class="game-topbar-right">
+      <div class="game-topbar-right" id="gameTopbarRight2">
         <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
         <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
@@ -748,11 +781,10 @@
   <section class="screen fullscreen-mission" id="scr-t3">
     <div class="game-topbar">
       <div class="game-topbar-left">
-        <button type="button" class="ghost" onclick="showScreen('scr-t2')">◀ Prev</button>
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
         <div class="transmission-tag">Transmission 3 of 3</div>
-        <button type="button" class="ghost" onclick="showScreen('scr-final')">Next ▶</button>
       </div>
-      <div class="game-topbar-right">
+      <div class="game-topbar-right" id="gameTopbarRight3">
         <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
         <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
@@ -963,10 +995,24 @@
     requestAnimationFrame(step);
   }
 
+  // The account widget (#acct-wrap) is a JS singleton bound by id in coding-auth.js, so it can't be
+  // duplicated into each mission's topbar -- instead the one DOM node is physically relocated into
+  // whichever topbar is currently visible, which preserves its already-bound event listeners.
+  function relocateAcctWidget(screenId) {
+    const acctWrap = document.getElementById('acct-wrap');
+    if (!acctWrap) return;
+    const targetId = screenId === 'scr-t2' ? 'gameTopbarRight2'
+      : screenId === 'scr-t3' ? 'gameTopbarRight3'
+      : 'topbarRightHome';
+    const target = document.getElementById(targetId);
+    if (target && acctWrap.parentElement !== target) target.appendChild(acctWrap);
+  }
+
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
+    relocateAcctWidget(id);
     if (typeof syncReviewNav === 'function') syncReviewNav(id);
   }
 
