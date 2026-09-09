@@ -206,7 +206,12 @@
   .dpad-left { grid-column: 1; grid-row: 2; }
   .dpad-down { grid-column: 2; grid-row: 2; }
   .dpad-right { grid-column: 3; grid-row: 2; }
-  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: drop-shadow(0 0 3px rgba(56,230,238,.7)); }
+  /* No idle glow: keeping the frame neutral (var(--line), same as the other cmd/ghost buttons) at
+     rest -- only the icon fill is zone-colored. An always-on drop-shadow here used to bleed a
+     colored halo past the icon and read as a mismatched colored frame; removing it makes the pad's
+     idle frame match the plain cmd-btn/ghost buttons exactly, same as before this fix but now true
+     to the eye too. */
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
   .dpad-up .dpad-tri { transform: rotate(0deg); }
   .dpad-right .dpad-tri { transform: rotate(90deg); }
   .dpad-down .dpad-tri { transform: rotate(180deg); }
@@ -355,7 +360,7 @@
   #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
   #scr-t2 .transmission-tag { color: var(--purple); }
   #scr-t2 .dialogue { border-left-color: var(--purple); }
-  #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
+  #scr-t2 .dpad-tri { background: var(--purple); }
   #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
   #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
   #scr-t2 .game-palette-col {
@@ -379,7 +384,7 @@
   #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
   #scr-t3 .transmission-tag { color: var(--orange); }
   #scr-t3 .dialogue { border-left-color: var(--orange); }
-  #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
+  #scr-t3 .dpad-tri { background: var(--orange); }
   #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
   #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
   #scr-t3 .game-palette-col {
