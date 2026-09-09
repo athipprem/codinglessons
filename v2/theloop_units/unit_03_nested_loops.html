@@ -316,7 +316,7 @@
       color-mix(in srgb, var(--bg) 30%, transparent);
     border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
   }
-  .dialogue.compact { padding: 10px 12px; font-size: 13px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact { padding: 10px 12px; font-size: 14px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
   .dialogue.compact .avatar { font-size: 18px; }
 
   .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
@@ -325,6 +325,12 @@
   .control-rail .mission-actions button { width: 100%; }
   .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
   .control-rail .dpad { align-self: center; }
+
+  /* Program column: the slot/sweep budget chip(s) sit attached to the top of THIS column (same row
+     as the control-rail, right-aligned) rather than in their own full-width row above both columns --
+     they're a limitation on what you build here, so they live right where you build it. */
+  .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
   .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
 
   /* Phone-width fallback, ported verbatim from Unit 1. */
@@ -342,6 +348,7 @@
     }
     .palette-cols { flex-direction: column; flex: 0 0 auto; }
     .control-rail { flex: 0 0 auto; }
+    .prog-col { flex: 0 0 auto; }
     .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
   }
 
@@ -593,10 +600,6 @@
           <div class="avatar">🧑‍🚀</div>
           <div><p><strong>COMMANDER:</strong> Time to build one for real — and heads up, there's no flag to chase this time. Platform Echo must be fully swept: every single cell driven over at least once, before Command Control marks it clear. Click "Add Repeat" to start your outer loop, then — while it's still open — click "Add Repeat" again to nest a second loop inside it for each row you sweep. Command Control won't accept a shallow nested loop either: a REPEAT wrapping nothing but another tiny REPEAT is "nested" in name only. Build a real outer routine, and stay within your program slots.</p></div>
         </div>
-        <div class="chip-row">
-          <span class="slot-chip" id="slots1">SLOTS: 0 / 4</span>
-          <span class="slot-chip swept-chip" id="swept1">SWEPT: 0 / 25</span>
-        </div>
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette1">
@@ -614,7 +617,13 @@
               <button class="ghost" id="clear1">Clear Program</button>
             </div>
           </div>
-          <div class="chip-order" id="prog1"></div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots1">SLOTS: 0 / 4</span>
+              <span class="slot-chip swept-chip" id="swept1">SWEPT: 0 / 25</span>
+            </div>
+            <div class="chip-order" id="prog1"></div>
+          </div>
         </div>
         <p class="mission-msg" id="msg1"></p>
         <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
@@ -649,10 +658,6 @@
           <div class="avatar">🧑‍🚀</div>
           <div><p><strong>COMMANDER:</strong> Platform Foxtrot has two barriers breaking up the clean sweep, so you can't just copy Platform Echo's pattern — reason about where the gaps are and route around them. Sweep every open cell using a real nested loop, within your program slots.</p></div>
         </div>
-        <div class="chip-row">
-          <span class="slot-chip" id="slots2">SLOTS: 0 / 6</span>
-          <span class="slot-chip swept-chip" id="swept2">SWEPT: 0 / 23</span>
-        </div>
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette2">
@@ -670,7 +675,13 @@
               <button class="ghost" id="clear2">Clear Program</button>
             </div>
           </div>
-          <div class="chip-order" id="prog2"></div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots2">SLOTS: 0 / 6</span>
+              <span class="slot-chip swept-chip" id="swept2">SWEPT: 0 / 23</span>
+            </div>
+            <div class="chip-order" id="prog2"></div>
+          </div>
         </div>
         <p class="mission-msg" id="msg2"></p>
         <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
@@ -1158,7 +1169,7 @@
         const span = document.createElement('span');
         span.className = 'empty-hint';
         span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat block) from the panel above.'
+          ? 'Add commands (or a Repeat block) from the left panel.'
           : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
         containerEl.appendChild(span);
         return;
