@@ -24,6 +24,22 @@
     --danger: #FF6B7F; --danger-tint: #3A1620;
     --success: #4BE39A; --success-tint: #113526;
     --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+
+    /* Master style (ported from Unit 1): vivid dark-mode accents reused verbatim from index.html's
+       planet colors / the site's Cosmic Vibes gradient (Nova=#C77DFF purple, #FF8C00 orange,
+       Craft/--success=#4BE39A green), used to give Mission 1 and Mission 2 distinct "zones" instead
+       of identical cyan twins, and green reserved for the goal cell / success feedback. */
+    --purple: #C77DFF; --purple-ink: #2B0E45; --purple-tint: #241040;
+    --orange: #FF8C00; --orange-ink: #3A1B00; --orange-tint: #3A2000;
+    --green: #4BE39A; --green-ink: #06281C; --green-tint: #0F3324;
+  }
+  /* --purple-tint/--orange-tint only ever have a dark value (a near-black wash meant to sit under
+     light dark-mode text) -- give them a light override so an order-row chip stays a pale, readable
+     wash in light mode instead of near-black, while every border/icon/button stays exactly as vivid
+     as dark mode (those vars are theme-invariant by design). */
+  html[data-theme="light"] {
+    --purple-tint: #F3E9FE;
+    --orange-tint: #FFF2DC;
   }
   * { box-sizing: border-box; }
   body {
@@ -47,9 +63,10 @@
 
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
   #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
-  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
-  #brand:hover { color: var(--cyan); }
+  #brand, .brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo, .brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover, .brand:hover { color: var(--cyan); }
+  .game-topbar-left .brand { flex-shrink: 0; }
 
   .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
   .hud.show { display: flex; }
@@ -68,6 +85,15 @@
   .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
   .boot-card input { font-family: inherit; font-size: 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); width: 100%; max-width: 280px; text-align: center; }
   .boot-card label { font-size: 14px; color: var(--ink-soft); }
+  /* Master style: light-mode-only Cosmic Vibes frame on the boot card -- matches the exact rainbow
+     gradient index.html/the-loop.html already use for their own light-mode card borders. Dark mode
+     is untouched (boot-card never had a frame there). */
+  html[data-theme="light"] .boot-card {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, #483D8B 0%, #00BFFF 28%, #8A2BE2 52%, #FF8C00 76%, #FFD700 100%) border-box;
+  }
 
   button.primary { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.03em; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); border: none; padding: 12px 24px; border-radius: 999px; box-shadow: 0 6px 16px #38e6ee33; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
   button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
@@ -96,7 +122,17 @@
   .dialogue p { margin: 0 0 8px; }
   .dialogue p:last-child { margin-bottom: 0; }
 
-  .panel { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  /* Master style: .panel's cosmic-vibes gradient border applies in BOTH themes. --purple/--green/
+     --orange are theme-invariant so those three stops carry over unchanged -- but --cyan/--amber get
+     darkened in light mode for plain-text readability elsewhere, so those two stops are hardcoded to
+     their vivid dark-mode hex values to keep the frame equally bright in both themes. */
+  .panel {
+    border: 2px solid transparent;
+    border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, var(--purple) 0%, #38E6EE 30%, var(--green) 55%, var(--orange) 80%, #FFC24B 100%) border-box;
+  }
   .panel h2 { font-size: 18px; color: var(--ink); }
   .panel .sub { color: var(--ink-soft); font-size: 14.5px; }
 
@@ -194,6 +230,166 @@
     pointer-events: none;
     user-select: none;
   }
+  /* Master style: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a
+     handful of sparkle particles, so a win reads as a moment, not just a text swap. */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
+
+  /* ---------------- Master style: full-screen mission stage (Missions 1 & 2 only) ----------------
+     Ported from Unit 1. Command deck floats as a translucent HUD panel on the left, the mission grid
+     gets the whole rest of the viewport on the right, over a starfield/galaxy backdrop. Boot and
+     Final Systems Check stay the normal in-page layout -- only the two missions take over the screen. */
+  .screen.fullscreen-mission { display: none; }
+  .screen.fullscreen-mission.active { display: flex; position: fixed; inset: 0; z-index: 40; background: var(--bg); flex-direction: column; }
+  .game-topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--bg-raised); gap: 10px; flex-wrap: wrap; }
+  .game-topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .game-topbar-right { display: flex; align-items: center; gap: 12px; }
+  .game-xp { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .game-xp .xp-value { color: var(--amber); font-weight: 700; }
+  .theme-toggle-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor: pointer; padding: 0; flex-shrink: 0; }
+  .theme-toggle-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .game-body { flex: 1 1 auto; position: relative; min-height: 0; overflow: hidden; --palette-w: min(640px, 58vw); }
+  /* CSS-only starfield/galaxy backdrop, reused verbatim from Unit 1. */
+  .stage-bg {
+    position: absolute; inset: 0;
+    /* The two base nebula blobs are hardcoded to their vivid dark-mode hex (not var(--cyan)/
+       var(--amber)) so this backdrop stays equally vivid in light mode. */
+    background:
+      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, #38E6EE 26%, transparent), transparent 70%),
+      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, #FFC24B 18%, transparent), transparent 70%),
+      radial-gradient(1px 1px at 8% 10%, var(--star), transparent),
+      radial-gradient(1px 1px at 18% 22%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 34% 6%, var(--star), transparent),
+      radial-gradient(1px 1px at 47% 18%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 62% 9%, var(--star), transparent),
+      radial-gradient(1px 1px at 71% 24%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 85% 14%, var(--star), transparent),
+      radial-gradient(1px 1px at 93% 28%, var(--star), transparent),
+      radial-gradient(1px 1px at 5% 40%, var(--star), transparent),
+      radial-gradient(1px 1px at 40% 45%, var(--star), transparent),
+      radial-gradient(1px 1px at 65% 42%, var(--star), transparent),
+      var(--bg);
+    opacity: .9;
+  }
+  .game-stage-col { position: absolute; inset: 0; left: var(--palette-w); display: flex; align-items: center; justify-content: center; }
+  .stage-grid-wrap { position: relative; z-index: 1; }
+  .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
+  .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
+  .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
+  .stage-grid-wrap .cell.visited { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
+
+  .game-palette-col {
+    position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+    width: var(--palette-w);
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    overflow-y: auto;
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  }
+  .dialogue.compact { padding: 10px 12px; font-size: 13px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact .avatar { font-size: 18px; }
+
+  .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
+  .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
+  .control-rail .mission-actions button { width: 100%; }
+  .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
+  .control-rail .turnpad { align-self: center; }
+  .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
+
+  /* Phone-width fallback, ported verbatim from Unit 1. */
+  @media (max-width: 760px) {
+    .game-body { display: flex; flex-direction: column; overflow-y: auto; }
+    .game-palette-col {
+      position: relative; top: auto; left: auto; bottom: auto; right: auto;
+      width: auto; max-width: none; max-height: 58vh; flex: 0 0 auto;
+      border-right: none; border-bottom: 1px solid rgba(56,230,238,.35);
+    }
+    .game-stage-col {
+      position: relative; inset: auto; left: auto;
+      flex: 1 1 auto; min-height: 220px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .palette-cols { flex-direction: column; flex: 0 0 auto; }
+    .control-rail { flex: 0 0 auto; }
+    .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
+  }
+
+  /* Master style: richer goal/wall fills (dark mode only, matching Unit 1's own final scoping). */
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
+    background: color-mix(in srgb, var(--green) 48%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
+    background: color-mix(in srgb, var(--danger) 48%, transparent);
+  }
+
+  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform Charlie) reads purple, Mission 2
+     (Platform Delta) reads orange, applying in BOTH themes (Unit 1's final state, not its earlier
+     dark-only draft). REPEAT stays its own dedicated amber accent regardless of zone -- amber marks
+     "this is a loop" the same way green marks "this is the goal," so it isn't re-themed per mission. */
+  #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  #scr-t2 .transmission-tag { color: var(--purple); }
+  #scr-t2 .dialogue { border-left-color: var(--purple); }
+  #scr-t2 .turnpad-btn:hover { border-color: var(--purple); }
+  #scr-t2 .turnpad-btn:hover .turnpad-tri { background: var(--purple); }
+  #scr-t2 .cmd-btn:not(.repeat-btn):hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
+  }
+  #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  #scr-t2 .stage-bg::before,
+  #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+
+  #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  #scr-t3 .transmission-tag { color: var(--orange); }
+  #scr-t3 .dialogue { border-left-color: var(--orange); }
+  #scr-t3 .turnpad-btn:hover { border-color: var(--orange); }
+  #scr-t3 .turnpad-btn:hover .turnpad-tri { background: var(--orange); }
+  #scr-t3 .cmd-btn:not(.repeat-btn):hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  }
+  #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  #scr-t3 .stage-bg::before,
+  #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
 
   .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   .quiz-q:first-of-type { border-top: none; padding-top: 0; }
@@ -260,8 +456,8 @@
     <div class="topbar-left">
       <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     </div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button id="theme-toggle" type="button"></button>
+    <div style="display:flex; align-items:center; gap:10px;" id="topbarRightHome">
+      <button id="theme-toggle" class="theme-toggle-btn" type="button"></button>
       <div id="acct-wrap">
         <button id="acct-btn"></button>
         <div id="acct-menu"></div>
@@ -272,17 +468,31 @@
     (function(){
       var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
       var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
-      var btn = document.getElementById('theme-toggle');
+      // Master style: the two mission screens are fixed full-viewport overlays (z-index 40) that
+      // visually cover #topbar while open, so each carries its own .theme-toggle-btn -- all of them
+      // (main topbar + both mission topbars) share this one apply()/click wiring via the class
+      // selector. This script block runs early in <body>, before the scr-t2/scr-t3 sections further
+      // down the page exist yet -- so apply() re-queries '.theme-toggle-btn' fresh every call instead
+      // of caching a NodeList once, and the click listener is delegated on document for the same
+      // reason. The very first apply() call is deferred to DOMContentLoaded so every .theme-toggle-btn
+      // already exists before it fires (otherwise the two mission-screen buttons ship with no icon
+      // until the cadet toggles the theme once).
       function apply(theme){
         if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
         else document.documentElement.removeAttribute('data-theme');
-        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
-        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+          btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+          btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        });
       }
-      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-      btn.addEventListener('click', function(){
+      document.addEventListener('DOMContentLoaded', function(){
+        apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      });
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.theme-toggle-btn');
+        if (!btn) return;
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e2) {}
         apply(next);
       });
     })();
@@ -290,7 +500,7 @@
 
   <div class="hud" id="hud">
     <span>CADET: <span class="cadet" id="hudName">—</span></span>
-    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span>XP: <span class="xp xp-value" id="hudXp">0</span></span>
     <span class="tx" id="hudTx">TRANSMISSION 1/3</span>
     <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
   </div>
@@ -352,89 +562,113 @@
     </div>
   </section>
 
-  <!-- TRANSMISSION 2 -->
-  <section class="screen" id="scr-t2">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 2 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">Next ▶</button>
+  <!-- TRANSMISSION 2 (full-screen mission stage -- master style) -->
+  <section class="screen fullscreen-mission" id="scr-t2">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 2 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight2">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Time to use the real tool. Click "Add Repeat," set how many times it runs, then add commands — they'll go inside the loop until you hit Done. Heads up: Command Control only allocated Platform Charlie a handful of program slots, and a REPEAT block only ever costs ONE slot, no matter how high you set its count. Patrol Platform Charlie and reach the flag.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 1 · Platform Charlie</h2>
-      <span class="slot-chip" id="slots1">SLOTS: 0 / 4</span>
-      <div class="cmd-palette" id="palette1">
-        <div class="turnpad">
-          <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-          <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-          <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Time to use the real tool. Click "Add Repeat," set how many times it runs, then add commands — they'll go inside the loop until you hit Done. Heads up: Command Control only allocated Platform Charlie a handful of program slots, and a REPEAT block only ever costs ONE slot, no matter how high you set its count. Patrol Platform Charlie and reach the flag.</p></div>
         </div>
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+        <span class="slot-chip" id="slots1">SLOTS: 0 / 4</span>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette1">
+              <div class="turnpad">
+                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
+                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
+                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run1">▶ Run Program</button>
+              <button class="ghost" id="reset1">Reset Rover</button>
+              <button class="ghost" id="clear1">Clear Program</button>
+            </div>
+          </div>
+          <div class="chip-order" id="prog1"></div>
+        </div>
+        <p class="mission-msg" id="msg1"></p>
+        <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+          <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+        </div>
+        <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
       </div>
-      <div class="chip-order" id="prog1"></div>
-      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run1">▶ Run Program</button>
-        <button class="ghost" id="reset1">Reset Rover</button>
-        <button class="ghost" id="clear1">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg1"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
     </div>
   </section>
 
-  <!-- TRANSMISSION 3 -->
-  <section class="screen" id="scr-t3">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 3 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+  <!-- TRANSMISSION 3 (full-screen mission stage -- master style) -->
+  <section class="screen fullscreen-mission" id="scr-t3">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 3 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight3">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Delta has a barrier down, and the route isn't purely repeating — you'll need some individual commands plus at least one loop, all within an even tighter slot budget. Mix them however gets Rover-7 there.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 2 · Platform Delta</h2>
-      <span class="slot-chip" id="slots2">SLOTS: 0 / 5</span>
-      <div class="cmd-palette" id="palette2">
-        <div class="turnpad">
-          <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-          <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-          <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform Delta has a barrier down, and the route isn't purely repeating — you'll need some individual commands plus at least one loop, all within an even tighter slot budget. Mix them however gets Rover-7 there.</p></div>
         </div>
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+        <span class="slot-chip" id="slots2">SLOTS: 0 / 5</span>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette2">
+              <div class="turnpad">
+                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
+                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
+                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
+              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
+              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run2">▶ Run Program</button>
+              <button class="ghost" id="reset2">Reset Rover</button>
+              <button class="ghost" id="clear2">Clear Program</button>
+            </div>
+          </div>
+          <div class="chip-order" id="prog2"></div>
+        </div>
+        <p class="mission-msg" id="msg2"></p>
+        <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+          <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
+        </div>
+        <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
       </div>
-      <div class="chip-order" id="prog2"></div>
-      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run2">▶ Run Program</button>
-        <button class="ghost" id="reset2">Reset Rover</button>
-        <button class="ghost" id="clear2">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7" draggable="false"></div></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg2"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
     </div>
   </section>
 
@@ -575,15 +809,44 @@
     }
   }
 
+  // Master style: XP counts UP, not a jump-cut number swap -- every award animates from the old
+  // total to the new one over ~650ms, updating every '.xp-value' on the page at once (the main hud's
+  // XP plus each mission screen's own topbar readout, since the two mission screens are full-viewport
+  // overlays that visually cover the main hud while open).
   function addXp(n) {
+    const from = xp;
     xp += n;
-    document.getElementById('hudXp').textContent = xp;
-    document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+    const to = xp;
+    const dur = 650;
+    const t0 = performance.now();
+    function step(now) {
+      const p = Math.min(1, (now - t0) / dur);
+      const val = Math.round(from + (to - from) * p);
+      document.querySelectorAll('.xp-value').forEach(el => { el.textContent = val; });
+      document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(val / XP_TARGET * 100)) + '%';
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
+
+  // Master style: the account widget (#acct-wrap) is a JS singleton bound by id in coding-auth.js, so
+  // it can't be duplicated into each mission's topbar -- instead the one DOM node is physically
+  // relocated into whichever topbar is currently visible, which preserves its already-bound listeners.
+  function relocateAcctWidget(screenId) {
+    const acctWrap = document.getElementById('acct-wrap');
+    if (!acctWrap) return;
+    const targetId = screenId === 'scr-t2' ? 'gameTopbarRight2'
+      : screenId === 'scr-t3' ? 'gameTopbarRight3'
+      : 'topbarRightHome';
+    const target = document.getElementById(targetId);
+    if (target && acctWrap.parentElement !== target) target.appendChild(acctWrap);
+  }
+
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
+    relocateAcctWidget(id);
     if (typeof syncReviewNav === 'function') syncReviewNav(id);
   }
 
@@ -758,6 +1021,7 @@
     let succeeded = false;
     let attempts = 0;
     let usedRepeat = false;
+    let winningProgram = null; // deep-cloned program snapshot captured on success, for Watch Again
     // ---- V2 E1: command-slot budget. Opt-in via cfg.maxSlots. Counts top-level program items only
     // -- a repeat/event/condition/block container always costs ONE slot regardless of its children.
     let slotsOverBudget = false;
@@ -1002,7 +1266,7 @@
       updateSlotGate();
     });
 
-    async function executeOne(cmd) {
+    async function executeOne(cmd, waitMs) {
       if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
       else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
       else if (cmd === 'F') {
@@ -1013,7 +1277,68 @@
         state.r = nr; state.c = nc;
       }
       updateRoverPosition(true);
-      await wait(400);
+      await wait(typeof waitMs === 'number' ? waitMs : 400);
+    }
+
+    // Shared traversal for both the live run and the Watch Again replay -- walks the (possibly
+    // nested) program list, expanding each REPEAT the requested number of times.
+    async function runProgramList(prog, waitMs) {
+      for (const item of prog) {
+        if (item.type === 'cmd') {
+          await executeOne(item.cmd, waitMs);
+        } else {
+          for (let n = 0; n < item.count; n++) {
+            for (const child of item.children) {
+              await executeOne(child.cmd, waitMs);
+            }
+          }
+        }
+      }
+    }
+
+    // ---- Master style: mission-complete celebration -- spin+scale+sparkle, a Commander line that
+    // varies by how the run went, and a "Watch Again" replay of the winning program at 1.5x speed. ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess(usedRepeat);
+    }
+    if (cfg.watchAgainBtn) {
+      cfg.watchAgainBtn.addEventListener('click', async () => {
+        if (running || !winningProgram || !winningProgram.length) return;
+        running = true;
+        cfg.runBtn.disabled = true;
+        cfg.watchAgainBtn.disabled = true;
+        state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+        updateRoverPosition(false);
+        await wait(150);
+        await runProgramList(winningProgram, 267); // 1.5x the real run's 400ms step
+        running = false;
+        cfg.runBtn.disabled = false;
+        cfg.watchAgainBtn.disabled = false;
+      });
     }
 
     cfg.runBtn.addEventListener('click', async () => {
@@ -1024,32 +1349,22 @@
       usedRepeat = program.some(item => item.type === 'repeat');
       cfg.runBtn.disabled = true;
       updateAddRepeatBtn();
+      hideWatchAgain();
       state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
-        for (const item of program) {
-          if (item.type === 'cmd') {
-            await executeOne(item.cmd);
-          } else {
-            for (let n = 0; n < item.count; n++) {
-              for (const child of item.children) {
-                await executeOne(child.cmd);
-              }
-            }
-          }
-        }
+        await runProgramList(program);
         if (state.r === mission.goal.r && state.c === mission.goal.c) {
           if (cfg.requireRepeat && !usedRepeat) {
             cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT block. Rebuild this route using at least one Repeat, then run it again.';
             cfg.msgEl.className = 'mission-msg bad';
           } else {
             succeeded = true;
-            cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
-            cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess(usedRepeat);
+            winningProgram = JSON.parse(JSON.stringify(program));
+            celebrate();
           }
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
@@ -1088,9 +1403,15 @@
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
     addRepeatBtn: document.getElementById('addRepeat1'), slotsEl: document.getElementById('slots1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
     maxSlots: 4,
     requireRepeat: true,
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 patrolled Platform Charlie exactly as planned.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Charlie. That took some real troubleshooting, Cadet — nice recovery.',
+      normal: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Charlie!'
+    },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
@@ -1102,9 +1423,15 @@
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
     addRepeatBtn: document.getElementById('addRepeat2'), slotsEl: document.getElementById('slots2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
     maxSlots: 5,
     requireRepeat: true,
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 routed around the barrier on Platform Delta without a hitch.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Delta. That took some real troubleshooting, Cadet — nice recovery.',
+      normal: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Delta!'
+    },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
 
