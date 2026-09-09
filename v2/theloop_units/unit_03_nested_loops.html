@@ -193,21 +193,24 @@
   .cmd-btn.repeat-btn { border-color: var(--amber); }
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
 
-  /* V2: direction pad -- turtle-mode alt input for Forward / Turn Left / Turn Right, matching the
-     milestone test's preferred page layout. Writes the same 'F'/'L'/'R' commands via the existing
-     [data-cmd] click binding -- purely additive, no engine changes needed. Copied forward verbatim
-     from Unit 2. */
-  .turnpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; }
-  .turnpad-btn { background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .turnpad-btn:hover { border-color: var(--cyan); }
-  .turnpad-btn:hover .turnpad-tri { background: var(--cyan); }
-  .turnpad-fwd { grid-column: 2; grid-row: 1; }
-  .turnpad-left { grid-column: 1; grid-row: 2; }
-  .turnpad-right { grid-column: 3; grid-row: 2; }
-  .turnpad-tri { display: block; width: 15px; height: 15px; background: var(--ink); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-  .turnpad-fwd .turnpad-tri { transform: rotate(0deg); }
-  .turnpad-left .turnpad-tri { transform: rotate(-90deg); }
-  .turnpad-right .turnpad-tri { transform: rotate(90deg); }
+  /* V3: master-style rollout -- ported verbatim from Unit 1. The d-pad is the ONLY steering control
+     now -- 4 absolute-direction buttons in a cross layout. Each press moves Rover-7 one cell in that
+     screen-relative direction directly (Up/Down/Left/Right), no separate turn-then-forward step.
+     Replaces the old turnpad + Forward/Turn Left/Turn Right buttons entirely. */
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover { border-color: var(--cyan); }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: drop-shadow(0 0 3px rgba(56,230,238,.7)); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
 
   /* V2 E1: command-slot budget chip (copied forward verbatim from Unit 2). Reused below for the
      E2 sweep-progress chip too -- same visual language, different counter. */
@@ -315,7 +318,7 @@
   .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
   .control-rail .mission-actions button { width: 100%; }
   .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
-  .control-rail .turnpad { align-self: center; }
+  .control-rail .dpad { align-self: center; }
   .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
 
   /* Phone-width fallback, ported verbatim from Unit 1. */
@@ -352,9 +355,8 @@
   #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
   #scr-t2 .transmission-tag { color: var(--purple); }
   #scr-t2 .dialogue { border-left-color: var(--purple); }
-  #scr-t2 .turnpad-btn:hover { border-color: var(--purple); }
-  #scr-t2 .turnpad-btn:hover .turnpad-tri { background: var(--purple); }
-  #scr-t2 .cmd-btn:not(.repeat-btn):hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
+  #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
   #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
   #scr-t2 .game-palette-col {
     background:
@@ -377,9 +379,8 @@
   #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
   #scr-t3 .transmission-tag { color: var(--orange); }
   #scr-t3 .dialogue { border-left-color: var(--orange); }
-  #scr-t3 .turnpad-btn:hover { border-color: var(--orange); }
-  #scr-t3 .turnpad-btn:hover .turnpad-tri { background: var(--orange); }
-  #scr-t3 .cmd-btn:not(.repeat-btn):hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
+  #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
   #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
   #scr-t3 .game-palette-col {
     background:
@@ -547,7 +548,7 @@
 
     <div class="panel">
       <h2>Calibration Test: Spot the Nested Loop</h2>
-      <p class="sub">Rover-7's sweep log for a 3×3 test platform reads: <code>Forward, Forward, Turn Right, Forward, Forward, Turn Right, Forward, Forward, Turn Right</code>. Which nested REPEAT block produces the exact same sweep?</p>
+      <p class="sub">Rover-7's sweep log for a 3×3 test platform reads: <code>Right, Right, Down, Right, Right, Down, Right, Right, Down</code>. Which nested REPEAT block produces the exact same sweep?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -595,14 +596,12 @@
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette1">
-              <div class="turnpad">
-                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
               </div>
-              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
               <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
             </div>
             <div class="mission-actions">
@@ -653,14 +652,12 @@
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette2">
-              <div class="turnpad">
-                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
               </div>
-              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
               <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
             </div>
             <div class="mission-actions">
@@ -713,11 +710,11 @@
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet means to build <code>Repeat 2 [ Repeat 3 [Forward, Turn Right] ]</code> but accidentally swaps the numbers, building <code>Repeat 3 [ Repeat 2 [Forward, Turn Right] ]</code> instead. What happens? Choose the one best answer:</div>
+        <div class="qtext">2. A cadet means to build <code>Repeat 2 [ Repeat 3 [Right, Down] ]</code> but accidentally swaps the numbers, building <code>Repeat 3 [ Repeat 2 [Right, Down] ]</code> instead. What happens? Choose the one best answer:</div>
         <label class="choice"><input type="radio" name="q2" value="0">Nothing changes — swapping which number is outer vs. inner doesn't affect the result</label>
         <label class="choice"><input type="radio" name="q2" value="1">The rover ends up somewhere different — the outer count controls how many times the whole inner pattern repeats, while the inner count controls how many times the small step repeats each time</label>
         <label class="choice"><input type="radio" name="q2" value="2">The inner loop won't run at all if the counts are swapped</label>
-        <label class="choice"><input type="radio" name="q2" value="3">The rover only turns, and never moves forward</label>
+        <label class="choice"><input type="radio" name="q2" value="3">The rover only moves Down, and never moves Right</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
@@ -890,9 +887,9 @@
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat) is deliberately NOT
-  // shuffled -- it's a fixed toolbar, same order every load and every unit, so cadets build muscle
-  // memory for the tool itself instead of re-reading button positions each time.
+  // NOTE: the command palette (the d-pad / Add Repeat) is deliberately NOT shuffled -- it's a fixed
+  // toolbar, same order every load and every unit, so cadets build muscle memory for the tool itself
+  // instead of re-reading button positions each time.
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -922,10 +919,10 @@
 
   // ================= Calibration: Spot the Nested Loop (now framed around a sweep) =================
   const CAL_CHOICES = [
-    { id: 0, label: 'Repeat 3 [ Repeat 2 [ Forward ], Turn Right ]', correct: true },
-    { id: 1, label: 'Repeat 9 [ Forward ]', correct: false },
-    { id: 2, label: 'Repeat 2 [ Repeat 3 [ Forward ], Turn Right ]', correct: false },
-    { id: 3, label: 'Repeat 3 [ Forward ], Repeat 3 [ Turn Right ]', correct: false },
+    { id: 0, label: 'Repeat 3 [ Repeat 2 [ Right ], Down ]', correct: true },
+    { id: 1, label: 'Repeat 9 [ Right ]', correct: false },
+    { id: 2, label: 'Repeat 2 [ Repeat 3 [ Right ], Down ]', correct: false },
+    { id: 3, label: 'Repeat 3 [ Right ], Repeat 3 [ Down ]', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -966,19 +963,19 @@
     });
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. That\'s a loop inside a loop — 2 reps of the small move, wrapped in 3 reps of the whole thing plus the turn — and it matches the sweep log exactly.';
+      msg.textContent = '✅ Correct. That\'s a loop inside a loop — 2 reps of the small move, wrapped in 3 reps of the whole thing plus the Down move — and it matches the sweep log exactly.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
     } else if (choice.id === 1) {
-      msg.textContent = '🤖 That\'s a single flat loop that just drives straight — it\'s missing every turn, so it only ever walks one line. Compare the totals carefully.';
+      msg.textContent = '🤖 That\'s a single flat loop that just drives right in a straight line — it\'s missing every Down move, so it only ever walks one row. Compare the totals carefully.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 2) {
-      msg.textContent = '🤖 Close — but the outer and inner counts are swapped. That changes how many total moves happen before each turn.';
+      msg.textContent = '🤖 Close — but the outer and inner counts are swapped. That changes how many total Right moves happen before each Down move.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 Close — but those are two separate loops sitting side by side, not one nested inside the other. All the turns would happen only at the very end, not between each pair of moves.';
+      msg.textContent = '🤖 Close — but those are two separate loops sitting side by side, not one nested inside the other. All the Down moves would happen only at the very end, not between each pair of Right moves.';
       msg.className = 'puzzle-msg bad';
     } else {
       msg.textContent = 'Not quite — expand it step by step and compare to the sweep log.';
@@ -1000,11 +997,13 @@
   });
 
   // ================= Rover engine w/ NESTED REPEAT support + E1 slot budget + E2 sweep objective =================
+  // V3: master-style rollout -- absolute-direction steering (the d-pad) replaces the old
+  // turtle-relative Forward/Turn Left/Turn Right model entirely. Every command is one of
+  // UP/DOWN/LEFT/RIGHT and translates Rover-7 one cell in that screen-relative direction directly --
+  // no heading, no rotation, no separate turn-then-forward step. Ported verbatim from Unit 1.
   const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
-  const ROT = { N: 0, E: 90, S: 180, W: 270 };
-  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
-  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
-  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right' };
+  const DIR_MAP = { UP: 'N', DOWN: 'S', LEFT: 'W', RIGHT: 'E' };
+  const CMD_LABEL = { UP: '⬆️ Up', DOWN: '⬇️ Down', LEFT: '⬅️ Left', RIGHT: '➡️ Right' };
 
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
@@ -1045,7 +1044,7 @@
     // openStack at length 2 so the tree never grows past one level of nesting.
     let program = [];
     let openStack = [];
-    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+    let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
     let succeeded = false;
     let attempts = 0;
@@ -1115,10 +1114,10 @@
       const y = state.r * mission.cellPx + mission.cellPx * 0.15;
       cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
       cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
-      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
+      // Rover-7's art is a fixed cinematic-angle render, not a top-down icon -- V3 never rotates it.
     }
 
     function updateAddRepeatBtn() {
@@ -1294,7 +1293,7 @@
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(true);
       resetSweepState();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
@@ -1302,16 +1301,12 @@
     });
 
     async function executeOne(cmd, waitMs) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
-      else if (cmd === 'F') {
-        const d = DELTA[state.dir];
-        const nr = state.r + d.dr, nc = state.c + d.dc;
-        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
-        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
-        state.r = nr; state.c = nc;
-        addVisited(state.r, state.c);
-      }
+      const d = DELTA[DIR_MAP[cmd]];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      addVisited(state.r, state.c);
       updateRoverPosition(true);
       await wait(typeof waitMs === 'number' ? waitMs : 400);
     }
@@ -1365,7 +1360,7 @@
         running = true;
         cfg.runBtn.disabled = true;
         cfg.watchAgainBtn.disabled = true;
-        state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+        state = { r: mission.start.r, c: mission.start.c };
         updateRoverPosition(false);
         resetSweepState();
         await wait(150);
@@ -1411,7 +1406,7 @@
       cfg.runBtn.disabled = true;
       updateAddRepeatBtn();
       hideWatchAgain();
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(false);
       resetSweepState();
       await wait(150);
@@ -1431,7 +1426,7 @@
             const outerRepeats = findOuterNestedRepeats(program);
             const nonDegenerate = outerRepeats.some(r => r.count >= 3 || r.children.length >= 3);
             if (usedNestedRepeat && !nonDegenerate) {
-              cfg.msgEl.textContent = '🛰 That\'s technically nested, but it\'s four forward moves in a costume. Build a real outer routine.';
+              cfg.msgEl.textContent = '🛰 That\'s technically nested, but it\'s just four moves in a costume. Build a real outer routine.';
               cfg.msgEl.className = 'mission-msg bad';
             } else {
               succeeded = true;
@@ -1482,7 +1477,7 @@
     };
   }
 
-  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, objective: 'sweep', walls: [] };
+  const mission1Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, objective: 'sweep', walls: [] };
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
@@ -1503,7 +1498,7 @@
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, objective: 'sweep', walls: [{ r: 2, c: 1 }, { r: 2, c: 3 }] };
+  const mission2Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, objective: 'sweep', walls: [{ r: 2, c: 1 }, { r: 2, c: 3 }] };
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
@@ -1546,7 +1541,7 @@
         0: "It's not the same — the outer and inner counts control different things, so swapping them changes how many total steps happen and where the rover ends up.",
         1: "Right. The outer number says how many times the whole inner pattern repeats; the inner number says how many times the small step repeats inside each pass. Swap them and the total path changes.",
         2: "The inner loop still runs fine with a swapped count — it just runs a different number of times than intended, which changes the path.",
-        3: "Both loops still run whatever commands are inside them — Forward included — swapping counts doesn't disable any command."
+        3: "Both loops still run whatever commands are inside them — Right and Down included — swapping counts doesn't disable any command."
       },
       codeLife: "Why it matters for coding: mixing up which loop is 'outer' and which is 'inner' is one of the most common real bugs — like checking every column for each row instead of every row for each column. Why it matters in life: doing 2 weeks of a 3-day routine is very different from doing 3 weeks of a 2-day routine — same two numbers, different result, because of which one is the outer count."
     }

@@ -193,20 +193,24 @@
   .cmd-btn.repeat-btn { border-color: var(--amber); }
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
 
-  /* V2: direction pad -- turtle-mode alt input for Forward / Turn Left / Turn Right, matching the
-     milestone test's preferred page layout. Writes the same 'F'/'L'/'R' commands via the existing
-     [data-cmd] click binding -- purely additive, no engine changes needed. */
-  .turnpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; }
-  .turnpad-btn { background: var(--bg-panel); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .turnpad-btn:hover { border-color: var(--cyan); }
-  .turnpad-btn:hover .turnpad-tri { background: var(--cyan); }
-  .turnpad-fwd { grid-column: 2; grid-row: 1; }
-  .turnpad-left { grid-column: 1; grid-row: 2; }
-  .turnpad-right { grid-column: 3; grid-row: 2; }
-  .turnpad-tri { display: block; width: 15px; height: 15px; background: var(--ink); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-  .turnpad-fwd .turnpad-tri { transform: rotate(0deg); }
-  .turnpad-left .turnpad-tri { transform: rotate(-90deg); }
-  .turnpad-right .turnpad-tri { transform: rotate(90deg); }
+  /* V3: master-style rollout -- ported verbatim from Unit 1. The d-pad is the ONLY steering control
+     now -- 4 absolute-direction buttons in a cross layout. Each press moves Rover-7 one cell in that
+     screen-relative direction directly (Up/Down/Left/Right), no separate turn-then-forward step.
+     Replaces the old turnpad + Forward/Turn Left/Turn Right buttons entirely. */
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--line); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover { border-color: var(--cyan); }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); filter: drop-shadow(0 0 3px rgba(56,230,238,.7)); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
 
   /* V2 E1: command-slot budget chip. */
   .slot-chip {
@@ -311,7 +315,7 @@
   .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
   .control-rail .mission-actions button { width: 100%; }
   .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
-  .control-rail .turnpad { align-self: center; }
+  .control-rail .dpad { align-self: center; }
   .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
 
   /* Phone-width fallback, ported verbatim from Unit 1. */
@@ -348,9 +352,8 @@
   #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
   #scr-t2 .transmission-tag { color: var(--purple); }
   #scr-t2 .dialogue { border-left-color: var(--purple); }
-  #scr-t2 .turnpad-btn:hover { border-color: var(--purple); }
-  #scr-t2 .turnpad-btn:hover .turnpad-tri { background: var(--purple); }
-  #scr-t2 .cmd-btn:not(.repeat-btn):hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--purple) 70%, transparent)); }
+  #scr-t2 .dpad-btn:hover { border-color: var(--purple); }
   #scr-t2 .game-palette-col {
     background:
       repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
@@ -371,9 +374,8 @@
   #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
   #scr-t3 .transmission-tag { color: var(--orange); }
   #scr-t3 .dialogue { border-left-color: var(--orange); }
-  #scr-t3 .turnpad-btn:hover { border-color: var(--orange); }
-  #scr-t3 .turnpad-btn:hover .turnpad-tri { background: var(--orange); }
-  #scr-t3 .cmd-btn:not(.repeat-btn):hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); filter: drop-shadow(0 0 3px color-mix(in srgb, var(--orange) 70%, transparent)); }
+  #scr-t3 .dpad-btn:hover { border-color: var(--orange); }
   #scr-t3 .game-palette-col {
     background:
       repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
@@ -532,14 +534,14 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Sequence Protocol, Cadet. Here's the next problem: Rover-7's patrol route repeats the same pattern over and over. Writing "Forward, Turn Right, Forward, Turn Right..." by hand, every single time, wastes command memory it needs for the mission ahead.</p>
+        <p><strong>COMMANDER:</strong> Good work on Sequence Protocol, Cadet. Here's the next problem: Rover-7's patrol route repeats the same pattern over and over. Writing "Right, Down, Right, Down..." by hand, every single time, wastes command memory it needs for the mission ahead.</p>
         <p>You already do this without thinking — brushing your teeth is the same steps repeated each night. You don't invent new steps every time, you just repeat the routine. A <strong>REPEAT</strong> block does exactly that: run a set of steps multiple times without writing them out each time.</p>
       </div>
     </div>
 
     <div class="panel">
       <h2>Calibration Test: Spot the Loop</h2>
-      <p class="sub">Rover-7's old patrol log reads: <code>Forward, Turn Right, Forward, Turn Right, Forward, Turn Right, Forward, Turn Right</code>. Which REPEAT block produces the exact same path?</p>
+      <p class="sub">Rover-7's old patrol log reads: <code>Right, Down, Right, Down, Right, Down, Right, Down</code>. Which REPEAT block produces the exact same path?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -584,14 +586,12 @@
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette1">
-              <div class="turnpad">
-                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
               </div>
-              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
               <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
             </div>
             <div class="mission-actions">
@@ -639,14 +639,12 @@
         <div class="palette-cols">
           <div class="control-rail">
             <div class="cmd-palette" id="palette2">
-              <div class="turnpad">
-                <button class="turnpad-btn turnpad-fwd" type="button" data-cmd="F" aria-label="Forward"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-left" type="button" data-cmd="L" aria-label="Turn Left"><span class="turnpad-tri"></span></button>
-                <button class="turnpad-btn turnpad-right" type="button" data-cmd="R" aria-label="Turn Right"><span class="turnpad-tri"></span></button>
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
               </div>
-              <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-              <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-              <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
               <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
             </div>
             <div class="mission-actions">
@@ -695,13 +693,13 @@
         <label class="choice"><input type="radio" name="q1" value="0">It lets the rover move faster than normal</label>
         <label class="choice"><input type="radio" name="q1" value="1">It runs the same set of steps multiple times without you writing them out again and again</label>
         <label class="choice"><input type="radio" name="q1" value="2">It automatically fixes mistakes in your program</label>
-        <label class="choice"><input type="radio" name="q1" value="3">It only works with the Forward command</label>
+        <label class="choice"><input type="radio" name="q1" value="3">It only works with one specific direction command</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
         <div class="qtext">2. Your program allowance is 4 slots and the flag is 9 cells away in a straight line. What does that force you to do? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">Delete some Forward commands so the count fits, even if it means the rover stops short of the flag</label>
-        <label class="choice"><input type="radio" name="q2" value="1">Use a REPEAT block — one loop instruction can stand for many Forward moves and still counts as a single slot</label>
+        <label class="choice"><input type="radio" name="q2" value="0">Delete some direction commands so the count fits, even if it means the rover stops short of the flag</label>
+        <label class="choice"><input type="radio" name="q2" value="1">Use a REPEAT block — one loop instruction can stand for many direction moves and still counts as a single slot</label>
         <label class="choice"><input type="radio" name="q2" value="2">Nothing — 4 slots is always enough no matter how far the flag is</label>
         <label class="choice"><input type="radio" name="q2" value="3">Ask Command Control for extra slots before running the program</label>
         <div class="debrief-note" id="explainQ2"></div>
@@ -904,10 +902,10 @@
 
   // ================= Calibration: Spot the Loop =================
   const CAL_CHOICES = [
-    { id: 0, label: 'Repeat 4 [ Forward, Turn Right ]', correct: true },
-    { id: 1, label: 'Repeat 2 [ Forward, Forward, Turn Right ]', correct: false },
-    { id: 2, label: 'Repeat 8 [ Forward ]', correct: false },
-    { id: 3, label: 'Repeat 4 [ Turn Right, Forward ]', correct: false },
+    { id: 0, label: 'Repeat 4 [ Right, Down ]', correct: true },
+    { id: 1, label: 'Repeat 2 [ Right, Right, Down ]', correct: false },
+    { id: 2, label: 'Repeat 8 [ Right ]', correct: false },
+    { id: 3, label: 'Repeat 4 [ Down, Right ]', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -954,7 +952,7 @@
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 Close — same steps, wrong order inside the loop. That turns first every time, which is a different path.';
+      msg.textContent = '🤖 Close — same steps, wrong order inside the loop. That moves Down first every time, which is a different path.';
       msg.className = 'puzzle-msg bad';
     } else {
       msg.textContent = 'Not quite — expand it step by step and compare to the patrol log.';
@@ -976,11 +974,13 @@
   });
 
   // ================= Rover engine w/ REPEAT support =================
+  // V3: master-style rollout -- absolute-direction steering (the d-pad) replaces the old
+  // turtle-relative Forward/Turn Left/Turn Right model entirely. Every command is one of
+  // UP/DOWN/LEFT/RIGHT and translates Rover-7 one cell in that screen-relative direction directly --
+  // no heading, no rotation, no separate turn-then-forward step. Ported verbatim from Unit 1.
   const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
-  const ROT = { N: 0, E: 90, S: 180, W: 270 };
-  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
-  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
-  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right' };
+  const DIR_MAP = { UP: 'N', DOWN: 'S', LEFT: 'W', RIGHT: 'E' };
+  const CMD_LABEL = { UP: '⬆️ Up', DOWN: '⬇️ Down', LEFT: '⬅️ Left', RIGHT: '➡️ Right' };
 
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
@@ -1016,7 +1016,7 @@
     const mission = cfg.mission;
     let program = []; // items: {type:'cmd', cmd} | {type:'repeat', count, children:[{cmd}]}
     let openRepeatIdx = null;
-    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+    let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
     let succeeded = false;
     let attempts = 0;
@@ -1050,10 +1050,10 @@
       const y = state.r * mission.cellPx + mission.cellPx * 0.15;
       cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
       cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
-      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
+      // Rover-7's art is a fixed cinematic-angle render, not a top-down icon -- V3 never rotates it.
     }
 
     function updateAddRepeatBtn() {
@@ -1260,22 +1260,18 @@
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(true);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
       updateSlotGate();
     });
 
     async function executeOne(cmd, waitMs) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
-      else if (cmd === 'F') {
-        const d = DELTA[state.dir];
-        const nr = state.r + d.dr, nc = state.c + d.dc;
-        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
-        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
-        state.r = nr; state.c = nc;
-      }
+      const d = DELTA[DIR_MAP[cmd]];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
       updateRoverPosition(true);
       await wait(typeof waitMs === 'number' ? waitMs : 400);
     }
@@ -1331,7 +1327,7 @@
         running = true;
         cfg.runBtn.disabled = true;
         cfg.watchAgainBtn.disabled = true;
-        state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+        state = { r: mission.start.r, c: mission.start.c };
         updateRoverPosition(false);
         await wait(150);
         await runProgramList(winningProgram, 267); // 1.5x the real run's 400ms step
@@ -1350,7 +1346,7 @@
       cfg.runBtn.disabled = true;
       updateAddRepeatBtn();
       hideWatchAgain();
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
@@ -1395,7 +1391,7 @@
     };
   }
 
-  const mission1Def = { rows: 7, cols: 7, cellPx: 46, start: { r: 6, c: 3, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [] };
+  const mission1Def = { rows: 7, cols: 7, cellPx: 64, start: { r: 6, c: 3 }, goal: { r: 0, c: 3 }, walls: [] };
   mission1Def.goal = randomizeGoal(mission1Def, 8);
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
@@ -1415,7 +1411,7 @@
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
-  const mission2Def = { rows: 7, cols: 7, cellPx: 46, start: { r: 6, c: 0, dir: 'N' }, goal: { r: 0, c: 3 }, walls: [{ r: 3, c: 0 }, { r: 3, c: 1 }] };
+  const mission2Def = { rows: 7, cols: 7, cellPx: 64, start: { r: 6, c: 0 }, goal: { r: 0, c: 3 }, walls: [{ r: 3, c: 0 }, { r: 3, c: 1 }] };
   mission2Def.goal = randomizeGoal(mission2Def, 10);
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
@@ -1447,7 +1443,7 @@
         0: "A REPEAT block doesn't make the rover move any faster — it just replays the same steps, at the same speed, without you retyping them.",
         1: "Exactly right. A REPEAT block runs the same steps multiple times so you never have to write them out again and again.",
         2: "A REPEAT block doesn't judge or fix anything — it faithfully replays whatever you put inside it, mistakes included, every single time.",
-        3: "REPEAT works with any command inside it — Forward, Turn Left, Turn Right, even other blocks — not just Forward."
+        3: "REPEAT works with any command inside it — Up, Down, Left, Right, even other blocks — not just one direction."
       },
       codeLife: "Why it matters for coding: loops are how real programs handle anything repetitive — printing a list, checking every player's score, animating every frame — without copy-pasting the same line hundreds of times. Why it matters in life: practicing piano scales, doing 20 push-ups, reviewing the same flashcards every day — you repeat one routine instead of inventing a new one each time."
     },
@@ -1455,8 +1451,8 @@
       correct: 1,
       why: {
         0: "Stopping short means the mission fails outright — that's not a fix, it's giving up before ever reaching the actual limit.",
-        1: "Right. A REPEAT block only ever costs ONE slot, no matter how many times it runs — so a long straight stretch that would take 9 Forward slots fits in a single loop slot instead.",
-        2: "4 slots is not always enough — a flat sequence of 9 separate Forward commands would need 9 slots, which blows straight past the budget.",
+        1: "Right. A REPEAT block only ever costs ONE slot, no matter how many times it runs — so a long straight stretch that would take 9 direction-command slots fits in a single loop slot instead.",
+        2: "4 slots is not always enough — a flat sequence of 9 separate direction commands would need 9 slots, which blows straight past the budget.",
         3: "Command Control doesn't hand out extra slots on request — the budget is fixed, so the only way to fit more distance is to make one instruction do more work."
       },
       codeLife: "Why it matters for coding: real programs have real limits too — memory, time, lines of code a person can read — and a loop is often the tool that fits more work into less space. Why it matters in life: packing a suitcase with limited space means rolling clothes efficiently, not leaving half of them behind."
