@@ -218,8 +218,8 @@
   .dpad-down .dpad-tri { transform: rotate(180deg); }
   .dpad-left .dpad-tri { transform: rotate(270deg); }
 
-  /* V2 E1: command-slot budget chip (copied forward verbatim from Unit 2). Reused below for the
-     E2 sweep-progress chip too -- same visual language, different counter. */
+  /* Reused chip style (originally the E1 slot-budget chip in Units 1-2) for the E2 patrol-progress
+     chip here -- same visual language, different counter. No slot budget in this unit. */
   .slot-chip {
     font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px;
     color: var(--ink-soft); background: var(--bg-panel); border: 1px solid var(--line);
@@ -229,14 +229,23 @@
   .slot-chip.complete { color: var(--success); background: var(--success-tint); border-color: var(--success); }
   .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
+  /* V2 E13: graduated hints -- appears after 3 failed attempts, re-arms after 6 (copied forward
+     verbatim from Unit 2). */
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
+
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
   .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background .3s ease; }
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
-  .cell.goal { background: var(--success-tint); }
-  /* V2 E2: sweep objective -- every visited (non-wall) cell gets a soft tint. No goal flag in this unit. */
+  /* V2 E2: patrol objective -- the route is drawn on the grid (amber inset outline) from load, and
+     each walked cell along it tints as the rover passes over. No goal flag in this unit. */
+  .cell.patrol { box-shadow: inset 0 0 0 2px var(--amber); }
   .cell.visited { background: var(--cyan-tint); }
+  .cell.patrol.visited { background: var(--cyan-tint); box-shadow: inset 0 0 0 2px var(--amber); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
     width: 100%; height: 100%;
@@ -301,9 +310,9 @@
   .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
   .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
   .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
-  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
   .stage-grid-wrap .cell.visited { background: rgba(56,230,238,.28); }
-  .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
+  .stage-grid-wrap .cell.patrol { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--amber) 75%, transparent); }
+  .stage-grid-wrap .cell.wall::after { font-size: 28px; }
 
   .game-palette-col {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
@@ -326,9 +335,9 @@
   .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
   .control-rail .dpad { align-self: center; }
 
-  /* Program column: the slot/sweep budget chip(s) sit attached to the top of THIS column (same row
-     as the control-rail, right-aligned) rather than in their own full-width row above both columns --
-     they're a limitation on what you build here, so they live right where you build it. */
+  /* Program column: the patrol-progress chip sits attached to the top of THIS column (same row
+     as the control-rail, right-aligned) rather than in its own full-width row above both columns --
+     it's tracking what you build here, so it lives right where you build it. */
   .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
   .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
@@ -352,11 +361,8 @@
     .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
   }
 
-  /* Master style: richer goal/wall fills (dark mode only, matching Unit 1's own final scoping). */
-  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
-    background: color-mix(in srgb, var(--green) 48%, transparent);
-    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
-  }
+  /* Master style: richer wall fill (dark mode only, matching Unit 1's own final scoping). No goal
+     cell in this unit -- the patrol route (.cell.patrol, defined above) is the only marked terrain. */
   html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
     background: color-mix(in srgb, var(--danger) 48%, transparent);
   }
@@ -530,7 +536,7 @@
       <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
       <h1>FLOW ACADEMY</h1>
       <div class="tagline">The Loop · Unit 03 · Nested Loop Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Rover-7's patrols now cover whole sectors — not just reaching one point, but sweeping every inch of the platform. One flat REPEAT isn't enough anymore. Command Control needs you to master the NESTED LOOP: a REPEAT living inside another REPEAT, so a whole routine can repeat, row after row, without writing every step by hand.</p>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Rover-7 now has to walk a full patrol route — a closed loop around a platform's edge, all the way round and back to the start. One flat REPEAT isn't enough anymore. Command Control needs you to master the NESTED LOOP: a REPEAT living inside another REPEAT, so a whole route — every side of it — can be built without writing every single step by hand.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="primary" id="beginBtn">Begin Training →</button>
         <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
@@ -553,13 +559,13 @@
       <div>
         <p><strong>COMMANDER:</strong> Nice work mastering the REPEAT block, Cadet. But some routines aren't just "repeat this move a few times" — they're "repeat this whole repeating routine, several times over." Think of your school week: you repeat the same 3-day study routine, and then that whole week repeats itself for a month. That's a REPEAT... inside a REPEAT.</p>
         <p>A <strong>NESTED LOOP</strong> is exactly that: one REPEAT block placed inside another. The inner loop runs its full count, every single time, before the outer loop moves on to its next repeat.</p>
-        <p>Soon you'll use this for real: sweeping an entire platform, every cell, not just reaching one destination. The outer loop will be "do this for every row," and the inner loop will be the steps that sweep across just one row.</p>
+        <p>Soon you'll use this for real: walking a full <strong>patrol route</strong> around a platform's edge — a closed loop with several straight sides, ending back where it started. Each side of the route is its own REPEAT — one direction, walked N steps — and all of those side-loops sit together inside one outer REPEAT that holds the whole route.</p>
       </div>
     </div>
 
     <div class="panel">
       <h2>Calibration Test: Spot the Nested Loop</h2>
-      <p class="sub">Rover-7's sweep log for a 3×3 test platform reads: <code>Right, Right, Down, Right, Right, Down, Right, Right, Down</code>. Which nested REPEAT block produces the exact same sweep?</p>
+      <p class="sub">Rover-7 patrolled a tiny square platform and its move log reads: <code>Up, Up, Right, Right, Down, Down, Left, Left</code> — then it's back exactly where it started. Which nested REPEAT block produces that exact patrol?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -571,10 +577,18 @@
       <h3>📖 Field Manual: NESTED LOOPS</h3>
       <p>A <strong>NESTED LOOP</strong> is a REPEAT block placed inside another REPEAT block. Three rules to remember:</p>
       <ol>
-        <li><strong>The inner loop always finishes completely</strong> before the outer loop moves to its next repeat — that's what lets one full row of a sweep finish before the next row starts.</li>
-        <li><strong>Order still matters at both levels</strong> — inside the inner loop, and among everything inside the outer loop (including where the inner loop itself sits).</li>
-        <li><strong>Think of it like a weekly routine:</strong> the outer loop is "do this for every row of the sweep," and the inner loop is the steps that sweep across just one row.</li>
+        <li><strong>The inner loop always finishes completely</strong> before the outer loop moves to its next child — that's what lets one whole side of a patrol route finish before the next side starts.</li>
+        <li><strong>Order still matters at both levels</strong> — inside each inner loop, and among everything inside the outer loop (including which side comes first).</li>
+        <li><strong>Think of it like a weekly routine:</strong> the outer loop is "hold the whole patrol route," and each inner loop inside it is one straight side of that route.</li>
       </ol>
+      <p><strong>Worked example.</strong> A small square platform, walked all the way round back to the start:</p>
+      <p style="font-family:'JetBrains Mono',monospace; font-size:13px; text-align:center; line-height:1.5; background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:10px 14px;">
+        ⬛⬛⬛&nbsp;&nbsp;&nbsp;side 2 (Right × 2) →<br>
+        ⬛&nbsp;&nbsp;⬛<br>
+        ⬛⬛🏁&nbsp;&nbsp;&nbsp;↑ side 1 (Up × 2)
+      </p>
+      <p>Four sides, each its own inner REPEAT, all four sitting inside <strong>one outer REPEAT</strong> that holds the complete route:</p>
+      <p style="font-family:'JetBrains Mono',monospace; background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:10px 14px; display:inline-block;">🔁 REPEAT × 1 [ REPEAT × 2 [⬆ Up], REPEAT × 2 [➡ Right], REPEAT × 2 [⬇ Down], REPEAT × 2 [⬅ Left] ]</p>
     </div>
 
     <div class="mission-actions">
@@ -598,7 +612,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Time to build one for real — and heads up, there's no flag to chase this time. Platform Echo must be fully swept: every single cell driven over at least once, before Command Control marks it clear. Click "Add Repeat" to start your outer loop, then — while it's still open — click "Add Repeat" again to nest a second loop inside it for each row you sweep. Command Control won't accept a shallow nested loop either: a REPEAT wrapping nothing but another tiny REPEAT is "nested" in name only. Build a real outer routine, and stay within your program slots.</p></div>
+          <div><p><strong>COMMANDER:</strong> Time to build one for real — and heads up, there's no flag to chase this time. See that amber-outlined path on Platform Echo? That's the patrol route. Walk every cell of it, in order, and finish back at the start. I've given you the outer loop with three of its four sides already built — add one more Repeat block inside it for the last side, then run it.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail">
@@ -619,13 +633,16 @@
           </div>
           <div class="prog-col">
             <div class="prog-status-row">
-              <span class="slot-chip" id="slots1">SLOTS: 0 / 4</span>
-              <span class="slot-chip swept-chip" id="swept1">SWEPT: 0 / 25</span>
+              <span class="slot-chip" id="patrol1">PATROL: 0 / 16</span>
             </div>
             <div class="chip-order" id="prog1"></div>
           </div>
         </div>
         <p class="mission-msg" id="msg1"></p>
+        <div class="hint-block">
+          <button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button>
+          <p class="hint-text" id="hintText1"></p>
+        </div>
         <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
           <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
         </div>
@@ -656,7 +673,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Platform Foxtrot has two barriers breaking up the clean sweep, so you can't just copy Platform Echo's pattern — reason about where the gaps are and route around them. Sweep every open cell using a real nested loop, within your program slots.</p></div>
+          <div><p><strong>COMMANDER:</strong> Platform Foxtrot's patrol route isn't a plain square this time — it's a rectangle, longer on two sides than the other two. You're building from scratch: one outer REPEAT holding a REPEAT for each of the four sides, in order, back to the start.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail">
@@ -677,13 +694,16 @@
           </div>
           <div class="prog-col">
             <div class="prog-status-row">
-              <span class="slot-chip" id="slots2">SLOTS: 0 / 6</span>
-              <span class="slot-chip swept-chip" id="swept2">SWEPT: 0 / 23</span>
+              <span class="slot-chip" id="patrol2">PATROL: 0 / 14</span>
             </div>
             <div class="chip-order" id="prog2"></div>
           </div>
         </div>
         <p class="mission-msg" id="msg2"></p>
+        <div class="hint-block">
+          <button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button>
+          <p class="hint-text" id="hintText2"></p>
+        </div>
         <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
           <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
         </div>
@@ -932,12 +952,12 @@
     document.getElementById('beginBtn').click();
   });
 
-  // ================= Calibration: Spot the Nested Loop (now framed around a sweep) =================
+  // ================= Calibration: Spot the Nested Loop (now framed around a patrol route) =================
   const CAL_CHOICES = [
-    { id: 0, label: 'Repeat 3 [ Repeat 2 [ Right ], Down ]', correct: true },
-    { id: 1, label: 'Repeat 9 [ Right ]', correct: false },
-    { id: 2, label: 'Repeat 2 [ Repeat 3 [ Right ], Down ]', correct: false },
-    { id: 3, label: 'Repeat 3 [ Right ], Repeat 3 [ Down ]', correct: false },
+    { id: 0, label: 'Repeat 1 [ Repeat 2 [ Up ], Repeat 2 [ Right ], Repeat 2 [ Down ], Repeat 2 [ Left ] ]', correct: true },
+    { id: 1, label: 'Repeat 8 [ Up ]', correct: false },
+    { id: 2, label: 'Repeat 2 [ Repeat 1 [ Up ], Repeat 1 [ Right ], Repeat 1 [ Down ], Repeat 1 [ Left ] ]', correct: false },
+    { id: 3, label: 'Repeat 4 [ Up ], Repeat 4 [ Right ]', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -978,22 +998,22 @@
     });
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. That\'s a loop inside a loop — 2 reps of the small move, wrapped in 3 reps of the whole thing plus the Down move — and it matches the sweep log exactly.';
+      msg.textContent = '✅ Correct. One outer REPEAT holding the whole route, with four inner REPEATs inside it — one per side, 2 steps each — and it matches the patrol log exactly: Up Up, Right Right, Down Down, Left Left.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
     } else if (choice.id === 1) {
-      msg.textContent = '🤖 That\'s a single flat loop that just drives right in a straight line — it\'s missing every Down move, so it only ever walks one row. Compare the totals carefully.';
+      msg.textContent = '🤖 That\'s a single flat loop that just drives Up in a straight line forever — it never turns onto the other three sides, so it can\'t trace a square at all. Compare the totals carefully.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 2) {
-      msg.textContent = '🤖 Close — but the outer and inner counts are swapped. That changes how many total Right moves happen before each Down move.';
+      msg.textContent = '🤖 Close — but the counts are swapped. Each side only gets 1 step instead of 2, and the whole shape repeats twice instead of once — that traces a much smaller loop, twice over, not the platform\'s actual square.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 Close — but those are two separate loops sitting side by side, not one nested inside the other. All the Down moves would happen only at the very end, not between each pair of Right moves.';
+      msg.textContent = '🤖 Close — but those are two separate loops sitting side by side, not four inner loops nested inside one outer loop. This only walks Up then Right — it never reaches Down or Left, so it never gets back to the start.';
       msg.className = 'puzzle-msg bad';
     } else {
-      msg.textContent = 'Not quite — expand it step by step and compare to the sweep log.';
+      msg.textContent = 'Not quite — expand it step by step and compare to the patrol log.';
       msg.className = 'puzzle-msg bad';
     }
   });
@@ -1011,7 +1031,7 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ NESTED REPEAT support + E1 slot budget + E2 sweep objective =================
+  // ================= Rover engine w/ NESTED REPEAT support + E2 patrol objective =================
   // V3: master-style rollout -- absolute-direction steering (the d-pad) replaces the old
   // turtle-relative Forward/Turn Left/Turn Right model entirely. Every command is one of
   // UP/DOWN/LEFT/RIGHT and translates Rover-7 one cell in that screen-relative direction directly --
@@ -1023,33 +1043,6 @@
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
 
-  function bfsReachable(mission) {
-    const key = (r, c) => r + ',' + c;
-    const visited = new Set([key(mission.start.r, mission.start.c)]);
-    const queue = [[mission.start.r, mission.start.c]];
-    while (queue.length) {
-      const [r, c] = queue.shift();
-      [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([nr, nc]) => {
-        if (nr < 0 || nr >= mission.rows || nc < 0 || nc >= mission.cols) return;
-        if (mission.walls.some(w => w.r === nr && w.c === nc)) return;
-        const k = key(nr, nc);
-        if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
-      });
-    }
-    return visited;
-  }
-  function randomizeGoal(mission, minDist) {
-    const reachable = bfsReachable(mission);
-    const candidates = [];
-    reachable.forEach(k => {
-      const [r, c] = k.split(',').map(Number);
-      if (r === mission.start.r && c === mission.start.c) return;
-      if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
-      candidates.push({ r, c });
-    });
-    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
-  }
-
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
     // program is a tree: items are {type:'cmd', cmd} or {type:'repeat', count, children:[...items]}.
@@ -1057,27 +1050,54 @@
     // unit introduces. openStack tracks which repeat(s) are currently open for editing, outermost
     // first; only the last (innermost) entry accepts new commands/nested repeats, and the UI caps
     // openStack at length 2 so the tree never grows past one level of nesting.
-    let program = [];
-    let openStack = [];
+    // ---- V2 E14: starter program. cfg.starterProgram pre-populates the list; cfg.starterOpenOuter
+    // additionally leaves the top-level starter repeat "open" so the palette/Add-Repeat target its
+    // children directly, letting the cadet finish the route without needing a "reopen a closed card"
+    // affordance the UI doesn't have. "Clear" is relabeled "Start Over" and restores this snapshot.
+    function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
+    let program = cloneStarter();
+    let openStack = (cfg.starterOpenOuter && program.length && program[0].type === 'repeat') ? [program[0]] : [];
     let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
     let succeeded = false;
     let attempts = 0;
     let usedNestedRepeat = false;
     let outerCountAtSuccess = null;
+    let innerCountsAtSuccess = null;
     let winningProgram = null; // deep-cloned program snapshot captured on success, for Watch Again
-    // V2 E1: command-slot budget. Opt-in via cfg.maxSlots. Counts top-level program items only --
-    // a repeat container always costs ONE slot regardless of how many children (or how deeply
-    // nested repeats inside it) it holds.
-    let slotsOverBudget = false;
-    // V2 E2: sweep objective. Opt-in via cfg.objective === 'sweep'. No goal cell -- success means
-    // every non-wall cell has been visited at least once during the run.
-    let visited = new Set();
+    // V2 E2: patrol objective. Opt-in via cfg.objective === 'patrol'. cfg.mission.patrolPath is an
+    // explicit ordered list of {r,c} cells forming a closed route (patrolPath[0] is the start cell).
+    // Success = every cell of patrolPath visited in order, finishing back on the start cell. Off-route
+    // steps are allowed (not a failure) but reported. No slot budget and no goal flag in this unit.
+    let patrolIdx = 1; // next expected index into mission.patrolPath (index 0 == start, already "at")
+    let patrolProgress = 0;
     let cellEls = [];
+    // V2 E13: graduated hints. Opt-in via cfg.hints = {after3, after6}. Tracks failed (non-success)
+    // runs; never blocks or reduces success.
+    let failCount = 0;
+    let hintsUsed = 0; // 0 | 1 | 2
+    function updateHintUI() {
+      if (!cfg.hints || !cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    if (cfg.hintBtnEl) {
+      cfg.hintBtnEl.addEventListener('click', () => {
+        const text = cfg.hintBtnEl.dataset.pending;
+        if (!text) return;
+        if (cfg.hintTextEl) cfg.hintTextEl.textContent = '💡 ' + text;
+        hintsUsed++;
+        cfg.hintBtnEl.style.display = 'none';
+        updateHintUI();
+      });
+    }
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
-    function totalSweepCells() { return mission.rows * mission.cols - mission.walls.length; }
+    function patrolTotal() { return mission.patrolPath ? mission.patrolPath.length : 0; }
 
     function buildGrid() {
       cfg.gridEl.innerHTML = '';
@@ -1090,38 +1110,49 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
-          if (cfg.objective !== 'sweep' && r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
           cellEls[r][c] = cell;
         }
       }
+      if (mission.patrolPath) {
+        mission.patrolPath.forEach(({ r, c }) => { if (cellEls[r] && cellEls[r][c]) cellEls[r][c].classList.add('patrol'); });
+      }
       cfg.gridEl.appendChild(cfg.roverEl);
     }
 
-    function addVisited(r, c) {
-      if (cfg.objective !== 'sweep') return;
-      const k = r + ',' + c;
-      if (!visited.has(k)) {
-        visited.add(k);
-        if (cellEls[r] && cellEls[r][c]) cellEls[r][c].classList.add('visited');
+    function updatePatrolChip() {
+      if (cfg.objective !== 'patrol' || !cfg.patrolEl) return;
+      const total = patrolTotal();
+      cfg.patrolEl.textContent = 'PATROL: ' + Math.min(patrolProgress, total) + ' / ' + total;
+      cfg.patrolEl.classList.toggle('complete', patrolProgress >= total);
+    }
+    function addPatrolStep(r, c) {
+      if (cellEls[r] && cellEls[r][c]) cellEls[r][c].classList.add('visited');
+      if (cfg.objective !== 'patrol') return;
+      const total = patrolTotal();
+      if (patrolProgress < total) {
+        const expected = mission.patrolPath[patrolIdx % total];
+        if (r === expected.r && c === expected.c) {
+          patrolProgress++;
+          patrolIdx++;
+        } else {
+          cfg.msgEl.textContent = '🛰 Rover-7 stepped off the patrol route at row ' + r + '. Follow the marked path all the way round.';
+          cfg.msgEl.className = 'mission-msg bad';
+        }
       }
-      updateSweptChip();
+      updatePatrolChip();
     }
-    function updateSweptChip() {
-      if (cfg.objective !== 'sweep' || !cfg.sweptEl) return;
-      const total = totalSweepCells();
-      cfg.sweptEl.textContent = 'SWEPT: ' + visited.size + ' / ' + total;
-      cfg.sweptEl.classList.toggle('complete', visited.size >= total);
-    }
-    function resetSweepState() {
-      if (cfg.objective !== 'sweep') return;
-      visited = new Set();
+    function resetPatrolState() {
+      if (cfg.objective !== 'patrol') return;
+      patrolIdx = 1;
+      patrolProgress = 0;
       for (let r = 0; r < mission.rows; r++) {
         for (let c = 0; c < mission.cols; c++) {
           if (cellEls[r] && cellEls[r][c]) cellEls[r][c].classList.remove('visited');
         }
       }
-      addVisited(mission.start.r, mission.start.c);
+      if (cellEls[mission.start.r] && cellEls[mission.start.r][mission.start.c]) cellEls[mission.start.r][mission.start.c].classList.add('visited');
+      updatePatrolChip();
     }
 
     function updateRoverPosition(animate) {
@@ -1139,25 +1170,7 @@
       cfg.addRepeatBtn.disabled = running || openStack.length >= 2;
     }
 
-    function updateSlotGate() {
-      if (typeof cfg.maxSlots !== 'number') return;
-      const used = program.length;
-      if (cfg.slotsEl) {
-        cfg.slotsEl.textContent = 'SLOTS: ' + used + ' / ' + cfg.maxSlots;
-        cfg.slotsEl.classList.toggle('over', used > cfg.maxSlots);
-      }
-      const wasOver = slotsOverBudget;
-      slotsOverBudget = used > cfg.maxSlots;
-      if (slotsOverBudget) {
-        cfg.runBtn.disabled = true;
-        cfg.msgEl.textContent = '⚠ Command Control allows only ' + cfg.maxSlots + ' program slots — you\'re using ' + used + '. A REPEAT counts as ONE slot no matter how high its count.';
-        cfg.msgEl.className = 'mission-msg bad';
-      } else if (wasOver) {
-        cfg.runBtn.disabled = running;
-        cfg.msgEl.textContent = '';
-        cfg.msgEl.className = 'mission-msg';
-      }
-    }
+    // No slot budget in this unit (plan §6 U3.1) -- the patrol shape itself is the constraint.
 
     function currentTarget() {
       return openStack.length ? openStack[openStack.length - 1].children : program;
@@ -1219,7 +1232,7 @@
           const minus = document.createElement('button');
           minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
           minus.disabled = running;
-          minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
+          minus.addEventListener('click', () => { if (running) return; item.count = Math.max(1, item.count - 1); renderProgram(); });
           const plus = document.createElement('button');
           plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
           plus.disabled = running;
@@ -1280,7 +1293,6 @@
     function renderProgram() {
       renderItems(program, cfg.programListEl, 'top');
       updateAddRepeatBtn();
-      updateSlotGate();
     }
 
     cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
@@ -1299,9 +1311,11 @@
       renderProgram();
     });
 
+    if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openStack = [];
+      program = cloneStarter();
+      openStack = (cfg.starterOpenOuter && program.length && program[0].type === 'repeat') ? [program[0]] : [];
       renderProgram();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
@@ -1310,9 +1324,8 @@
       if (running) return;
       state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(true);
-      resetSweepState();
+      resetPatrolState();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
-      updateSlotGate();
     });
 
     async function executeOne(cmd, waitMs) {
@@ -1321,7 +1334,7 @@
       if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
       if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
       state.r = nr; state.c = nc;
-      addVisited(state.r, state.c);
+      addPatrolStep(state.r, state.c);
       updateRoverPosition(true);
       await wait(typeof waitMs === 'number' ? waitMs : 400);
     }
@@ -1361,7 +1374,7 @@
     function celebrate() {
       const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
       const lines = cfg.successLines || {};
-      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 SWEEP COMPLETE — every cell of the platform is covered!';
+      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 PATROL COMPLETE — every cell of the route was walked!';
       cfg.msgEl.className = 'mission-msg ok';
       cfg.roverEl.classList.add('celebrating');
       spawnSparkles();
@@ -1377,7 +1390,7 @@
         cfg.watchAgainBtn.disabled = true;
         state = { r: mission.start.r, c: mission.start.c };
         updateRoverPosition(false);
-        resetSweepState();
+        resetPatrolState();
         await wait(150);
         await runItems(winningProgram, 267); // 1.5x the real run's 400ms step
         running = false;
@@ -1414,7 +1427,6 @@
 
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
-      if (typeof cfg.maxSlots === 'number' && program.length > cfg.maxSlots) return;
       running = true;
       attempts++;
       usedNestedRepeat = containsNestedRepeat(program);
@@ -1423,113 +1435,139 @@
       hideWatchAgain();
       state = { r: mission.start.r, c: mission.start.c };
       updateRoverPosition(false);
-      resetSweepState();
+      resetPatrolState();
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
         await runItems(program);
-        if (cfg.objective === 'sweep') {
-          const total = totalSweepCells();
-          if (visited.size < total) {
-            cfg.msgEl.textContent = '🛰 Sweep incomplete — ' + (total - visited.size) + ' cells still unvisited.';
-            cfg.msgEl.className = 'mission-msg bad';
-          } else if (cfg.requireNestedRepeat && !usedNestedRepeat) {
-            cfg.msgEl.textContent = '🛰 Sweep complete — but Command Control won\'t log this as finished. Cadets must prove they can nest a REPEAT inside another REPEAT — not just use one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
-            cfg.msgEl.className = 'mission-msg bad';
-          } else {
-            const outerRepeats = findOuterNestedRepeats(program);
-            const nonDegenerate = outerRepeats.some(r => r.count >= 3 || r.children.length >= 3);
-            if (usedNestedRepeat && !nonDegenerate) {
-              cfg.msgEl.textContent = '🛰 That\'s technically nested, but it\'s just four moves in a costume. Build a real outer routine.';
-              cfg.msgEl.className = 'mission-msg bad';
-            } else {
-              succeeded = true;
-              outerCountAtSuccess = outerRepeats.length ? Math.max(...outerRepeats.map(r => r.count)) : null;
-              winningProgram = JSON.parse(JSON.stringify(program));
-              celebrate();
-            }
-          }
-        } else if (state.r === mission.goal.r && state.c === mission.goal.c) {
-          if (cfg.requireNestedRepeat && !usedNestedRepeat) {
-            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can nest a REPEAT inside another REPEAT — not just use one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
-            cfg.msgEl.className = 'mission-msg bad';
-          } else {
-            succeeded = true;
-            winningProgram = JSON.parse(JSON.stringify(program));
-            celebrate();
-          }
-        } else {
-          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+        const total = patrolTotal();
+        const backAtStart = state.r === mission.start.r && state.c === mission.start.c;
+        if (patrolProgress < total || !backAtStart) {
+          cfg.msgEl.textContent = '🛰 Patrol incomplete — ' + Math.max(0, total - patrolProgress) + ' route cells still unwalked. Follow the marked path all the way round and finish back at the start.';
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
+        } else if (cfg.requireNestedRepeat && !usedNestedRepeat) {
+          cfg.msgEl.textContent = '🛰 Patrol complete — but Command Control won\'t log this as finished. Cadets must prove they can nest a REPEAT inside another REPEAT — not just use one loop, or two side-by-side loops. Build a loop inside a loop, then run it again.';
+          cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
+        } else {
+          succeeded = true;
+          const outerRepeats = findOuterNestedRepeats(program);
+          outerCountAtSuccess = outerRepeats.length ? Math.max(...outerRepeats.map(r => r.count)) : null;
+          innerCountsAtSuccess = outerRepeats.length
+            ? outerRepeats[0].children.filter(c => c.type === 'repeat').map(c => c.count)
+            : [];
+          winningProgram = JSON.parse(JSON.stringify(program));
+          celebrate();
         }
       } catch (e) {
         if (e instanceof MissionFail) {
           cfg.msgEl.textContent = e.message;
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
         } else { throw e; }
       } finally {
         running = false;
         cfg.runBtn.disabled = false;
         updateAddRepeatBtn();
-        updateSlotGate();
       }
     });
 
     buildGrid();
     updateRoverPosition(false);
-    resetSweepState();
+    resetPatrolState();
     renderProgram();
+    updateHintUI();
 
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
       get usedNestedRepeatOnSuccess() { return succeeded && usedNestedRepeat; },
-      get slotsUsed() { return program.length; },
-      get cellsSwept() { return visited.size; },
-      get cellsTotal() { return totalSweepCells(); },
-      get outerCountOnSuccess() { return succeeded ? outerCountAtSuccess : null; }
+      get patrolProgress() { return patrolProgress; },
+      get patrolTotal() { return patrolTotal(); },
+      get outerCountOnSuccess() { return succeeded ? outerCountAtSuccess : null; },
+      get innerCountsOnSuccess() { return succeeded ? innerCountsAtSuccess : null; },
+      get hintsUsed() { return hintsUsed; }
     };
   }
 
-  const mission1Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, objective: 'sweep', walls: [] };
+  // Mission 1 · Platform Echo -- 5x5, full perimeter (16 cells), starting bottom-left, closing back
+  // on the start. Built as 4 straight sides: Up the left edge, Right the top, Down the right edge,
+  // Left the bottom.
+  const mission1Def = {
+    rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, objective: 'patrol', walls: [],
+    patrolPath: [
+      { r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 1, c: 0 }, { r: 0, c: 0 },
+      { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 },
+      { r: 1, c: 4 }, { r: 2, c: 4 }, { r: 3, c: 4 }, { r: 4, c: 4 },
+      { r: 4, c: 3 }, { r: 4, c: 2 }, { r: 4, c: 1 }
+    ]
+  };
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
-    addRepeatBtn: document.getElementById('addRepeat1'), slotsEl: document.getElementById('slots1'),
-    sweptEl: document.getElementById('swept1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), patrolEl: document.getElementById('patrol1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
     watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
-    objective: 'sweep',
-    maxSlots: 4,
+    objective: 'patrol',
     requireNestedRepeat: true,
+    // E14 starter: the outer loop already holds 3 of the route's 4 sides (Up, Right, Down) -- the
+    // cadet's job is to add the 4th (Left) inside the same outer loop to close the patrol.
+    starterProgram: [
+      { type: 'repeat', count: 1, children: [
+        { type: 'repeat', count: 4, children: [{ type: 'cmd', cmd: 'UP' }] },
+        { type: 'repeat', count: 4, children: [{ type: 'cmd', cmd: 'RIGHT' }] },
+        { type: 'repeat', count: 4, children: [{ type: 'cmd', cmd: 'DOWN' }] }
+      ] }
+    ],
+    starterOpenOuter: true,
+    hints: {
+      after3: 'Look at the route. How many sides does it have, and how many steps is each side?',
+      after6: 'One REPEAT for the number of sides, and inside it another REPEAT for the steps along one side, then a turn.'
+    },
     successLines: {
-      firstTry: '🎉 SWEEP COMPLETE — clean run, first try! Rover-7 covered every cell of Platform Echo exactly as planned.',
-      afterStruggle: '🎉 SWEEP COMPLETE — every cell of Platform Echo is covered. That took some real troubleshooting, Cadet — nice recovery.',
-      normal: '🎉 SWEEP COMPLETE — every cell of Platform Echo is covered!'
+      firstTry: '🎉 PATROL COMPLETE — clean run, first try! Rover-7 walked the full perimeter of Platform Echo exactly as planned.',
+      afterStruggle: '🎉 PATROL COMPLETE — Rover-7 walked the full perimeter of Platform Echo. That took some real troubleshooting, Cadet — nice recovery.',
+      normal: '🎉 PATROL COMPLETE — Rover-7 walked the full perimeter of Platform Echo!'
     },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
 
-  const mission2Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, objective: 'sweep', walls: [{ r: 2, c: 1 }, { r: 2, c: 3 }] };
+  // Mission 2 · Platform Foxtrot -- 6x5 grid, patrol rectangle unequal-sided (5 tall x 4 wide): the
+  // long side (Up/Down) is 4 moves, the short side (Left/Right) is 3 moves, 14 cells total. Empty
+  // start -- no starter program this time.
+  const mission2Def = {
+    rows: 6, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, objective: 'patrol', walls: [],
+    patrolPath: [
+      { r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 1, c: 0 }, { r: 0, c: 0 },
+      { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 },
+      { r: 1, c: 3 }, { r: 2, c: 3 }, { r: 3, c: 3 }, { r: 4, c: 3 },
+      { r: 4, c: 2 }, { r: 4, c: 1 }
+    ]
+  };
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
-    addRepeatBtn: document.getElementById('addRepeat2'), slotsEl: document.getElementById('slots2'),
-    sweptEl: document.getElementById('swept2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), patrolEl: document.getElementById('patrol2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
     watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
-    objective: 'sweep',
-    maxSlots: 6,
+    objective: 'patrol',
     requireNestedRepeat: true,
+    hints: {
+      after3: 'Look at the route. How many sides does it have, and how many steps is each side?',
+      after6: 'One REPEAT for the number of sides, and inside it another REPEAT for the steps along one side, then a turn.'
+    },
     successLines: {
-      firstTry: '🎉 SWEEP COMPLETE — clean run, first try! Rover-7 routed around both barriers on Platform Foxtrot without a hitch.',
-      afterStruggle: '🎉 SWEEP COMPLETE — every open cell of Platform Foxtrot is covered. That took some real troubleshooting, Cadet — nice recovery.',
-      normal: '🎉 SWEEP COMPLETE — every open cell of Platform Foxtrot is covered!'
+      firstTry: '🎉 PATROL COMPLETE — clean run, first try! Rover-7 walked the full perimeter of Platform Foxtrot without a hitch.',
+      afterStruggle: '🎉 PATROL COMPLETE — Rover-7 walked the full perimeter of Platform Foxtrot. That took some real troubleshooting, Cadet — nice recovery.',
+      normal: '🎉 PATROL COMPLETE — Rover-7 walked the full perimeter of Platform Foxtrot!'
     },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
@@ -1680,16 +1718,16 @@
         mission_1: {
           succeeded: mission1.succeeded, attempts: mission1.attempts,
           used_nested_repeat_block: mission1.usedNestedRepeatOnSuccess,
-          cells_swept: mission1.cellsSwept, cells_total: mission1.cellsTotal,
-          slots_used: mission1.slotsUsed, max_slots: 4,
-          outer_count: mission1.outerCountOnSuccess
+          patrol_progress: mission1.patrolProgress, patrol_total: mission1.patrolTotal,
+          outer_count: mission1.outerCountOnSuccess, inner_counts: mission1.innerCountsOnSuccess,
+          hints_used: mission1.hintsUsed
         },
         mission_2: {
           succeeded: mission2.succeeded, attempts: mission2.attempts,
           used_nested_repeat_block: mission2.usedNestedRepeatOnSuccess,
-          cells_swept: mission2.cellsSwept, cells_total: mission2.cellsTotal,
-          slots_used: mission2.slotsUsed, max_slots: 6,
-          outer_count: mission2.outerCountOnSuccess
+          patrol_progress: mission2.patrolProgress, patrol_total: mission2.patrolTotal,
+          outer_count: mission2.outerCountOnSuccess, inner_counts: mission2.innerCountsOnSuccess,
+          hints_used: mission2.hintsUsed
         }
       },
       quiz: {

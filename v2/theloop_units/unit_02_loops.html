@@ -226,6 +226,12 @@
   }
   .slot-chip.over { color: var(--danger); background: var(--danger-tint); border-color: var(--danger); }
 
+  /* V2 E13: graduated hints -- appears after 3 failed attempts, re-arms after 6. */
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
+
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
   .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
@@ -567,6 +573,9 @@
         <li><strong>Order inside the loop still matters</strong> — just like a regular sequence. A loop repeats your steps exactly as written; it doesn't fix a wrong order.</li>
         <li><strong>A loop doesn't just save typing — it lets one instruction stand for many.</strong> That's why Command Control limits your program slots.</li>
       </ol>
+      <p><strong>Worked example.</strong> Say the route is 9 straight moves Up in a row. Written out plain, that's 9 program slots — way over most budgets. Written as a loop, it's just <strong>one</strong>:</p>
+      <p style="font-family:'JetBrains Mono',monospace; background:var(--bg-panel); border:1px solid var(--line); border-radius:8px; padding:10px 14px; display:inline-block;">🔁 REPEAT × 9 [ ⬆ Up ]</p>
+      <p>Same 9 moves, same result — but it only costs <strong>1</strong> slot on the SLOTS chip instead of 9.</p>
     </div>
 
     <div class="mission-actions">
@@ -590,7 +599,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Time to use the real tool. Click "Add Repeat," set how many times it runs, then add commands — they'll go inside the loop until you hit Done. Heads up: Command Control only allocated Platform Charlie a handful of program slots, and a REPEAT block only ever costs ONE slot, no matter how high you set its count. Patrol Platform Charlie and reach the flag.</p></div>
+          <div><p><strong>COMMANDER:</strong> Time to use the real tool. I've started your program with one loop already in place — raise its count, or add turns and more commands around it, however gets Rover-7 there. Heads up: Command Control only allocated Platform Charlie a handful of program slots, and a REPEAT block only ever costs ONE slot, no matter how high you set its count. Stuck? "↺ Start Over" brings your loop back exactly as it started. Patrol Platform Charlie and reach the flag.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail">
@@ -617,6 +626,10 @@
           </div>
         </div>
         <p class="mission-msg" id="msg1"></p>
+        <div class="hint-block">
+          <button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button>
+          <p class="hint-text" id="hintText1"></p>
+        </div>
         <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
           <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
         </div>
@@ -674,6 +687,10 @@
           </div>
         </div>
         <p class="mission-msg" id="msg2"></p>
+        <div class="hint-block">
+          <button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button>
+          <p class="hint-text" id="hintText2"></p>
+        </div>
         <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
           <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
         </div>
@@ -1032,7 +1049,10 @@
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    let program = []; // items: {type:'cmd', cmd} | {type:'repeat', count, children:[{cmd}]}
+    // ---- V2 E14: starter program. Mission ships with a partial, fully-editable program;
+    // "Clear" is relabeled "Start Over" and restores this snapshot instead of emptying the list.
+    function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
+    let program = cloneStarter(); // items: {type:'cmd', cmd} | {type:'repeat', count, children:[{cmd}]}
     let openRepeatIdx = null;
     let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
@@ -1043,6 +1063,28 @@
     // ---- V2 E1: command-slot budget. Opt-in via cfg.maxSlots. Counts top-level program items only
     // -- a repeat/event/condition/block container always costs ONE slot regardless of its children.
     let slotsOverBudget = false;
+    // ---- V2 E13: graduated hints. Opt-in via cfg.hints = {after3, after6}. Tracks failed (non-
+    // success) runs; never blocks or reduces success.
+    let failCount = 0;
+    let hintsUsed = 0; // 0 | 1 | 2
+    function updateHintUI() {
+      if (!cfg.hints || !cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    if (cfg.hintBtnEl) {
+      cfg.hintBtnEl.addEventListener('click', () => {
+        const text = cfg.hintBtnEl.dataset.pending;
+        if (!text) return;
+        if (cfg.hintTextEl) cfg.hintTextEl.textContent = '💡 ' + text;
+        hintsUsed++;
+        cfg.hintBtnEl.style.display = 'none';
+        updateHintUI();
+      });
+    }
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
@@ -1269,9 +1311,10 @@
       renderProgram();
     });
 
+    if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openRepeatIdx = null;
+      program = cloneStarter(); openRepeatIdx = null;
       renderProgram();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
@@ -1375,6 +1418,7 @@
           if (cfg.requireRepeat && !usedRepeat) {
             cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT block. Rebuild this route using at least one Repeat, then run it again.';
             cfg.msgEl.className = 'mission-msg bad';
+            failCount++; updateHintUI();
           } else {
             succeeded = true;
             winningProgram = JSON.parse(JSON.stringify(program));
@@ -1383,11 +1427,13 @@
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
         }
       } catch (e) {
         if (e instanceof MissionFail) {
           cfg.msgEl.textContent = e.message;
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
         } else { throw e; }
       } finally {
         running = false;
@@ -1400,17 +1446,19 @@
     buildGrid();
     updateRoverPosition(false);
     renderProgram();
+    updateHintUI();
 
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
       get usedRepeatOnSuccess() { return succeeded && usedRepeat; },
-      get slotsUsed() { return program.length; }
+      get slotsUsed() { return program.length; },
+      get hintsUsed() { return hintsUsed; }
     };
   }
 
   const mission1Def = { rows: 7, cols: 7, cellPx: 64, start: { r: 6, c: 3 }, goal: { r: 0, c: 3 }, walls: [] };
-  mission1Def.goal = randomizeGoal(mission1Def, 8);
+  mission1Def.goal = randomizeGoal(mission1Def, 6);
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
@@ -1418,9 +1466,15 @@
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
     addRepeatBtn: document.getElementById('addRepeat1'), slotsEl: document.getElementById('slots1'),
     watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
     mission: mission1Def,
     maxSlots: 4,
     requireRepeat: true,
+    starterProgram: [{ type: 'repeat', count: 2, children: [{ cmd: 'UP' }] }],
+    hints: {
+      after3: 'Count how many times the same move repeats in a row. That whole run of moves can become one slot.',
+      after6: 'Try one REPEAT holding a Forward, then raise its count until the rover goes far enough.'
+    },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 patrolled Platform Charlie exactly as planned.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Charlie. That took some real troubleshooting, Cadet — nice recovery.',
@@ -1430,7 +1484,7 @@
   });
 
   const mission2Def = { rows: 7, cols: 7, cellPx: 64, start: { r: 6, c: 0 }, goal: { r: 0, c: 3 }, walls: [{ r: 3, c: 0 }, { r: 3, c: 1 }] };
-  mission2Def.goal = randomizeGoal(mission2Def, 10);
+  mission2Def.goal = randomizeGoal(mission2Def, 7);
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
@@ -1438,9 +1492,14 @@
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
     addRepeatBtn: document.getElementById('addRepeat2'), slotsEl: document.getElementById('slots2'),
     watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
     mission: mission2Def,
     maxSlots: 5,
     requireRepeat: true,
+    hints: {
+      after3: 'Count how many times the same move repeats in a row. That whole run of moves can become one slot.',
+      after6: 'Try one REPEAT holding a Forward, then raise its count until the rover goes far enough.'
+    },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 routed around the barrier on Platform Delta without a hitch.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Delta. That took some real troubleshooting, Cadet — nice recovery.',
@@ -1588,8 +1647,8 @@
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_repeat_block: mission1.usedRepeatOnSuccess, slots_used: mission1.slotsUsed, max_slots: 4 },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_repeat_block: mission2.usedRepeatOnSuccess, slots_used: mission2.slotsUsed, max_slots: 5 }
+        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_repeat_block: mission1.usedRepeatOnSuccess, slots_used: mission1.slotsUsed, max_slots: 4, hints_used: mission1.hintsUsed },
+        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_repeat_block: mission2.usedRepeatOnSuccess, slots_used: mission2.slotsUsed, max_slots: 5, hints_used: mission2.hintsUsed }
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,

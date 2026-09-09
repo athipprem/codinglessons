@@ -300,6 +300,10 @@
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
   .cell.goal { background: var(--success-tint); }
+  /* V2 E12 light: prediction-gate marker -- a plain outline so it reads clearly whether or not the
+     predicted cell also happens to carry a wall/goal icon underneath it. */
+  .cell.predicted { outline: 3px solid var(--cyan); outline-offset: -3px; cursor: pointer; }
+  .cell.predictable { cursor: pointer; }
   .rover {
     position: absolute;
     transform-origin: 50% 50%;
@@ -748,7 +752,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Good calibration. Now guide Rover-7 across <strong>Platform Alpha</strong> to the flag. Steer with the direction pad — every press moves Rover-7 one cell, Up/Down/Left/Right, your point of view. Build your sequence, then hit Run.</p></div>
+          <div><p><strong>COMMANDER:</strong> Good calibration. Now guide Rover-7 across <strong>Platform Alpha</strong> to the flag. One extra step first: Command Control wants your prediction — click the cell on the grid where you think Rover-7 will actually finish, before you run anything. No penalty either way, it's just data. Then steer with the direction pad — every press moves Rover-7 one cell, Up/Down/Left/Right, your point of view — build your sequence, and hit Run.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail" id="paletteWrap1">
@@ -797,7 +801,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Nice work, Cadet. Platform Bravo has a barrier down — you'll need to route around it.</p></div>
+          <div><p><strong>COMMANDER:</strong> Nice work, Cadet. Platform Bravo has a barrier down — you'll need to route around it. Same as before: click your predicted finish cell first, then build your route.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail" id="paletteWrap2">
@@ -1263,6 +1267,18 @@
     let attempts = 0;
     let cellEls = [];
     let winningProgram = null; // V2 E15: snapshot of the program that just won, for "Watch Again"
+    // V2 E12 light: prediction gate. Before the FIRST run only, Run stays disabled until the cadet
+    // clicks the cell he thinks Rover-7 will finish on. Never gates success -- purely informational.
+    let predicted = null;
+    let firstRunDone = false;
+    let predictionActual = null;
+    let predictionCorrect = null;
+    function maybeRecordFirstRun() {
+      if (!cfg.predictionGate || firstRunDone) return;
+      predictionActual = { r: state.r, c: state.c };
+      predictionCorrect = !!predicted && predicted.r === state.r && predicted.c === state.c;
+      firstRunDone = true;
+    }
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
@@ -1283,6 +1299,18 @@
             cell.textContent = '🚩';
           }
           cellEls[r][c] = cell;
+          if (cfg.predictionGate) {
+            cell.classList.add('predictable');
+            cell.addEventListener('click', () => {
+              if (!cfg.predictionGate || firstRunDone) return;
+              cellEls.forEach(row => row.forEach(cEl => cEl.classList.remove('predicted')));
+              cell.classList.add('predicted');
+              predicted = { r, c };
+              cfg.runBtn.disabled = false;
+              cfg.msgEl.textContent = '🎯 Prediction locked in. Hit Run when your sequence is ready.';
+              cfg.msgEl.className = 'mission-msg';
+            });
+          }
           cfg.gridEl.appendChild(cell);
         }
       }
@@ -1447,6 +1475,7 @@
         if (!inBounds(nr, nc)) {
           cfg.msgEl.textContent = '🤖 SYSTEM ERROR: Rover drove off the platform edge.';
           cfg.msgEl.className = 'mission-msg bad';
+          maybeRecordFirstRun();
           running = false;
           cfg.runBtn.disabled = false;
           return;
@@ -1454,6 +1483,7 @@
         if (isWall(nr, nc)) {
           cfg.msgEl.textContent = '🤖 COLLISION: Rover hit a barrier and stopped.';
           cfg.msgEl.className = 'mission-msg bad';
+          maybeRecordFirstRun();
           running = false;
           cfg.runBtn.disabled = false;
           return;
@@ -1466,10 +1496,12 @@
       if (state.r === mission.goal.r && state.c === mission.goal.c) {
         succeeded = true;
         winningProgram = [...program];
+        maybeRecordFirstRun();
         celebrate();
       } else {
         cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
         cfg.msgEl.className = 'mission-msg bad';
+        maybeRecordFirstRun();
       }
       running = false;
       cfg.runBtn.disabled = false;
@@ -1478,10 +1510,18 @@
     buildGrid();
     updateRoverPosition(false);
     renderProgram();
+    if (cfg.predictionGate) {
+      cfg.runBtn.disabled = true;
+      cfg.msgEl.textContent = '🎯 First — click the cell where you think Rover-7 will finish.';
+      cfg.msgEl.className = 'mission-msg';
+    }
 
     return {
       get succeeded() { return succeeded; },
-      get attempts() { return attempts; }
+      get attempts() { return attempts; },
+      get predicted() { return predicted; },
+      get predictionActual() { return predictionActual; },
+      get predictionCorrect() { return predictionCorrect; }
     };
   }
 
@@ -1499,6 +1539,7 @@
     watchAgainBtn: document.getElementById('watchAgain1'),
     watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
+    predictionGate: { mode: 'cell' },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 reached the flag on Platform Alpha exactly as planned.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Alpha. That took some real troubleshooting, Cadet — nice recovery.',
@@ -1524,6 +1565,7 @@
     watchAgainBtn: document.getElementById('watchAgain2'),
     watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
+    predictionGate: { mode: 'cell' },
     successLines: {
       firstTry: '🎉 MISSION COMPLETE — clean run, first try! Rover-7 routed around the barrier on Platform Bravo without a hitch.',
       afterStruggle: '🎉 MISSION COMPLETE — Rover-7 reached the flag on Platform Bravo. That barrier gave you a real fight, Cadet — well earned.',
@@ -1695,6 +1737,10 @@
         mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts },
         mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts }
       },
+      prediction: {
+        mission_1: { predicted: mission1.predicted, actual: mission1.predictionActual, correct: mission1.predictionCorrect },
+        mission_2: { predicted: mission2.predicted, actual: mission2.predictionActual, correct: mission2.predictionCorrect }
+      },
       quiz: {
         concept_score: conceptScore,
         concept_out_of: 2,
@@ -1711,10 +1757,17 @@
 
     const box = document.getElementById('resultBox');
     box.classList.add('show');
+    function predictionLine(m, label) {
+      if (!m.predicted) return '';
+      return '<br>🎯 ' + label + ' prediction: ' + (m.predictionCorrect
+        ? 'nailed it — exactly where Rover-7 stopped.'
+        : 'close call — Rover-7 actually stopped at row ' + (m.predictionActual.r + 1) + ', col ' + (m.predictionActual.c + 1) + '.');
+    }
     const summaryHtml = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
       + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
       + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
-      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
+      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')'
+      + predictionLine(mission1, 'Mission 1') + predictionLine(mission2, 'Mission 2');
 
     if (isReviewMode) {
       // Review mode: this is a re-run of an already-saved unit, purely so the cadet can see what
