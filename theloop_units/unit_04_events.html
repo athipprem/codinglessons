@@ -162,6 +162,17 @@
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
   .cmd-btn.event-btn { border-color: var(--cyan); }
   .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .cmd-btn.hazard-btn { border-color: var(--danger); }
+  .cmd-btn.hazard-btn:hover { color: var(--danger); border-color: var(--danger); }
+  .cmd-btn.recal-btn { border-color: var(--amber); background: var(--amber-tint); }
+  .cmd-btn.recal-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .repeat-card.hazard-card { border-color: var(--danger); background: var(--danger-tint); }
+  .repeat-card.hazard-card.open { box-shadow: 0 0 0 2px var(--danger); }
+
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
 
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
@@ -170,6 +181,8 @@
   .cell.wall::after { content: "🚧"; font-size: 16px; }
   .cell.beacon { background: var(--cyan-tint); }
   .cell.beacon::after { content: "📡"; font-size: 16px; }
+  .cell.hazard { background: var(--danger-tint); }
+  .cell.hazard::after { content: "⚠️"; font-size: 16px; }
   .cell.goal { background: var(--success-tint); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
@@ -270,7 +283,7 @@
       <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
       <h1>FLOW ACADEMY</h1>
       <div class="tagline">The Loop · Unit 04 · Event Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Not every mission can be planned start-to-finish in advance — some things happen when they happen, not on schedule. Rover-7 needs to react in the moment, not just follow a fixed plan. Command Control needs you to master the EVENT block: code that waits, then reacts.</p>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Not every mission can be planned start-to-finish in advance — some things happen when they happen, not on schedule, and not always in a spot you know ahead of time. Rover-7 needs to react in the moment, not just follow a fixed plan. Command Control needs you to master the EVENT block: code that waits, then reacts.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="primary" id="beginBtn">Begin Training →</button>
         <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
@@ -291,8 +304,8 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Nested Loop Protocol, Cadet. Everything so far — sequences, loops, nested loops — runs the moment you hit "Run" and follows a plan you wrote in advance. But Rover-7's sensors just picked up a signal beacon out on patrol, and nobody knows exactly when it'll matter during the run. You can't pre-plan around something you don't control the timing of.</p>
-        <p>That's what an <strong>EVENT</strong> block is for: "When X happens, do Y." You don't decide *when* it fires — the mission does. You only decide *what happens* when it does. Real reflexes work the same way: an alarm goes off, then you get up. You don't schedule the alarm's exact ring time into your morning plan — you just react whenever it actually rings.</p>
+        <p><strong>COMMANDER:</strong> Good work on Nested Loop Protocol, Cadet. Everything so far — sequences, loops, nested loops — runs the moment you hit "Run" and follows a plan you wrote in advance. But Rover-7's next platform has a signal beacon hidden out there somewhere, and nobody knows its exact cell until Rover-7 actually finds it by driving over it. You can't pre-plan a fixed reaction for a spot you don't know yet.</p>
+        <p>That's what an <strong>EVENT</strong> block is for: "When X happens, do Y." You don't decide *when* or *where* it fires — the mission does. You only decide *what happens* when it does. Real reflexes work the same way: an alarm goes off, then you get up. You don't schedule the alarm's exact ring time into your morning plan — you just react whenever it actually rings.</p>
       </div>
     </div>
 
@@ -310,10 +323,13 @@
       <h3>📖 Field Manual: EVENTS</h3>
       <p>An <strong>EVENT</strong> block only runs its steps when its trigger actually happens. Three rules to remember:</p>
       <ol>
-        <li><strong>It doesn't run on a fixed schedule</strong> — not a set number of times, and not just because the program started. It waits.</li>
-        <li><strong>You don't control WHEN it fires</strong> — the mission does. You only decide WHAT happens when it does.</li>
+        <li><strong>An event fires when the world decides, not when your program gets there.</strong> You can't schedule it — you can be ready for it.</li>
+        <li><strong>You don't control WHEN or WHERE it fires</strong> — the mission does. You only decide WHAT happens when it does.</li>
         <li><strong>It can go anywhere in your program</strong> — it isn't a step in your sequence. It's "listening" the whole time the mission runs, no matter where you place it in your program list.</li>
       </ol>
+      <p style="margin-top:10px;"><strong>Worked example</strong> — the handler can sit first, last, or in the middle of your program; it still fires the instant its trigger happens, not when your program "reaches" it:</p>
+      <p style="font-family:'JetBrains Mono',monospace; font-size:13.5px; margin:4px 0 0;">🔔 On Signal Beacon [ 🔄 Recalibrate Controls ]<br>🔁 REPEAT × 5 [ ⬆ Up ]</p>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:4px 0 0;">Even placed first, that handler does nothing until Rover-7 actually crosses the beacon partway through the REPEAT below it — then it fires right then, out of order, exactly when the trigger happens.</p>
     </div>
 
     <div class="mission-actions">
@@ -332,26 +348,29 @@
     </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Time to wire one up for real. Click "🔔 Add Event" to place an ON SIGNAL BEACON block anywhere in your program, then add the steps you want Rover-7 to react with. Command Control won't accept this route unless that event actually fires during the run — so your path needs to genuinely pass over the beacon (📡). Patrol Platform Golf and reach the flag.</p></div>
+      <div><p><strong>COMMANDER:</strong> There's a signal beacon hidden somewhere on Platform Golf — you won't see it until Rover-7 drives over it. I've started the movement loop for you; raise or lower its count to actually reach the flag's row, add Left or Right if the flag isn't in your column, then click "🔔 Add Event" to place an ON SIGNAL BEACON block and put a 🔄 Recalibrate Controls inside it. Command Control won't accept this route unless that event actually fires during the run — so your route needs to genuinely cross the beacon's cell. Patrol Platform Golf and reach the flag.</p></div>
     </div>
 
     <div class="panel">
       <h2>Mission 1 · Platform Golf</h2>
       <div class="cmd-palette" id="palette1">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+        <button class="cmd-btn" type="button" data-cmd="UP">⬆ Up</button>
+        <button class="cmd-btn" type="button" data-cmd="DOWN">⬇ Down</button>
+        <button class="cmd-btn" type="button" data-cmd="LEFT">⬅ Left</button>
+        <button class="cmd-btn" type="button" data-cmd="RIGHT">➡ Right</button>
+        <button class="cmd-btn recal-btn" type="button" id="addRecal1" data-cmd="RECAL" style="display:none;">🔄 Recalibrate Controls</button>
         <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
         <button class="cmd-btn event-btn" type="button" id="addEvent1">🔔 Add Event</button>
       </div>
       <div class="chip-order" id="prog1"></div>
-      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div></div>
       <div class="mission-actions">
         <button class="primary" id="run1">▶ Run Program</button>
         <button class="ghost" id="reset1">Reset Rover</button>
-        <button class="ghost" id="clear1">Clear Program</button>
+        <button class="ghost" id="clear1">↺ Start Over</button>
       </div>
       <p class="mission-msg" id="msg1"></p>
+      <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText1"></p></div>
     </div>
 
     <div class="mission-actions">
@@ -370,26 +389,30 @@
     </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Hotel has a barrier, and there's another signal beacon out there too. Mix individual commands, loops, and your event handler however gets Rover-7 to the flag — but that event still has to actually fire.</p></div>
+      <div><p><strong>COMMANDER:</strong> Platform Hotel has a barrier, and TWO hidden beacons this time — a 📡 Signal beacon and a ⚠️ Hazard. Each needs its own handler, and Command Control needs proof both actually fired. Build your route from scratch, mix in both event blocks, and get Rover-7 to the flag.</p></div>
     </div>
 
     <div class="panel">
       <h2>Mission 2 · Platform Hotel</h2>
       <div class="cmd-palette" id="palette2">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
+        <button class="cmd-btn" type="button" data-cmd="UP">⬆ Up</button>
+        <button class="cmd-btn" type="button" data-cmd="DOWN">⬇ Down</button>
+        <button class="cmd-btn" type="button" data-cmd="LEFT">⬅ Left</button>
+        <button class="cmd-btn" type="button" data-cmd="RIGHT">➡ Right</button>
+        <button class="cmd-btn recal-btn" type="button" id="addRecal2" data-cmd="RECAL" style="display:none;">🔄 Recalibrate Controls</button>
         <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
-        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Event</button>
+        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Signal Event</button>
+        <button class="cmd-btn hazard-btn" type="button" id="addHazard2">⚠️ Add Hazard Event</button>
       </div>
       <div class="chip-order" id="prog2"></div>
-      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
+      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div></div>
       <div class="mission-actions">
         <button class="primary" id="run2">▶ Run Program</button>
         <button class="ghost" id="reset2">Reset Rover</button>
         <button class="ghost" id="clear2">Clear Program</button>
       </div>
       <p class="mission-msg" id="msg2"></p>
+      <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
     </div>
 
     <div class="mission-actions">
@@ -418,15 +441,15 @@
       <div class="quiz-q" data-qid="q1">
         <div class="qtext">1. What is an EVENT block? Choose the one best answer:</div>
         <label class="choice"><input type="radio" name="q1" value="0">A block that runs a fixed number of times, decided in advance</label>
-        <label class="choice"><input type="radio" name="q1" value="1">A block that only runs its steps when a specific trigger actually happens, whenever that turns out to be</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A block that only runs its steps when a specific trigger actually happens, whenever and wherever that turns out to be</label>
         <label class="choice"><input type="radio" name="q1" value="2">A block that runs once, right when the mission begins, no matter what</label>
         <label class="choice"><input type="radio" name="q1" value="3">A block that skips running if nothing else is happening</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet wants Rover-7 to swerve around a hazard that could appear at any random moment during patrol. They write a fixed sequence — <code>Forward, Forward, Turn Right, Forward</code> — hoping the swerve lines up with when the hazard shows up. What's the problem? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">There's no problem — a fixed sequence always reacts correctly no matter when the hazard appears</label>
-        <label class="choice"><input type="radio" name="q2" value="1">The swerve only happens at that one exact point in the sequence — if the hazard appears at a different moment, the fixed plan won't react to it at all</label>
+        <div class="qtext">2. A cadet knows a signal beacon is hidden somewhere on the platform, but not which cell. They write a fixed sequence — <code>Up, Up, Recalibrate Controls, Up</code> — guessing the beacon will be right where that Recalibrate step sits. What's the problem? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">There's no problem — a fixed sequence always reacts correctly no matter where the beacon turns out to be</label>
+        <label class="choice"><input type="radio" name="q2" value="1">The Recalibrate only happens at that one exact point in the sequence — if the beacon is actually on a different cell, the fixed plan won't react to it at all</label>
         <label class="choice"><input type="radio" name="q2" value="2">The sequence will refuse to run at all</label>
         <label class="choice"><input type="radio" name="q2" value="3">Rover-7 automatically converts the sequence into an event for you</label>
         <div class="debrief-note" id="explainQ2"></div>
@@ -540,10 +563,11 @@
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event) is
-  // deliberately NOT shuffled — it's a fixed toolbar, same order every load and every unit, so
-  // cadets build muscle memory for the tool itself instead of re-reading button positions each
-  // time. Add Event is appended after Add Repeat since it's this unit's new block, in teaching order.
+  // NOTE: the command palette (Up / Down / Left / Right / Add Repeat / Add Event / Add Hazard Event)
+  // is deliberately NOT shuffled — it's a fixed toolbar, same order every load and every unit, so
+  // cadets build muscle memory for the tool itself instead of re-reading button positions each time.
+  // Add Event/Add Hazard Event come after Add Repeat since they're this unit's new blocks, in
+  // teaching order; Recalibrate Controls only ever appears once an event block is open.
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -575,10 +599,10 @@
 
   // ================= Calibration: Spot the Event =================
   const CAL_CHOICES = [
-    { id: 0, label: '🔔 On Signal Beacon → Turn Right', correct: true },
-    { id: 1, label: 'Repeat 4 [ Turn Right ]', correct: false },
-    { id: 2, label: 'Forward, Forward, Turn Right', correct: false },
-    { id: 3, label: '▶ When the mission begins → Turn Right', correct: false },
+    { id: 0, label: '🔔 On Signal Beacon → Right', correct: true },
+    { id: 1, label: 'Repeat 4 [ Right ]', correct: false },
+    { id: 2, label: 'Up, Up, Right', correct: false },
+    { id: 3, label: '▶ When the mission begins → Right', correct: false },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -653,18 +677,21 @@
   });
 
   // ================= Rover engine w/ REPEAT + EVENT support =================
+  // Absolute d-pad model (matches Units 1-3): UP/DOWN/LEFT/RIGHT, no heading, no turns.
   const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
-  const ROT = { N: 0, E: 90, S: 180, W: 270 };
-  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
-  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
-  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right' };
+  const DIR_MAP = { UP: 'N', DOWN: 'S', LEFT: 'W', RIGHT: 'E' };
+  // What each direction becomes while the Signal beacon's effect has the controls flipped -- the
+  // absolute-model equivalent of "spun 180 degrees" (see the Decisions log deviation note).
+  const INVERT_DIR = { UP: 'DOWN', DOWN: 'UP', LEFT: 'RIGHT', RIGHT: 'LEFT' };
+  const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right', RECAL: '🔄 Recalibrate Controls' };
 
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
 
-  // Reshuffle each mission's destination cell on every load (walls/beacon/start stay put — only the
-  // goal moves), so the flag isn't always in the same corner from a past run. BFS guarantees the new
-  // goal is reachable, and never lands on the beacon cell.
+  // Fresh randomization every page load (E3 · discoverable beacon): beacon/hazard/goal cells are all
+  // chosen anew each load via BFS from start, never on start/walls, and never on each other. Once
+  // chosen they're FIXED for that load (per §3.3 -- never randomise a trigger's position within a run,
+  // only between loads), so a correct program never fails by luck.
   function bfsReachable(mission) {
     const key = (r, c) => r + ',' + c;
     const visited = new Set([key(mission.start.r, mission.start.c)]);
@@ -680,42 +707,92 @@
     }
     return visited;
   }
-  function randomizeGoal(mission, minDist) {
-    const reachable = bfsReachable(mission);
+  function pickCell(reachable, mission, opts) {
+    const minDist = opts.minDist || 0;
+    const exclude = opts.exclude || [];
     const candidates = [];
     reachable.forEach(k => {
       const [r, c] = k.split(',').map(Number);
       if (r === mission.start.r && c === mission.start.c) return;
-      if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) return;
+      if (exclude.some(e => e && e.r === r && e.c === c)) return;
       if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
       candidates.push({ r, c });
     });
-    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
+    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : null;
+  }
+  // Mission 1's canonical route: the given starter REPEAT runs vertically first (matching its
+  // hardcoded UP direction), then a horizontal leg the cadet adds. Built directly (no walls in this
+  // mission) so it's a clean two-leg shape, not whatever zigzag a generic BFS might return.
+  function verticalThenHorizontalPath(mission, from, to) {
+    const path = [{ r: from.r, c: from.c }];
+    const rowStep = to.r < from.r ? -1 : (to.r > from.r ? 1 : 0);
+    for (let r = from.r + rowStep; rowStep !== 0 && r !== to.r + rowStep; r += rowStep) path.push({ r, c: from.c });
+    const colStep = to.c < from.c ? -1 : (to.c > from.c ? 1 : 0);
+    for (let c = from.c + colStep; colStep !== 0 && c !== to.c + colStep; c += colStep) path.push({ r: to.r, c });
+    // Both loops above already end by pushing the goal cell itself (the vertical loop does when
+    // there's no horizontal leg; the horizontal loop does otherwise) -- no separate goal push needed.
+    return path;
   }
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
     // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
-    // or {type:'event', trigger, children}. A repeat's children can hold cmd or another repeat (one
-    // level of nesting, from Unit 3). An event's children only ever hold flat cmd items -- events
-    // can't nest inside a repeat and a repeat can't nest inside an event, so openStack (the currently
-    // "open for editing" container chain) is capped by container-specific rules in updateContainerBtns.
-    // Crucially, an 'event' item is a HANDLER REGISTRATION, not an inline step: it doesn't execute in
-    // its position in the list. It's collected once per run and fires whenever its trigger condition
-    // (the rover's position matching mission.beacon after a Forward move) actually occurs.
-    let program = [];
+    // or {type:'event', trigger, children} (trigger is 'beacon' or 'hazard'). A repeat's children can
+    // hold cmd or another repeat (one level of nesting, from Unit 3). An event's children only ever
+    // hold flat cmd items -- events can't nest inside a repeat and a repeat can't nest inside an event,
+    // so openStack (the currently "open for editing" container chain) is capped by container-specific
+    // rules in updateContainerBtns. Crucially, an 'event' item is a HANDLER REGISTRATION, not an inline
+    // step: it doesn't execute in its position in the list. It's collected once per run and fires
+    // whenever its trigger condition (the rover's position matching a hidden beacon/hazard cell after
+    // a move) actually occurs -- wherever it sits in the program.
+    function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
+    let program = cloneStarter();
     let openStack = [];
-    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+    let state = { ...mission.start };
     let running = false;
     let succeeded = false;
     let attempts = 0;
-    let eventTriggered = false;
+    let failCount = 0;
+    let hintsUsed = 0;
+    // E3 · discoverable beacon/hazard -- each starts undiscovered (hidden) and, once the rover's move
+    // lands on it, stays discovered (visible) for the rest of this page load, across every attempt.
+    let beaconDiscovered = false;
+    let hazardDiscovered = false;
+    let beaconDiscoveredOnAttempt = null;
+    let hazardDiscoveredOnAttempt = null;
+    // Deviation from the plan's literal turtle wording (documented in the Decisions log): there's no
+    // heading in this absolute d-pad model, so the beacon's "spins Rover-7 180 degrees" becomes
+    // "flips which way Up/Down/Left/Right actually move the rover" -- the spatial equivalent of a
+    // 180-degree turn under a d-pad. controlsInverted persists until a Recalibrate command runs.
+    let controlsInverted = false;
+    let eventsFired = {};        // trigger key -> true once its condition has actually occurred this run
+    let handlersRegistered = {}; // trigger key -> true if a handler for it exists anywhere in the program
+
+    function updateHintUI() {
+      if (!cfg.hints || !cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    if (cfg.hintBtnEl) {
+      cfg.hintBtnEl.addEventListener('click', () => {
+        cfg.hintTextEl.textContent = cfg.hintBtnEl.dataset.pending || '';
+        hintsUsed++;
+        cfg.hintBtnEl.style.display = 'none';
+        updateHintUI();
+      });
+    }
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function cellEl(r, c) { return cellEls[r * mission.cols + c]; }
+    let cellEls = [];
 
     function buildGrid() {
       cfg.gridEl.innerHTML = '';
+      cellEls = [];
       cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
       cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
       for (let r = 0; r < mission.rows; r++) {
@@ -723,12 +800,21 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
-          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
+          // Beacon/hazard cells are NOT marked here -- E3 says hidden until first touched.
           if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
+          cellEls.push(cell);
         }
       }
       cfg.gridEl.appendChild(cfg.roverEl);
+      if (beaconDiscovered) revealCell(mission.beacon, 'beacon');
+      if (hazardDiscovered) revealCell(mission.hazard, 'hazard');
+    }
+
+    function revealCell(cellDef, cls) {
+      if (!cellDef) return;
+      const el = cellEl(cellDef.r, cellDef.c);
+      if (el && !el.classList.contains(cls)) el.classList.add(cls);
     }
 
     function updateRoverPosition(animate) {
@@ -736,16 +822,19 @@
       const y = state.r * mission.cellPx + mission.cellPx * 0.15;
       cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
       cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
-      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
     }
 
     function updateContainerBtns() {
       const topType = openStack.length ? openStack[openStack.length - 1].type : null;
+      const insideEvent = topType === 'event';
       cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
       cfg.addEventBtn.disabled = running || openStack.length !== 0;
+      if (cfg.addHazardBtn) cfg.addHazardBtn.disabled = running || openStack.length !== 0;
+      if (cfg.recalBtn) { cfg.recalBtn.style.display = insideEvent ? '' : 'none'; cfg.recalBtn.disabled = running; }
+      cfg.paletteEl.querySelectorAll('[data-cmd]:not([data-cmd="RECAL"])').forEach(btn => { btn.disabled = running; });
     }
 
     function currentTarget() {
@@ -802,8 +891,9 @@
           const isRepeat = item.type === 'repeat';
           const isOpen = openStack.includes(item);
           const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const isHazardEvent = !isRepeat && item.trigger === 'hazard';
           const card = document.createElement('div');
-          card.className = 'repeat-card' + (isRepeat ? '' : ' event-card') + (isOpen ? ' open' : '');
+          card.className = 'repeat-card' + (isRepeat ? '' : (isHazardEvent ? ' hazard-card' : ' event-card')) + (isOpen ? ' open' : '');
           const head = document.createElement('div');
           head.className = 'repeat-head';
 
@@ -821,7 +911,7 @@
             head.append(minus, label, plus);
           } else {
             const label = document.createElement('span');
-            label.textContent = '🔔 On Signal Beacon';
+            label.textContent = isHazardEvent ? '⚠️ On Hazard' : '🔔 On Signal Beacon';
             head.append(label);
           }
 
@@ -883,6 +973,7 @@
     cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (running) return;
+        if (btn.dataset.cmd === 'RECAL' && !(openStack.length && openStack[openStack.length - 1].type === 'event')) return;
         currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
         renderProgram();
       });
@@ -899,67 +990,114 @@
 
     cfg.addEventBtn.addEventListener('click', () => {
       if (running || openStack.length !== 0) return;
-      const newEvent = { type: 'event', trigger: 'signal', children: [] };
+      const newEvent = { type: 'event', trigger: 'beacon', children: [] };
       currentTarget().push(newEvent);
       openStack.push(newEvent);
       renderProgram();
     });
 
+    if (cfg.addHazardBtn) {
+      cfg.addHazardBtn.addEventListener('click', () => {
+        if (running || openStack.length !== 0) return;
+        const newEvent = { type: 'event', trigger: 'hazard', children: [] };
+        currentTarget().push(newEvent);
+        openStack.push(newEvent);
+        renderProgram();
+      });
+    }
+
+    if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openStack = [];
+      program = cloneStarter(); openStack = [];
       renderProgram();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { ...mission.start };
+      controlsInverted = false;
       updateRoverPosition(true);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
     // Collects top-level 'event' items into a trigger -> [handler,...] map. Events aren't tied to
     // their position in the program -- wherever they sit in the list, they're "listening" for the
-    // whole run, per the Field Manual.
+    // whole run, per the Field Manual. Also records which triggers have ANY handler registered, for
+    // the "goal reached without a handler is rejected" acceptance rule.
     function collectHandlers(items) {
       const handlers = {};
       items.forEach(item => {
         if (item.type === 'event') {
           handlers[item.trigger] = handlers[item.trigger] || [];
           handlers[item.trigger].push(item);
+          handlersRegistered[item.trigger] = true;
         }
       });
       return handlers;
     }
 
-    async function executeOne(cmd, handlers, inHandler) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; }
-      else if (cmd === 'F') {
-        const d = DELTA[state.dir];
-        const nr = state.r + d.dr, nc = state.c + d.dc;
-        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
-        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
-        state.r = nr; state.c = nc;
-      }
-      updateRoverPosition(true);
-      await wait(400);
-
-      // Trigger check: only after an actual move, only outside of a handler's own reaction (so a
-      // handler that itself steps onto the beacon can't re-fire itself), and only if a handler for
-      // this beacon's trigger is actually registered in the program.
-      if (!inHandler && cmd === 'F' && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
-        const list = (handlers && handlers['signal']) || [];
-        if (list.length) {
-          eventTriggered = true;
-          for (const handler of list) {
-            for (const child of handler.children) {
-              await executeOne(child.cmd, handlers, true);
+    async function fireBeaconEffects(handlers, inHandler) {
+      // Signal beacon: E3 says touching it has a real, deterministic effect. Turtle-model plan text
+      // is "spins Rover-7 180 degrees, drives back the way it came without a handler." This engine has
+      // no heading, so the effect is translated to its absolute-model equivalent: it FLIPS which way
+      // Up/Down/Left/Right actually move the rover, so an unmodified movement loop literally drives
+      // back the way it came, same as the turtle version. A single 🔄 Recalibrate Controls command
+      // inside the handler cancels the flip (the equivalent of the plan's "Turn Left, Turn Left").
+      if (mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
+        if (!beaconDiscovered) { beaconDiscovered = true; beaconDiscoveredOnAttempt = attempts; revealCell(mission.beacon, 'beacon'); }
+        if (!inHandler) {
+          controlsInverted = !controlsInverted;
+          const list = (handlers && handlers['beacon']) || [];
+          if (list.length) {
+            eventsFired['beacon'] = true;
+            for (const handler of list) {
+              for (const child of handler.children) await executeOne(child.cmd, handlers, true);
             }
           }
         }
       }
+      // Hazard: pushes the rover back one cell (undoes the move that just landed on it). A handler
+      // that re-presses the same direction cancels the pushback -- and because handler children run
+      // with inHandler=true, that re-press can't re-trigger the hazard a second time.
+      if (mission.hazard && state.r === mission.hazard.r && state.c === mission.hazard.c) {
+        if (!hazardDiscovered) { hazardDiscovered = true; hazardDiscoveredOnAttempt = attempts; revealCell(mission.hazard, 'hazard'); }
+        if (!inHandler) {
+          state.r -= lastDelta.dr; state.c -= lastDelta.dc;
+          updateRoverPosition(true);
+          await wait(300);
+          const list = (handlers && handlers['hazard']) || [];
+          if (list.length) {
+            eventsFired['hazard'] = true;
+            for (const handler of list) {
+              for (const child of handler.children) await executeOne(child.cmd, handlers, true);
+            }
+          }
+        }
+      }
+    }
+
+    let lastDelta = { dr: 0, dc: 0 };
+
+    async function executeOne(cmd, handlers, inHandler) {
+      if (cmd === 'RECAL') {
+        controlsInverted = false;
+        return;
+      }
+      const effectiveCmd = controlsInverted ? INVERT_DIR[cmd] : cmd;
+      const d = DELTA[DIR_MAP[effectiveCmd]];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      lastDelta = d;
+      updateRoverPosition(true);
+      await wait(400);
+
+      // Trigger check: only after an actual move, and only outside of a handler's own reaction (so a
+      // handler's own steps can't re-fire the beacon/hazard they're reacting to).
+      if (!inHandler) await fireBeaconEffects(handlers, inHandler);
     }
 
     async function runItems(items, handlers, inHandler) {
@@ -980,34 +1118,42 @@
       running = true;
       attempts++;
       const handlers = collectHandlers(program);
-      eventTriggered = false;
+      eventsFired = {};
       cfg.runBtn.disabled = true;
       updateContainerBtns();
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      state = { ...mission.start };
+      controlsInverted = false;
+      lastDelta = { dr: 0, dc: 0 };
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
         await runItems(program, handlers, false);
+        const required = cfg.requiredTriggers || [];
+        const allFired = required.every(t => eventsFired[t] && handlersRegistered[t]);
         if (state.r === mission.goal.r && state.c === mission.goal.c) {
-          if (cfg.requireEventUsed && !eventTriggered) {
-            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can react to a real EVENT: wire up an ON SIGNAL BEACON handler and make sure your route genuinely passes over the beacon (📡) so it actually fires, then run it again.';
+          if (required.length && !allFired) {
+            const missing = required.filter(t => !(eventsFired[t] && handlersRegistered[t]));
+            cfg.msgEl.textContent = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can react to a real EVENT: wire up a handler for ' + missing.map(t => t === 'beacon' ? 'the signal beacon (📡)' : 'the hazard (⚠️)').join(' and ') + ' and make sure your route genuinely crosses it, then run it again.';
             cfg.msgEl.className = 'mission-msg bad';
+            failCount++; updateHintUI();
           } else {
             succeeded = true;
             cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
             cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess(eventTriggered);
+            if (cfg.onSuccess) cfg.onSuccess();
           }
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
         }
       } catch (e) {
         if (e instanceof MissionFail) {
           cfg.msgEl.textContent = e.message;
           cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
         } else { throw e; }
       } finally {
         running = false;
@@ -1019,39 +1165,84 @@
     buildGrid();
     updateRoverPosition(false);
     renderProgram();
+    updateHintUI();
 
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
-      get usedEventOnSuccess() { return succeeded && eventTriggered; }
+      get usedEventOnSuccess() { return succeeded && (cfg.requiredTriggers || []).every(t => eventsFired[t] && handlersRegistered[t]); },
+      get hintsUsed() { return hintsUsed; },
+      get beaconCell() { return mission.beacon; },
+      get hazardCell() { return mission.hazard || null; },
+      get beaconDiscoveredOnAttempt() { return beaconDiscoveredOnAttempt; },
+      get hazardDiscoveredOnAttempt() { return hazardDiscoveredOnAttempt; },
+      get eventsFired() { return { ...eventsFired }; },
+      get handlersRegistered() { return { ...handlersRegistered }; }
     };
   }
 
-  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: { r: 2, c: 2 }, goal: { r: 0, c: 2 }, walls: [] };
-  mission1Def.goal = randomizeGoal(mission1Def, 3);
+  // Mission 1 · Platform Golf -- goal chosen fresh this load (BFS, minDist 4), then the beacon is
+  // chosen from a cell the starter's own vertical-then-horizontal route actually passes through --
+  // never off-route, so a correct program can never fail to trigger it by bad luck (plan §3.3).
+  const mission1Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, goal: { r: 0, c: 2 }, walls: [] };
+  {
+    const reach1 = bfsReachable(mission1Def);
+    mission1Def.goal = pickCell(reach1, mission1Def, { minDist: 4 }) || mission1Def.goal;
+    const route1 = verticalThenHorizontalPath(mission1Def, mission1Def.start, mission1Def.goal);
+    const mid1 = route1.slice(1, -1); // exclude start & goal
+    mission1Def.beacon = mid1.length ? mid1[Math.floor(Math.random() * mid1.length)] : route1[Math.max(0, route1.length - 2)];
+  }
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
     addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
+    recalBtn: document.getElementById('addRecal1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
     mission: mission1Def,
-    requireEventUsed: true,
+    requiredTriggers: ['beacon'],
+    // The movement loop is given as a head start (plan §6 U4.2), same pattern as Unit 2's E14: the
+    // cadet raises/lowers its count to match the flag's actual row, adds Left/Right if it's off-column,
+    // and adds the event handler.
+    starterProgram: [{ type: 'repeat', count: 2, children: [{ type: 'cmd', cmd: 'UP' }] }],
+    hints: {
+      after3: 'Run it once and watch what happens when Rover-7 crosses the glowing cell. What changed?',
+      after6: 'Add an Event block that reacts to the beacon, and put a 🔄 Recalibrate Controls inside it so Up/Down/Left/Right point the right way again.'
+    },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
+  window.__mission1 = mission1; window.__mission1Def = mission1Def; // test hook, not used in gameplay
 
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 0, dir: 'N' }, beacon: { r: 2, c: 0 }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 2 }] };
-  mission2Def.goal = randomizeGoal(mission2Def, 3);
+  // Mission 2 · Platform Hotel -- empty start, one wall, two hidden beacons of different types. No
+  // starter route here (the cadet builds their own from scratch, discovering beacons by exploring --
+  // E3's "discovery is not punishment"), so unlike Mission 1 these don't need to sit on any one
+  // precomputed path: any two distinct reachable cells work, since whatever route the cadet ends up
+  // building is deterministic once chosen (fixed positions for the whole load either way).
+  const mission2Def = { rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, goal: { r: 0, c: 3 }, walls: [{ r: 2, c: 2 }] };
+  {
+    const reach2 = bfsReachable(mission2Def);
+    mission2Def.goal = pickCell(reach2, mission2Def, { minDist: 3 }) || mission2Def.goal;
+    mission2Def.beacon = pickCell(reach2, mission2Def, { minDist: 2, exclude: [mission2Def.goal] });
+    mission2Def.hazard = pickCell(reach2, mission2Def, { minDist: 2, exclude: [mission2Def.goal, mission2Def.beacon] });
+  }
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
     addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
+    addHazardBtn: document.getElementById('addHazard2'), recalBtn: document.getElementById('addRecal2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
     mission: mission2Def,
-    requireEventUsed: true,
+    requiredTriggers: ['beacon', 'hazard'],
+    hints: {
+      after3: 'Run it once and watch what happens when Rover-7 crosses each glowing cell. What changed?',
+      after6: 'Add an Event block for each hidden cell you found, and put a 🔄 Recalibrate Controls inside the signal one so Up/Down/Left/Right point the right way again.'
+    },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
+  window.__mission2 = mission2; window.__mission2Def = mission2Def; // test hook, not used in gameplay
 
   // ================= Finish / Debrief =================
   const QUIZ_ANSWERS = { q1: 1, q2: 1 };
@@ -1072,12 +1263,12 @@
     q2: {
       correct: 1,
       why: {
-        0: "A fixed sequence runs the same steps in the same order every time — it can't adjust to when something unpredictable actually happens.",
-        1: "Right. A pre-planned sequence swerves at one fixed point, no matter when the real hazard shows up — if the timing doesn't match, it just doesn't react. An event fires exactly when its trigger happens, whenever that turns out to be.",
-        2: "The sequence still runs fine command-by-command — it's just not actually reacting to the hazard, whether or not the timing happens to line up.",
-        3: "Nothing converts a sequence into an event automatically — that's exactly why this unit's ON SIGNAL block exists as its own separate tool."
+        0: "A fixed sequence runs the same steps in the same order every time — it can't adjust to a cell it doesn't actually know in advance.",
+        1: "Right. A pre-planned sequence reacts at one fixed point, no matter where the real beacon turns out to be — if its cell doesn't match, it just doesn't react. An event fires exactly when its trigger happens, wherever that turns out to be.",
+        2: "The sequence still runs fine command-by-command — it's just not actually reacting to the beacon, whether or not its cell happens to line up.",
+        3: "Nothing converts a sequence into an event automatically — that's exactly why this unit's ON SIGNAL BEACON block exists as its own separate tool."
       },
-      codeLife: "Why it matters for coding: this is why event listeners exist instead of just guessing when to check for input — a fixed schedule can't handle something whose timing you don't control. Why it matters in life: setting an alarm for a fixed time doesn't help if you need to react to the doorbell — you need to actually listen for it, whenever it rings."
+      codeLife: "Why it matters for coding: this is why event listeners exist instead of just guessing where or when to check — a fixed schedule can't handle something whose position you don't control. Why it matters in life: memorizing exactly where your phone will buzz doesn't help — you need to actually listen for it, wherever you happen to be."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
@@ -1195,8 +1386,18 @@
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, used_event_block: mission1.usedEventOnSuccess },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, used_event_block: mission2.usedEventOnSuccess }
+        mission_version: 'v1.1-e3-discoverable-beacon',
+        mission_1: {
+          succeeded: mission1.succeeded, attempts: mission1.attempts, used_event_block: mission1.usedEventOnSuccess,
+          beacon_cell: mission1.beaconCell, beacon_discovered_on_attempt: mission1.beaconDiscoveredOnAttempt,
+          events_fired: mission1.eventsFired, handlers_registered: mission1.handlersRegistered, hints_used: mission1.hintsUsed
+        },
+        mission_2: {
+          succeeded: mission2.succeeded, attempts: mission2.attempts, used_event_block: mission2.usedEventOnSuccess,
+          beacon_cell: mission2.beaconCell, beacon_discovered_on_attempt: mission2.beaconDiscoveredOnAttempt,
+          hazard_cell: mission2.hazardCell, hazard_discovered_on_attempt: mission2.hazardDiscoveredOnAttempt,
+          events_fired: mission2.eventsFired, handlers_registered: mission2.handlersRegistered, hints_used: mission2.hintsUsed
+        }
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
