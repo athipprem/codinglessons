@@ -9,7 +9,7 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flow Academy — Unit 5: Condition Protocol</title>
+<title>Flow Academy — Unit 6: Variable Protocol</title>
 <link rel="icon" type="image/png" href="../assets/flow_logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -171,23 +171,13 @@
   .cmd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .cmd-btn.repeat-btn { border-color: var(--amber); }
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .cmd-btn.event-btn { border-color: var(--cyan); }
+  .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
   .cmd-btn.condition-btn { border-color: var(--nova); }
   .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
 
-  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
-  .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
-  .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .cell.wall { background: var(--wall-bg); }
-  .cell.wall::after { content: "🚧"; font-size: 16px; }
-  .cell.goal { background: var(--success-tint); }
-  .cell.fogged { background: var(--bg-panel); }
-  .cell.fogged::after { content: "░░"; font-size: 11px; letter-spacing: -3px; color: var(--line); }
-  .cell.fogged.wall::after, .cell.fogged.goal::after { content: "░░"; }
-
-  .repeat-card.until-card { border-color: var(--cyan); background: var(--cyan-tint); }
-  .repeat-card.until-card.open { box-shadow: 0 0 0 2px var(--cyan); }
-  .cmd-btn.until-btn { border-color: var(--cyan); }
-  .cmd-btn.until-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .fuel-chip { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--cyan); background: var(--cyan-tint); border: 1px solid var(--cyan); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .fuel-chip.low { color: var(--amber); background: var(--amber-tint); border-color: var(--amber); }
 
   /* ---------------- Master style: full-screen mission stage (Missions 1 & 2 only) ----------------
      Ported from Units 1-3's approved full-screen mission stage -- this was missing on Units 4-6, a
@@ -231,13 +221,10 @@
   .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
   .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
   .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.pad { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.pad.collected { background: rgba(233,236,255,.08); opacity: 0.6; }
   .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
-  .stage-grid-wrap .cell.fogged { background: rgba(10,14,30,.55); }
   .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
-  /* Fog must fully hide a wall: the wall's tint/emoji size rules above (and the dark-theme wall rule)
-     out-ranked plain .fogged, so the hidden wall's cell looked different and gave its spot away. */
-  html .stage-grid-wrap .cell.wall.fogged, html:not([data-theme="light"]) .stage-grid-wrap .cell.wall.fogged { background: rgba(10,14,30,.55); box-shadow: none; }
-  html .stage-grid-wrap .cell.wall.fogged::after { font-size: 11px; }
 
   .game-palette-col {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
@@ -254,20 +241,14 @@
   .dialogue.compact .avatar { font-size: 18px; }
 
   .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
-  /* Keep the whole control rail visible when a long mission message appears below it (the message
-     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
-  .game-palette-col .palette-cols { min-height: 360px; }
-  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
-  #scr-t3 .game-palette-col .palette-cols { min-height: 410px; }
   .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
   .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
   .control-rail .mission-actions button { width: 100%; }
   .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
   .control-rail .dpad { align-self: center; }
 
-  /* Program column: a mission-status chip (here, the FLAG distance chip) sits attached to the top of
-     THIS column (same row as the control-rail, right-aligned) -- same convention as Units 2-3's own
-     slot/patrol chip. */
+  /* Program column: the FUEL chip sits attached to the top of THIS column (same row as the
+     control-rail, right-aligned) -- same convention as Units 2-3/5's own slot/flag chip. */
   .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
   .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
@@ -325,10 +306,10 @@
     --orange-tint: #FFF2DC;
   }
 
-  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform India) reads purple, Mission 2
-     (Platform Juliet) reads orange, in BOTH themes. REPEAT/Condition/Until keep their own dedicated
-     accent colors regardless of zone -- amber/nova/cyan mark WHAT KIND of block it is, the same way
-     zone color marks WHICH mission it is; the two systems don't overlap. */
+  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform Kilo) reads purple, Mission 2
+     (Platform Lima) reads orange, in BOTH themes. REPEAT/Condition keep their own dedicated accent
+     colors regardless of zone -- amber/nova mark WHAT KIND of block it is, the same way zone color
+     marks WHICH mission it is; the two systems don't overlap. */
   #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
   #scr-t2 .transmission-tag { color: var(--purple); }
   #scr-t2 .dialogue { border-left-color: var(--purple); }
@@ -373,11 +354,19 @@
   #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
   #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
 
-  .flag-chip { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 4px 12px; align-self: flex-start; }
   .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
   .hint-btn { align-self: flex-start; }
   .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
   .hint-text:empty { display: none; }
+
+  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
+  .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.wall::after { content: "🚧"; font-size: 16px; }
+  .cell.pad { background: var(--cyan-tint); font-size: 13px; font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--cyan); }
+  .cell.pad.collected { background: var(--bg-raised); color: var(--ink-soft); opacity: 0.5; }
+  .cell.goal { background: var(--success-tint); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
     width: 100%; height: 100%;
@@ -486,8 +475,8 @@
     <div class="boot-card">
       <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
       <h1>FLOW ACADEMY</h1>
-      <div class="tagline">The Loop · Unit 05 · Condition Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Every mission so far has followed a plan — written in advance, run top to bottom, maybe repeated, maybe reacting to a signal. But sometimes Rover-7 needs to make a real decision in the moment: check what's actually true right now, then choose what to do. Command Control needs you to master the IF block — branching logic, including combining two checks at once with AND or OR.</p>
+      <div class="tagline">The Loop · Unit 06 · Variable Protocol</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Every tool so far has been about controlling what Rover-7 DOES. This one's about remembering what's TRUE — a value that can change while the mission runs, and stays remembered until something changes it again. Command Control needs you to master the VARIABLE: a named box, like FUEL, that tracks something over time instead of a number frozen in your program — and that other parts of the system can read and act on.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="primary" id="beginBtn">Begin Training →</button>
         <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
@@ -508,14 +497,14 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Event Protocol, Cadet. You've got Rover-7 reacting to triggers now — but not every choice is about waiting for something to happen. Sometimes Rover-7 needs to check what's actually true right now — is there a wall dead ahead? — and act differently depending on the answer. That's an <strong>IF</strong> block: "IF this is true, do that."</p>
-        <p>And real decisions are rarely just one thing. "If it's raining <strong>AND</strong> I don't have an umbrella, take the bus" checks two things at once before deciding. An IF block can do the same — combine two checks with AND (both must be true) or OR (either one is enough).</p>
+        <p><strong>COMMANDER:</strong> Good work on Condition Protocol, Cadet. Rover-7 can decide in the moment now — but there's still something it can't do: remember a number that changes as the mission goes. Every mission so far, any number you typed was fixed the moment you wrote it — a REPEAT count, an XP total, all decided in advance.</p>
+        <p>A <strong>VARIABLE</strong> is different. It's a named box — we're calling ours FUEL — that starts at some value and changes while the mission runs. Every move costs a little, and it keeps counting down on its own without you writing a command for it. And here's the part cadets usually miss: it's not just something YOU track — the rover's own systems read FUEL too, and can end a run or change course based on what it currently reads, without you ever writing the number down anywhere.</p>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Calibration Test: Spot the Condition</h2>
-      <p class="sub">A real condition checks something true right now and only then acts. Which one of these actually does that, instead of running on a fixed schedule or waiting for a separate trigger?</p>
+      <h2>Calibration Test: Spot the Variable</h2>
+      <p class="sub">A real variable is a named value that can change while the mission runs, and stays remembered afterward. Which one of these actually works like that?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -524,17 +513,16 @@
     </div>
 
     <div class="field-manual" id="fieldManual" style="display:none;">
-      <h3>📖 Field Manual: CONDITIONS</h3>
-      <p>An <strong>IF</strong> block only runs its steps when its condition is actually true at that exact moment your program reaches it. Four rules to remember:</p>
+      <h3>📖 Field Manual: VARIABLES</h3>
+      <p>A <strong>VARIABLE</strong> like FUEL is a named box that holds a value — and unlike a fixed number typed into your program, that value can change while the mission runs. Three rules to remember:</p>
       <ol>
-        <li><strong>It checks its condition each time your program reaches it</strong> — not once at the start, and not on a fixed schedule.</li>
-        <li><strong>If the condition is false, its steps are skipped entirely</strong> — Rover-7 just moves on to whatever comes next.</li>
-        <li><strong>You can combine two checks with AND or OR</strong> — AND needs both true at once; OR only needs one of them true.</li>
-        <li><strong>Sometimes you don't know how many times — only when to stop.</strong> A REPEAT UNTIL keeps going, checking its condition before every single pass, until that condition finally becomes true — then it stops, no count needed.</li>
+        <li><strong>It changes as things happen</strong> — FUEL drops a little on every move, automatically, without you writing a command that says "subtract one" anywhere.</li>
+        <li><strong>It keeps whatever value it has until something changes it again</strong> — it doesn't reset on its own between steps, and it carries the same number forward from move to move.</li>
+        <li><strong>Other things read it and act on it</strong> — not just you. Rover-7's own systems check FUEL after every move and end the run if it runs out, and an IF block can check "Fuel Low" and branch on whatever FUEL currently reads, without your program ever writing that number down.</li>
       </ol>
-      <p style="margin-top:10px;"><strong>Worked example</strong> — climbing until a wall shows up, with no idea how many steps that'll take:</p>
-      <p style="font-family:'JetBrains Mono',monospace; font-size:13.5px; margin:4px 0 0;">🔄 REPEAT UNTIL Wall Ahead [ ⬆ Up ]</p>
-      <p style="font-size:13.5px; color:var(--ink-soft); margin:4px 0 0;">Rover-7 checks for a wall BEFORE every Up. As long as there isn't one, it moves up and checks again. The moment a wall really is ahead, it stops right there — one wall, three, or none, the same block handles all of it.</p>
+      <p style="margin-top:10px;"><strong>Worked example</strong> — a tank draining across three moves:</p>
+      <p style="font-family:'JetBrains Mono',monospace; font-size:13.5px; margin:4px 0 0;">FUEL: 6 → Forward → FUEL: 5 → Forward → FUEL: 4 → Forward → FUEL: 3</p>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:4px 0 0;">Nobody typed "3" anywhere in the program — it's being tracked as things happen, one move at a time, and Command Control reads whatever it currently says after every single step.</p>
     </div>
 
     <div class="mission-actions">
@@ -558,7 +546,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Platform India is fogged — you can only see Rover-7's own cell and the four right next to it, but the flag always shows on your sensor, with a chip telling you which way and how far. There's ONE wall hidden somewhere on the way up. I've started your climb; raise its count to reach the flag's row, then add an IF block INSIDE it — before the Up, using the ▲ button if it lands in the wrong spot — that checks Wall Ahead and steps right around it when it's true. Command Control won't accept this route unless that IF genuinely fires TRUE during the run. Patrol Platform India and reach the flag.</p></div>
+          <div><p><strong>COMMANDER:</strong> Rover-7's tank reads <strong>FUEL: 6</strong>, and every move costs 1 — you don't add a block for that, it just happens. Watch the number as you go. I've started your climb; raise its count until Rover-7 reaches the flag on Platform Kilo, with fuel to spare.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail">
@@ -580,7 +568,7 @@
           </div>
           <div class="prog-col">
             <div class="prog-status-row">
-              <p class="flag-chip" id="flagChip1">🚩 FLAG: —</p>
+              <div class="fuel-chip" id="fuel1">⛽ FUEL: 6</div>
             </div>
             <div class="chip-order" id="prog1"></div>
           </div>
@@ -614,7 +602,7 @@
       <div class="game-palette-col">
         <div class="dialogue compact">
           <div class="avatar">🧑‍🚀</div>
-          <div><p><strong>COMMANDER:</strong> Platform Juliet has no fog — you can see everything — but you don't know how many steps it takes to reach the wall, or the flag, and there's no starter this time. That's exactly what 🔄 REPEAT UNTIL is for: it keeps going until its condition is true, with no count to guess. Build one REPEAT UNTIL that climbs until a wall is ahead, then another that heads for the flag until it's reached.</p></div>
+          <div><p><strong>COMMANDER:</strong> Platform Lima has a wall in the direct path, and this tank only holds 5 — the long way round costs more than that, so the straight detour will run Rover-7 dry before it reaches the flag. There's a charging pad out to the side, though: route through it first, and the tank refills enough to finish with fuel left over. You can also check <strong>IF Fuel Low</strong> now if you want a program that reacts to the number itself, not just the map.</p></div>
         </div>
         <div class="palette-cols">
           <div class="control-rail">
@@ -627,7 +615,6 @@
               </div>
               <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
               <button class="cmd-btn condition-btn" type="button" id="addCondition2">🔀 Add Condition</button>
-              <button class="cmd-btn until-btn" type="button" id="addUntil2">🔄 Repeat Until</button>
             </div>
             <div class="mission-actions">
               <button class="primary" id="run2">▶ Run Program</button>
@@ -635,7 +622,12 @@
               <button class="ghost" id="clear2">Clear Program</button>
             </div>
           </div>
-          <div class="chip-order" id="prog2"></div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <div class="fuel-chip" id="fuel2">⛽ FUEL: 5</div>
+            </div>
+            <div class="chip-order" id="prog2"></div>
+          </div>
         </div>
         <p class="mission-msg" id="msg2"></p>
         <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
@@ -661,7 +653,7 @@
     </div>
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Condition Protocol as mastered.</p></div>
+      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Variable Protocol as mastered.</p></div>
     </div>
 
     <div class="panel">
@@ -669,28 +661,28 @@
       <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. What is an IF block? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q1" value="0">A block that runs a fixed number of times, decided in advance</label>
-        <label class="choice"><input type="radio" name="q1" value="1">A block that only runs its steps when its condition is actually true at that point in your program — otherwise it skips them</label>
-        <label class="choice"><input type="radio" name="q1" value="2">A block that runs once, automatically, the moment a specific trigger happens elsewhere in the mission</label>
-        <label class="choice"><input type="radio" name="q1" value="3">A block that always runs its steps no matter what, but changes their order randomly</label>
+        <div class="qtext">1. What is a variable, like FUEL, in this unit? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">A command that always does the exact same fixed action, every single time</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A named box that holds a value, and that value can change while the mission runs</label>
+        <label class="choice"><input type="radio" name="q1" value="2">A block that runs once and then disappears from the program forever</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A fixed number written into the program that can never change once the mission starts</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet writes: <code>IF Wall Ahead AND On Beacon → Right</code>. Rover-7 is right next to a wall, but it is NOT on the beacon cell. What happens when the program reaches this block? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">Right still runs, because at least one of the two conditions (Wall Ahead) is true</label>
-        <label class="choice"><input type="radio" name="q2" value="1">Right does NOT run — AND needs BOTH conditions to be true at once, and only one of them is</label>
-        <label class="choice"><input type="radio" name="q2" value="2">The program stops working because it can't check two conditions at the same time</label>
-        <label class="choice"><input type="radio" name="q2" value="3">Right runs twice, once for each condition</label>
+        <div class="qtext">2. A rover starts with 5 FUEL. It drives 3 Forwards to reach a charging pad worth +4, then 2 more Forwards to reach the flag. What does FUEL read when it arrives? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">0 — the 5 forwards along the way used up all the fuel, and the pad doesn't change that</label>
+        <label class="choice"><input type="radio" name="q2" value="1">4 — 5 minus the first 3 forwards is 2, plus the pad's 4 is 6, minus the last 2 forwards is 4</label>
+        <label class="choice"><input type="radio" name="q2" value="2">6 — 5 minus the first 3 forwards is 2, plus the pad's 4 is 6, and arriving doesn't cost anything</label>
+        <label class="choice"><input type="radio" name="q2" value="3">9 — the pad's +4 just gets added to the starting 5, and moving doesn't cost fuel at all</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really a real-time condition check — deciding based on something true right now, possibly combining two checks — or is it something else?</div>
-        <div class="yn-row" data-idx="0"><div class="yn-text">If it's raining AND you don't have an umbrella, take the bus</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="1"><div class="yn-text">If your homework is done OR it's already Saturday, you can play games</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="2"><div class="yn-text">Doing 20 minutes of reading every night before bed, no matter what</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="3"><div class="yn-text">Your phone buzzing with a text, so you check it</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="4"><div class="yn-text">Choosing to wear a jacket only if it's cold outside</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really a value being tracked, that changes over time — or is it something else?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">A fitness watch's step counter, going up by 1 every step you take</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">Your phone's battery percentage, which stops the phone from turning on once it hits 0%</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">The number of players on a soccer team (always 11)</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Picking one flavor of ice cream once at the counter</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Your whole grocery list of six different items</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -707,7 +699,7 @@
     </div>
   </section>
 
-  <footer>Flow Academy · The Loop · Unit 5 of 10</footer>
+  <footer>Flow Academy · The Loop · Unit 6 of 10</footer>
 </main>
 
 <div id="modal-bg">
@@ -737,7 +729,7 @@
   function checkForSavedResult() {
     if (!window.CodingAuth || !CodingAuth.user || typeof CodingAuth.fetchResults !== 'function') return;
     CodingAuth.fetchResults().then((results) => {
-      const mine = (results || []).find(r => String(r.unit_key) === '5');
+      const mine = (results || []).find(r => String(r.unit_key) === '6');
       if (mine && mine.raw_payload) {
         savedRawPayload = mine.raw_payload;
         document.getElementById('reviewBtn').style.display = '';
@@ -809,10 +801,10 @@
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
   // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event / Add
-  // Condition) is deliberately NOT shuffled — it's a fixed toolbar, same order every load and
-  // every unit, so cadets build muscle memory for the tool itself instead of re-reading button
-  // positions each time. Add Condition is appended last since it's this unit's new block, in
-  // teaching order (Repeat → Event → Condition, matching Units 2/4/5).
+  // Condition / +1 Score / Reset Score) is deliberately NOT shuffled — it's a fixed toolbar, same
+  // order every load and every unit, so cadets build muscle memory for the tool itself instead of
+  // re-reading button positions each time. The two score blocks are appended last since they're
+  // this unit's new tools, in teaching order (Repeat → Event → Condition → Variable).
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -842,10 +834,10 @@
     document.getElementById('beginBtn').click();
   });
 
-  // ================= Calibration: Spot the Condition =================
+  // ================= Calibration: Spot the Variable =================
   const CAL_CHOICES = [
-    { id: 0, label: '🔀 IF Wall Ahead → Right', correct: true },
-    { id: 1, label: '🔁 Repeat 4 [ Right ]', correct: false },
+    { id: 0, label: '⛽ FUEL (starts at 6, drops by 1 every move, refills at a pad)', correct: true },
+    { id: 1, label: '🔁 Repeat 4 [ Up ]', correct: false },
     { id: 2, label: '🔔 On Signal Beacon → Right', correct: false },
     { id: 3, label: 'Up, Up, Right', correct: false },
   ];
@@ -888,22 +880,22 @@
     });
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. That checks something true right now, and only then acts — a real condition.';
+      msg.textContent = '✅ Correct. That\'s a real variable — a named value that changes while the mission runs, and stays remembered afterward.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
     } else if (choice.id === 1) {
-      msg.textContent = '🤖 That\'s a REPEAT loop — it runs a fixed number of times no matter what\'s actually true. A condition checks something real before deciding.';
+      msg.textContent = '🤖 That\'s a REPEAT loop — its count is fixed the moment you set it, and it doesn\'t remember anything once the run ends.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 2) {
-      msg.textContent = '🤖 That\'s an EVENT — it fires once, whenever its trigger actually happens, and you don\'t decide the exact moment. A condition is different: you place it at a specific point in your program, and it checks whether something is true right then.';
+      msg.textContent = '🤖 That\'s an EVENT — it fires once when its trigger happens. It doesn\'t hold a value that adds up over time.';
       msg.className = 'puzzle-msg bad';
     } else if (choice.id === 3) {
-      msg.textContent = '🤖 That\'s a plain sequence — it always runs the same way, with nothing being checked at all.';
+      msg.textContent = '🤖 That\'s a plain sequence — it always runs the same fixed steps, with no value being tracked or remembered at all.';
       msg.className = 'puzzle-msg bad';
     } else {
-      msg.textContent = 'Not quite — think about which one checks something true right now, versus running on its own schedule or waiting for a trigger.';
+      msg.textContent = 'Not quite — think about which one holds a value that can go up (or be reset) while the mission runs.';
       msg.className = 'puzzle-msg bad';
     }
   });
@@ -921,11 +913,10 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ REPEAT + CONDITION + REPEAT UNTIL + FOG support =================
+  // ================= Rover engine w/ REPEAT + CONDITION + FUEL support =================
   const DELTA = { UP: { dr: -1, dc: 0 }, DOWN: { dr: 1, dc: 0 }, LEFT: { dr: 0, dc: -1 }, RIGHT: { dr: 0, dc: 1 } };
   const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right' };
-  const COND_LABEL = { wall: '🧱 Wall Ahead' };
-  const UNTIL_COND_LABEL = { wall: '🧱 Wall Ahead', atFlag: '🚩 At Flag' };
+  const COND_LABEL = { wall: '🧱 Wall Ahead', fuelLow: '⛽ Fuel Low' };
 
   function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
   class MissionFail extends Error {}
@@ -933,16 +924,15 @@
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
-    // {type:'condition', cond, children}, or {type:'until', cond, children}. A repeat's children can
-    // hold cmd, another repeat (one level of nesting, from Unit 3), OR a condition (NEW this unit --
-    // Mission 1's whole point is an IF living inside a REPEAT). A condition's children are flat cmds
-    // only (unchanged from the old model). An until's children can hold flat cmds OR one condition, but
-    // never another until and never a repeat -- see updateContainerBtns for the exact nesting matrix.
-    // Both 'condition' and 'until' are checked/re-checked IN PLACE, using the rover's real state right
-    // then -- there's no beacon/event handler-registration model in this unit at all (that was Unit 4's
-    // mechanic; it's deliberately not carried forward -- Unit 5's own new mechanics are fog and
-    // REPEAT UNTIL, not events -- see the Decisions log).
+    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children}, or
+    // {type:'condition', cond, children}. A repeat's children can hold cmd, another repeat (one level
+    // of nesting, from Unit 3), or a condition (from Unit 5). A condition's children are flat cmds
+    // only. There's no Event/beacon apparatus in this unit at all (dropped starting Unit 5) and no
+    // REPEAT UNTIL either (E6 is Unit 5 Mission 2 and Unit 9 only, not carried into every later unit) --
+    // see updateContainerBtns for the full nesting matrix. This unit's own new mechanic is FUEL (E7):
+    // a variable that drops automatically on every move and is read by the engine itself (to end a run
+    // that runs dry) and, optionally, by an IF block via the new 'fuelLow' condition source (E8) --
+    // the whole point being that a variable is changed and read by more than just a dedicated command.
     function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
     let program = cloneStarter();
     let openStack = (cfg.starterOpenOuter && program.length && program[0].type === 'repeat') ? [program[0]] : [];
@@ -953,8 +943,10 @@
     let failCount = 0;
     let hintsUsed = 0;
     let conditionFiredTrue = false;
-    let usedUntilBlock = false;
-    let infiniteLoopHits = 0;
+    let fuel = mission.fuel ? mission.fuel.start : null;
+    let padsCollected = new Set();
+    let padsCollectedThisRun = 0;
+    let outOfFuelRuns = 0;
     let cellEls = [];
 
     function updateHintUI() {
@@ -976,23 +968,29 @@
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function padAt(r, c) { return mission.fuel ? mission.fuel.pads.find(p => p.r === r && p.c === c) : null; }
     function cellEl(r, c) { return cellEls[r * mission.cols + c]; }
 
-    // "Wall Ahead" always checks in the mission's own fixed primaryDir -- there's no rover heading in
-    // this absolute d-pad model, so unlike a turtle's "ahead," Rover-7's forward direction has to be a
-    // per-mission constant (documented deviation, see Decisions log). "At Flag" is REPEAT UNTIL-only --
-    // it's not exposed on the regular IF dropdown (cfg.condSources), since it names a specific stopping
-    // condition for a loop, not a general branch check.
+    // "Wall Ahead" checks the mission's own fixed primaryDir (no heading in this absolute d-pad model
+    // -- see the Decisions log for the standing translation established in Unit 5). "Fuel Low" (E8) is
+    // simply the current FUEL value against a fixed threshold; it reads whatever FUEL is RIGHT NOW,
+    // exactly the "other things read it" point this unit's Field Manual makes.
     function checkCond(key, st) {
       if (key === 'wall') {
         const d = DELTA[mission.primaryDir];
         const nr = st.r + d.dr, nc = st.c + d.dc;
         return !inBounds(nr, nc) || isWall(nr, nc);
       }
-      if (key === 'atFlag') {
-        return st.r === mission.goal.r && st.c === mission.goal.c;
+      if (key === 'fuelLow') {
+        return mission.fuel ? fuel <= 2 : false;
       }
       return false;
+    }
+
+    function updateFuelUI() {
+      if (!cfg.fuelEl || !mission.fuel) return;
+      cfg.fuelEl.textContent = '⛽ FUEL: ' + fuel;
+      cfg.fuelEl.classList.toggle('low', fuel <= 2);
     }
 
     function buildGrid() {
@@ -1005,38 +1003,18 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
+          const pad = padAt(r, c);
+          if (pad) {
+            cell.classList.add('pad');
+            cell.textContent = '⚡' + pad.amount;
+            if (padsCollected.has(r + ',' + c)) cell.classList.add('collected');
+          }
           if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
           cellEls.push(cell);
         }
       }
       cfg.gridEl.appendChild(cfg.roverEl);
-      updateFog();
-    }
-
-    // E4 · fog of war. Only opt-in when mission.fogRadius is set (Mission 1 only). Recomputed after
-    // every move -- a fogged cell (Manhattan distance beyond fogRadius from the rover, and not the
-    // goal) renders as '.cell.fogged' regardless of what's actually under it, so the wall's real
-    // location is never leaked through fog. The goal is always exempt, per E4's "never a blind search."
-    function updateFog() {
-      if (!mission.fogRadius) return;
-      for (let r = 0; r < mission.rows; r++) {
-        for (let c = 0; c < mission.cols; c++) {
-          const isGoal = (r === mission.goal.r && c === mission.goal.c);
-          const dist = Math.abs(r - state.r) + Math.abs(c - state.c);
-          cellEl(r, c).classList.toggle('fogged', !isGoal && dist > mission.fogRadius);
-        }
-      }
-    }
-    function updateFlagChip() {
-      if (!cfg.flagChipEl) return;
-      const dr = mission.goal.r - state.r, dc = mission.goal.c - state.c;
-      const dist = Math.abs(dr) + Math.abs(dc);
-      if (dist === 0) { cfg.flagChipEl.textContent = '🚩 FLAG: here!'; return; }
-      const parts = [];
-      if (dr < 0) parts.push(Math.abs(dr) + ' up'); else if (dr > 0) parts.push(dr + ' down');
-      if (dc < 0) parts.push(Math.abs(dc) + ' left'); else if (dc > 0) parts.push(dc + ' right');
-      cfg.flagChipEl.textContent = '🚩 FLAG: ' + dist + ' away (' + parts.join(', ') + ')';
     }
 
     function updateRoverPosition(animate) {
@@ -1049,15 +1027,13 @@
       cfg.roverEl.style.top = y + 'px';
     }
 
-    // Nesting matrix (E6): top level takes Repeat / Condition / Until. Inside an open Repeat: another
-    // Repeat (Unit 3) OR a Condition (NEW -- Mission 1's REPEAT[IF...] needs this). Inside an open
-    // Until: a Condition only (NEW), never a Repeat, never another Until. Inside an open Condition:
-    // flat commands only, same as ever -- Condition never accepts a container.
+    // Nesting matrix (unchanged from Unit 5, minus REPEAT UNTIL, which doesn't exist in this unit):
+    // top level takes Repeat or Condition. Inside an open Repeat: another Repeat (Unit 3) or a
+    // Condition (Unit 5). Inside an open Condition: flat commands only, same as ever.
     function updateContainerBtns() {
       const topType = openStack.length ? openStack[openStack.length - 1].type : null;
       cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
-      cfg.addConditionBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && (topType === 'repeat' || topType === 'until')));
-      if (cfg.addUntilBtn) cfg.addUntilBtn.disabled = running || openStack.length !== 0;
+      cfg.addConditionBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
       cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => { btn.disabled = running; });
     }
 
@@ -1071,7 +1047,7 @@
         const span = document.createElement('span');
         span.className = 'empty-hint';
         span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat / Condition / Repeat Until block) from the panel above.'
+          ? 'Add commands (or a Repeat / Condition block) from the panel above.'
           : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
         containerEl.appendChild(span);
         return;
@@ -1222,63 +1198,6 @@
             card.appendChild(done);
           }
           containerEl.appendChild(card);
-        } else if (item.type === 'until') {
-          const isOpen = openStack.includes(item);
-          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
-          const card = document.createElement('div');
-          card.className = 'repeat-card until-card' + (isOpen ? ' open' : '');
-          const head = document.createElement('div');
-          head.className = 'repeat-head';
-
-          const untilLabel = document.createElement('span');
-          untilLabel.textContent = '🔄 REPEAT UNTIL';
-          head.appendChild(untilLabel);
-
-          const sources = cfg.untilSources || ['wall', 'atFlag'];
-          const condSel = document.createElement('select');
-          condSel.className = 'cond-select';
-          condSel.disabled = running;
-          sources.forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k; opt.textContent = UNTIL_COND_LABEL[k];
-            if (item.cond === k) opt.selected = true;
-            condSel.appendChild(opt);
-          });
-          condSel.addEventListener('change', () => { item.cond = condSel.value; });
-          head.appendChild(condSel);
-
-          const actions = document.createElement('div');
-          actions.className = 'repeat-head-actions';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', moveUp);
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', moveDown);
-          const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove Repeat Until');
-          remove.disabled = running;
-          remove.addEventListener('click', removeItem);
-          actions.append(upBtn, downBtn, remove);
-          head.appendChild(actions);
-          card.appendChild(head);
-
-          const childrenEl = document.createElement('div');
-          childrenEl.className = 'repeat-children';
-          renderItems(item.children, childrenEl, isOpen);
-          card.appendChild(childrenEl);
-
-          if (isInnermostOpen) {
-            const done = document.createElement('button');
-            done.type = 'button';
-            done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this Repeat Until';
-            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
-            card.appendChild(done);
-          }
-          containerEl.appendChild(card);
         }
       });
     }
@@ -1307,21 +1226,20 @@
 
     cfg.addConditionBtn.addEventListener('click', () => {
       const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      if (running || !(openStack.length === 0 || (openStack.length === 1 && (topType === 'repeat' || topType === 'until')))) return;
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
       const newCondition = { type: 'condition', cond: (cfg.condSources || ['wall'])[0], children: [] };
       currentTarget().push(newCondition);
       openStack.push(newCondition);
       renderProgram();
     });
 
-    if (cfg.addUntilBtn) {
-      cfg.addUntilBtn.addEventListener('click', () => {
-        if (running || openStack.length !== 0) return;
-        const newUntil = { type: 'until', cond: (cfg.untilSources || ['wall', 'atFlag'])[0], children: [] };
-        currentTarget().push(newUntil);
-        openStack.push(newUntil);
-        renderProgram();
-      });
+    function resetRunState() {
+      state = { r: mission.start.r, c: mission.start.c };
+      fuel = mission.fuel ? mission.fuel.start : null;
+      padsCollected = new Set();
+      padsCollectedThisRun = 0;
+      updateFuelUI();
+      buildGrid(); // pads reset (E7) -- a full rebuild is also the simplest way to un-dim collected pads
     }
 
     if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
@@ -1335,10 +1253,8 @@
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { r: mission.start.r, c: mission.start.c };
+      resetRunState();
       updateRoverPosition(true);
-      updateFog();
-      updateFlagChip();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
@@ -1348,10 +1264,27 @@
       if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
       if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
       state.r = nr; state.c = nc;
+      if (mission.fuel) {
+        fuel -= mission.fuel.costPerForward;
+        const pad = padAt(nr, nc);
+        if (pad) {
+          const key = nr + ',' + nc;
+          if (!padsCollected.has(key)) {
+            padsCollected.add(key);
+            padsCollectedThisRun++;
+            fuel += pad.amount;
+            const el = cellEl(nr, nc);
+            if (el) el.classList.add('collected');
+          }
+        }
+        updateFuelUI();
+      }
       updateRoverPosition(true);
-      updateFog();
-      updateFlagChip();
       await wait(400);
+      if (mission.fuel && fuel <= 0) {
+        outOfFuelRuns++;
+        throw new MissionFail('⛽ Out of fuel at row ' + nr + '. Rover-7 made it partway — look at where the charging pads are and plan a route through one.');
+      }
     }
 
     async function runItems(items) {
@@ -1363,24 +1296,10 @@
             await runItems(item.children);
           }
         } else if (item.type === 'condition') {
-          // Checked right here, right now -- using the rover's real state at this exact point in the
-          // program, not once at the start and not on a schedule (Field Manual rule 1).
+          // Checked right here, right now -- using the rover's real state (and current FUEL) at this
+          // exact point in the program, not once at the start and not on a schedule.
           if (checkCond(item.cond, state)) {
             conditionFiredTrue = true;
-            await runItems(item.children);
-          }
-        } else if (item.type === 'until') {
-          // E6: re-check BEFORE every single pass, not just once. Hard-capped at 30 passes so a
-          // stop-condition that never becomes true ends the run with a teaching message instead of
-          // freezing the page.
-          let iterations = 0;
-          while (!checkCond(item.cond, state)) {
-            iterations++;
-            if (iterations > 30) {
-              infiniteLoopHits++;
-              throw new MissionFail('🔁 Rover-7 kept going forever — that\'s an INFINITE LOOP, and every programmer writes one eventually. Your stop-condition never became true. Which condition would actually happen?');
-            }
-            usedUntilBlock = true;
             await runItems(item.children);
           }
         }
@@ -1394,10 +1313,8 @@
       conditionFiredTrue = false;
       cfg.runBtn.disabled = true;
       updateContainerBtns();
-      state = { r: mission.start.r, c: mission.start.c };
+      resetRunState();
       updateRoverPosition(false);
-      updateFog();
-      updateFlagChip();
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
@@ -1405,10 +1322,12 @@
         await runItems(program);
         if (state.r === mission.goal.r && state.c === mission.goal.c) {
           let blockedMsg = null;
-          if (cfg.requireUntilUsed && !usedUntilBlock) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Cadets must prove they can use a REPEAT UNTIL that genuinely runs at least one pass, not a fixed count. Build one, place it where it actually has to keep going, then run it again.';
-          } else if (cfg.requireConditionUsed && !conditionFiredTrue) {
+          if (cfg.requireConditionUsed && !conditionFiredTrue) {
             blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Build an IF block and make sure its condition is actually TRUE at some point during the run — right now nothing genuinely branched.';
+          } else if (mission.fuel && fuel <= 0) {
+            // Belt-and-suspenders per the plan (running out already ends the run above) -- kept as an
+            // explicit acceptance check, not a separate targetFuel gate.
+            blockedMsg = '⛽ Rover reached the flag on fumes — FUEL is already at 0. That doesn\'t count as a clean arrival; find a route that lands with fuel to spare.';
           }
           if (blockedMsg) {
             cfg.msgEl.textContent = blockedMsg;
@@ -1416,7 +1335,7 @@
             failCount++; updateHintUI();
           } else {
             succeeded = true;
-            cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
+            cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag' + (mission.fuel ? ' with ' + fuel + ' FUEL to spare!' : '!');
             cfg.msgEl.className = 'mission-msg ok';
             if (cfg.onSuccess) cfg.onSuccess();
           }
@@ -1438,9 +1357,8 @@
       }
     });
 
-    buildGrid();
+    resetRunState();
     updateRoverPosition(false);
-    updateFlagChip();
     renderProgram();
     updateHintUI();
 
@@ -1448,28 +1366,20 @@
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
       get usedConditionOnSuccess() { return succeeded && conditionFiredTrue; },
-      get usedUntilBlockOnSuccess() { return succeeded && usedUntilBlock; },
-      get infiniteLoopHits() { return infiniteLoopHits; },
+      get fuelRemaining() { return fuel; },
+      get padsCollected() { return padsCollectedThisRun; },
+      get outOfFuelRuns() { return outOfFuelRuns; },
       get hintsUsed() { return hintsUsed; }
     };
   }
 
-  // Mission 1 · Platform India — one wall randomly placed per load among 3 candidates straight up
-  // the middle column; "IF Wall Ahead" only genuinely fires on whichever candidate this load picked,
-  // never everywhere, so the cadet has to place the block where it actually matters.
-  // Deviation from the plan's literal turtle solution (documented in the Decisions log): a literal
-  // R,F,L sidestep-and-recover doesn't translate cleanly to this absolute-direction model -- it either
-  // overshoots the row count or leaves a column drift the plan's stated fixed goal can't absorb. The
-  // detour here is a single RIGHT step (no recovery turn needed -- there's no heading to restore),
-  // always followed by an UP, so EVERY pass of the loop advances exactly one row: REPEAT count is 4
-  // (not 5, since climbing from row 4 to row 0 is only 4 rows), and the goal sits at column 3 (one
-  // column right of the start's column 2) to match the deterministic +1 column drift the one detour
-  // always produces, regardless of which of the 3 wall rows this load picked. Verified by manual
-  // simulation against all 3 wall candidates before writing this: every one lands on {r:0,c:3}.
-  const WALL_CANDIDATES_1 = [{ r: 1, c: 2 }, { r: 2, c: 2 }, { r: 3, c: 2 }];
+  // Mission 1 · Platform Kilo — a plain 4-row climb, no walls, no pads. FUEL starts at 6 and the
+  // direct route costs exactly 4, landing with 2 to spare on purpose (plan §6 U6.2: "do not make
+  // Mission 1 tight" -- its whole job is to let the cadet SEE the number fall as the rover moves,
+  // not to test tight fuel budgeting yet, which is Mission 2's job).
   const mission1Def = {
-    rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, goal: { r: 0, c: 3 },
-    walls: [pickOne(WALL_CANDIDATES_1)], primaryDir: 'UP', fogRadius: 1
+    rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, goal: { r: 0, c: 2 }, walls: [],
+    primaryDir: 'UP', fuel: { start: 6, costPerForward: 1, pads: [] }
   };
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
@@ -1477,36 +1387,33 @@
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
     addRepeatBtn: document.getElementById('addRepeat1'), addConditionBtn: document.getElementById('addCondition1'),
-    flagChipEl: document.getElementById('flagChip1'),
+    fuelEl: document.getElementById('fuel1'),
     hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
     mission: mission1Def,
     condSources: ['wall'],
-    requireConditionUsed: true,
-    // E14 starter: the climb is already started (one Up, inside an open Repeat) -- the cadet raises
-    // the count to reach the flag's row, then adds an IF block INSIDE the same loop, using ▲ to move
-    // it before the Up if it lands after (Add Condition always appends to the end of the open loop).
+    // E14 starter: REPEAT 2 [ Up ] -- the cadet raises the count to 4 to reach the flag's row. Per
+    // the plan's own explicit "intended solution" this is the whole mission; no IF needed here.
     starterProgram: [{ type: 'repeat', count: 2, children: [{ type: 'cmd', cmd: 'UP' }] }],
     starterOpenOuter: true,
+    // Deviation from the plan's shared hint text (documented in the Decisions log): Mission 1 has no
+    // wall and no pad at all, so the plan's literal after6 ("look for the pad") would be actively
+    // wrong here -- it's written for Mission 2's scenario. Mission 1 gets its own after6 instead.
     hints: {
-      after3: 'You can\'t see the wall until you\'re next to it. What if the rover checked, every single step?',
-      after6: 'Put an IF wall ahead inside your REPEAT, so it checks before each move.'
+      after3: 'Watch the FUEL number as the rover moves. What happens right before it stops?',
+      after6: 'There\'s no wall or pad to worry about here — just count the rows to the flag and match your REPEAT to that number.'
     },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
   window.__mission1 = mission1; window.__mission1Def = mission1Def; // test hook, not used in gameplay
 
-  // Mission 2 · Platform Juliet — no fog, corridor straight up column 0 with a wall fixed at row 1
-  // (unlike Mission 1, only the GOAL randomizes here per the plan -- the wall stays put), then a turn
-  // toward a flag whose column varies per load.
-  // Deviation (documented in the Decisions log): the plan's literal turtle solution is 3 top-level
-  // items (`REPEAT UNTIL wall ahead [F]`, `R`, `REPEAT UNTIL at flag [F]`) because a turtle has to
-  // physically turn before its second climb. This absolute-direction model has no heading to turn --
-  // the "turn" is just a different direction command -- so the translated solution drops the turn
-  // entirely: `REPEAT UNTIL wallAhead [UP]`, `REPEAT UNTIL atFlag [RIGHT]`, 2 top-level items.
-  const GOAL_COLS_2 = [1, 2, 3, 4];
+  // Mission 2 · Platform Lima — a wall forces a detour whose 6-forward cost exceeds the 5-fuel tank,
+  // but a pad along a different detour route refuels enough to finish with exactly 1 left. Empty
+  // start, no starter (plan §6 U6.3). condSources adds 'fuelLow' here (E8) -- available and correct if
+  // used, but the plan's own intended solution is a flat route and doesn't require it (no
+  // requireConditionUsed on this mission).
   const mission2Def = {
-    rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 0 }, goal: { r: 2, c: pickOne(GOAL_COLS_2) },
-    walls: [{ r: 1, c: 0 }], primaryDir: 'UP'
+    rows: 5, cols: 5, cellPx: 64, start: { r: 4, c: 2 }, goal: { r: 0, c: 2 }, walls: [{ r: 2, c: 2 }],
+    primaryDir: 'UP', fuel: { start: 5, costPerForward: 1, pads: [{ r: 3, c: 4, amount: 4 }] }
   };
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
@@ -1514,57 +1421,54 @@
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
     addRepeatBtn: document.getElementById('addRepeat2'), addConditionBtn: document.getElementById('addCondition2'),
-    addUntilBtn: document.getElementById('addUntil2'),
+    fuelEl: document.getElementById('fuel2'),
     hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
     mission: mission2Def,
-    condSources: ['wall'],
-    untilSources: ['wall', 'atFlag'],
-    requireUntilUsed: true,
+    condSources: ['wall', 'fuelLow'],
     hints: {
-      after3: 'You don\'t know how many steps it is. Is there a loop that doesn\'t need a number?',
-      after6: 'Repeat Until keeps going until its condition comes true — try \'until wall ahead\'.'
+      after3: 'Watch the FUEL number as the rover moves. What happens right before it stops?',
+      after6: 'There isn\'t enough fuel for the long way round. Look for the ⚡ pad and plan a route that goes through it.'
     },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
   window.__mission2 = mission2; window.__mission2Def = mission2Def; // test hook, not used in gameplay
 
+
   // ================= Finish / Debrief =================
   const QUIZ_ANSWERS = { q1: 1, q2: 1 };
-  const Q3_CORRECT = [0, 1, 4];
+  const Q3_CORRECT = [0, 1];
   const Q3_ALL = [0, 1, 2, 3, 4];
 
   const Q_EXPLAIN = {
     q1: {
       correct: 1,
       why: {
-        0: "That describes a REPEAT loop — a fixed number of runs decided ahead of time, with nothing actually being checked.",
-        1: "Exactly right. An IF block checks its condition exactly when your program reaches it, and only runs its steps if that condition is true right then.",
-        2: "That's an EVENT — it fires once, whenever its trigger actually happens, and you don't decide the exact moment. An IF is different: you place it at a specific point in your sequence, and it checks its condition right then, every time your program reaches that point.",
-        3: "An IF block doesn't reorder anything — it either runs its steps as written, or skips them entirely, based on whether its condition is true."
+        0: "That describes a plain command — it does the same thing every time, with no value being remembered or changed.",
+        1: "Exactly right. A variable is a named box that holds a value, and that value can change while the mission runs — unlike a number typed straight into the program, which is fixed the moment you write it.",
+        2: "A variable doesn't disappear after one use — it keeps its value for as long as the mission runs, until something changes it again.",
+        3: "That's the opposite of a variable — a variable is specifically a value that CAN change while the mission runs."
       },
-      codeLife: "Why it matters for coding: almost every real decision in a program is an IF — check something, then act differently depending on what's true. Why it matters in life: \"if it's raining AND I don't have an umbrella, take the bus\" — you check the real situation first, then decide, instead of deciding in advance no matter what actually happens."
+      codeLife: "Why it matters for coding: almost every real program tracks something that changes — fuel, a timer, how many lives are left. Why it matters in life: a streak or a running tally only means something because it's tracked over time, not frozen at one number forever."
     },
     q2: {
       correct: 1,
       why: {
-        0: "That's how OR works, not AND. With AND, having just one of the two conditions true isn't enough — both must be true at the same time.",
-        1: "Right. AND is strict — every single condition inside it must be true at that moment, or the whole thing counts as false and the steps are skipped.",
-        2: "Rover-7 can absolutely check two conditions at once — that's exactly what AND and OR are for. Nothing about combining conditions causes a problem.",
-        3: "A block's steps run once per time the block itself is reached and true — the number of conditions inside it doesn't multiply how many times its steps run."
+        0: "That treats the pad as if it never refills anything — but the pad's job is exactly to add fuel back before the tank actually runs out.",
+        1: "Right. FUEL drops by 1 on every Forward, whether or not a pad is involved: 5 − 3 = 2, then the pad's +4 makes 6, then the final 2 Forwards bring it down to 4.",
+        2: "This forgets that arriving still costs fuel — the last 2 Forwards after the pad have to be subtracted too, not just the first 3.",
+        3: "This skips the cost of moving entirely — every Forward drops FUEL by 1 regardless of any pad, so the starting 5 isn't left untouched."
       },
-      codeLife: "Why it matters for coding: AND/OR let a program make more precise decisions than checking one thing at a time — e.g., only alert someone if BOTH a sensor is triggered AND a safety switch is off. Why it matters in life: \"if it's raining AND I don't have an umbrella\" needs both true — being caught in rain WITH an umbrella doesn't mean you need the bus."
+      codeLife: "Why it matters for coding: a variable's value at any moment is whatever the actual sequence of changes adds up to — you have to track every step, not just the ones that feel important. Why it matters in life: a bank balance works the same way — every deposit and every withdrawal counts, in order, not just the big ones."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal.
-  // Every real-condition item names its condition and decision explicitly, not just "this is a
-  // condition" — matching the explanation style from prior units' transfer checks.
   const Q3_EXPLAIN = {
-    0: "the <strong>condition</strong> is \"raining AND no umbrella\" (both parts must be true), and the <strong>decision</strong> is taking the bus — a real combined-condition branch.",
-    1: "the <strong>condition</strong> is \"homework done OR it's Saturday\" (either one is enough), and the <strong>decision</strong> is playing games — a real combined-condition branch using OR.",
-    2: "reading every night before bed happens on a fixed schedule you decide in advance — there's no condition being checked, it just always happens.",
-    3: "the <strong>trigger</strong> is the phone buzzing, and checking it is a reaction to that trigger happening — that's an EVENT, not a condition you check partway through a plan.",
-    4: "the <strong>condition</strong> is \"it's cold outside\", and the <strong>decision</strong> is wearing a jacket — a real condition branch, checked before deciding."
+    0: "the step count starts at some value and goes <strong>up over time</strong> as steps happen — a real tracked value, not a fixed number.",
+    1: "the battery percentage <strong>changes over time</strong> AND the phone's own systems <strong>read it and act on it</strong> — refusing to turn on below 1% — exactly like a variable something else checks and reacts to.",
+    2: "the number of players on a soccer team is a fixed rule that never changes, no matter what happens — there's nothing being tracked.",
+    3: "picking a flavor once is a one-time action, not a value that keeps changing and being remembered afterward.",
+    4: "a list of several separate items is a different shape entirely from one changing number — that's a LIST, which gets its own unit later, not a single tracked value."
   };
 
   // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — keeps the interaction
@@ -1643,14 +1547,14 @@
     q2Box.classList.add('show');
 
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE real-time condition checks — YES is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE tracked values that change over time — YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
       const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT real-time condition checks — NO is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT tracked/changing values — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
       const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
@@ -1661,25 +1565,27 @@
     q3Box.classList.add('show');
 
     const rawPayload = {
-      unit_number: 5,
-      unit_title: 'Conditions',
+      unit_number: 6,
+      unit_title: 'Variables',
       stage: 1,
-      mission_version: 2,
       cadet_name: cadetName,
       completed_at: new Date().toISOString(),
       xp_earned: xp,
+      mission_version: 2,
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
         mission_1: {
           succeeded: mission1.succeeded, attempts: mission1.attempts,
-          wall_cell: mission1Def.walls[0], used_condition: mission1.usedConditionOnSuccess,
-          infinite_loop_hits: mission1.infiniteLoopHits, hints_used: mission1.hintsUsed
+          fuel_start: mission1Def.fuel.start, fuel_remaining: mission1.fuelRemaining,
+          pads_collected: mission1.padsCollected, out_of_fuel_runs: mission1.outOfFuelRuns,
+          hints_used: mission1.hintsUsed
         },
         mission_2: {
           succeeded: mission2.succeeded, attempts: mission2.attempts,
-          used_until_block: mission2.usedUntilBlockOnSuccess,
-          infinite_loop_hits: mission2.infiniteLoopHits, hints_used: mission2.hintsUsed
+          fuel_start: mission2Def.fuel.start, fuel_remaining: mission2.fuelRemaining,
+          pads_collected: mission2.padsCollected, out_of_fuel_runs: mission2.outOfFuelRuns,
+          hints_used: mission2.hintsUsed, used_condition: mission2.usedConditionOnSuccess
         }
       },
       quiz: {
@@ -1704,8 +1610,8 @@
       // Results save straight to the signed-in cadet's Supabase account — the next unit unlocks
       // automatically on The Loop.
       CodingAuth.saveResult({
-        unit_key: '5',
-        unit_title: 'Conditions',
+        unit_key: '6',
+        unit_title: 'Variables',
         xp_earned: xp,
         concept_score: conceptScore,
         concept_out_of: 2,
@@ -1723,8 +1629,8 @@
       });
     }
 
-    const PREV_UNIT_FILE = 'unit_04_events.html';
-    const NEXT_UNIT_FILE = 'unit_06_variables.html';
+    const PREV_UNIT_FILE = 'unit_05_conditions.html';
+    const NEXT_UNIT_FILE = 'unit_07_custom_blocks.html';
     const nav = document.getElementById('postDebriefNav');
     nav.classList.add('show');
     const prevBtn = document.getElementById('prevUnitBtn');

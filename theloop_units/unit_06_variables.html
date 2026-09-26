@@ -241,6 +241,10 @@
   .dialogue.compact .avatar { font-size: 18px; }
 
   .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  /* Keep the whole control rail visible when a long mission message appears below it (the message
+     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
+  .game-palette-col .palette-cols { min-height: 360px; }
+  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
   .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
   .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
   .control-rail .mission-actions button { width: 100%; }
@@ -1283,7 +1287,7 @@
       await wait(400);
       if (mission.fuel && fuel <= 0) {
         outOfFuelRuns++;
-        throw new MissionFail('⛽ Out of fuel at row ' + nr + '. Rover-7 made it partway — look at where the charging pads are and plan a route through one.');
+        throw new MissionFail('⛽ Out of fuel! Rover-7 stalled ' + (Math.abs(mission.goal.r - nr) + Math.abs(mission.goal.c - nc)) + ' square(s) from the flag — look at where the charging pads are and plan a route through one.');
       }
     }
 

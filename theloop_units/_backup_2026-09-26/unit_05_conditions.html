@@ -234,10 +234,6 @@
   .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
   .stage-grid-wrap .cell.fogged { background: rgba(10,14,30,.55); }
   .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
-  /* Fog must fully hide a wall: the wall's tint/emoji size rules above (and the dark-theme wall rule)
-     out-ranked plain .fogged, so the hidden wall's cell looked different and gave its spot away. */
-  html .stage-grid-wrap .cell.wall.fogged, html:not([data-theme="light"]) .stage-grid-wrap .cell.wall.fogged { background: rgba(10,14,30,.55); box-shadow: none; }
-  html .stage-grid-wrap .cell.wall.fogged::after { font-size: 11px; }
 
   .game-palette-col {
     position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
@@ -254,11 +250,6 @@
   .dialogue.compact .avatar { font-size: 18px; }
 
   .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
-  /* Keep the whole control rail visible when a long mission message appears below it (the message
-     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
-  .game-palette-col .palette-cols { min-height: 360px; }
-  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
-  #scr-t3 .game-palette-col .palette-cols { min-height: 410px; }
   .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
   .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
   .control-rail .mission-actions button { width: 100%; }
@@ -1485,7 +1476,7 @@
     // E14 starter: the climb is already started (one Up, inside an open Repeat) -- the cadet raises
     // the count to reach the flag's row, then adds an IF block INSIDE the same loop, using ▲ to move
     // it before the Up if it lands after (Add Condition always appends to the end of the open loop).
-    starterProgram: [{ type: 'repeat', count: 2, children: [{ type: 'cmd', cmd: 'UP' }] }],
+    starterProgram: [{ type: 'repeat', count: 1, children: [{ type: 'cmd', cmd: 'UP' }] }],
     starterOpenOuter: true,
     hints: {
       after3: 'You can\'t see the wall until you\'re next to it. What if the rover checked, every single step?',
