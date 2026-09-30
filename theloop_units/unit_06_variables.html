@@ -380,6 +380,25 @@
     user-select: none;
   }
 
+  /* V2 E15: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a handful
+     of sparkle particles, so a win reads as a moment, not just a text swap. Ported verbatim from
+     unit_01_sequence.html via Units 4/5's T1/T3 -- the per-zone `.rover.celebrating` filter rules
+     above were already in place (copied along with the zone theming block) but had no animation or
+     JS to trigger them until this build. */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
+
   .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   .quiz-q:first-of-type { border-top: none; padding-top: 0; }
   .qtext { font-weight: 700; }
@@ -569,6 +588,9 @@
               <button class="ghost" id="reset1">Reset Rover</button>
               <button class="ghost" id="clear1">Clear Program</button>
             </div>
+            <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+              <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+            </div>
           </div>
           <div class="prog-col">
             <div class="prog-status-row">
@@ -624,6 +646,9 @@
               <button class="primary" id="run2">▶ Run Program</button>
               <button class="ghost" id="reset2">Reset Rover</button>
               <button class="ghost" id="clear2">Clear Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+              <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
             </div>
           </div>
           <div class="prog-col">
@@ -922,7 +947,10 @@
   const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right' };
   const COND_LABEL = { wall: '🧱 Wall Ahead', fuelLow: '⛽ Fuel Low' };
 
-  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  // V2 E15: "Watch Again" replays the winning program at 1.5x speed (2/3 the real-run delay) by
+  // scaling every wait() through this shared factor while a replay is in flight.
+  let replaySpeedFactor = 1;
+  function wait(ms) { return new Promise(res => setTimeout(res, ms * replaySpeedFactor)); }
   class MissionFail extends Error {}
   function pickOne(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -951,6 +979,7 @@
     let padsCollected = new Set();
     let padsCollectedThisRun = 0;
     let outOfFuelRuns = 0;
+    let winningProgram = null; // V2 E15: snapshot of the program tree that just won, for "Watch Again"
     let cellEls = [];
 
     function updateHintUI() {
@@ -1051,8 +1080,8 @@
         const span = document.createElement('span');
         span.className = 'empty-hint';
         span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat / Condition block) from the panel above.'
-          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+          ? 'Add commands (or a Repeat / Condition block) from the panel on the left.'
+          : (hintMode ? 'Click commands on the left — they’ll go in here.' : '(empty)');
         containerEl.appendChild(span);
         return;
       }
@@ -1252,6 +1281,7 @@
       program = cloneStarter();
       openStack = (cfg.starterOpenOuter && program.length && program[0].type === 'repeat') ? [program[0]] : [];
       renderProgram();
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
@@ -1259,6 +1289,7 @@
       if (running) return;
       resetRunState();
       updateRoverPosition(true);
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
@@ -1310,11 +1341,82 @@
       }
     }
 
+    // ---- V2 E15: mission-complete celebration -- spin+scale+sparkle, a Commander line that varies
+    // by how the run went, and a "Watch Again" replay of the winning program at 1.5x speed. Ported
+    // from Unit 5's T1 (which itself ported Unit 4's), replaying through this unit's own
+    // runItems(program) -- no handler map here (no events in this unit), so the call is simple, but
+    // unlike Units 4/5 the replay must call resetRunState() first so FUEL and the pads reset before
+    // it re-runs, otherwise the replay would start from wherever the real run's FUEL ended up. ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      const base = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.textContent = mission.fuel ? base + ' ⛽ ' + fuel + ' FUEL to spare.' : base;
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess();
+    }
+    if (cfg.watchAgainBtn) {
+      cfg.watchAgainBtn.addEventListener('click', async () => {
+        if (running || !winningProgram || !winningProgram.length) return;
+        running = true;
+        cfg.runBtn.disabled = true;
+        cfg.watchAgainBtn.disabled = true;
+        // A replay is not an attempt: snapshot everything the real run's telemetry depends on, so
+        // re-running the tree for the replay's FUEL/pad updates can't leak back into
+        // attempts/succeeded/conditionFiredTrue/outOfFuelRuns/padsCollectedThisRun/failCount. FUEL
+        // itself is the one exception (plan §3 T1): resetRunState() below puts it back at the
+        // mission's start value and the replay counts it back down, so it ends the replay showing
+        // the same final value the winning run reached -- that's the intended display, not a leak.
+        const savedAttempts = attempts, savedSucceeded = succeeded, savedFailCount = failCount;
+        const savedConditionFiredTrue = conditionFiredTrue;
+        const savedOutOfFuelRuns = outOfFuelRuns, savedPadsCollectedThisRun = padsCollectedThisRun;
+        const savedMsgText = cfg.msgEl.textContent, savedMsgClass = cfg.msgEl.className;
+        resetRunState();
+        updateRoverPosition(false);
+        replaySpeedFactor = 2 / 3; // 1.5x speed
+        try {
+          await runItems(winningProgram);
+        } catch (e) {
+          if (!(e instanceof MissionFail)) throw e;
+        } finally {
+          replaySpeedFactor = 1;
+        }
+        attempts = savedAttempts; succeeded = savedSucceeded; failCount = savedFailCount;
+        conditionFiredTrue = savedConditionFiredTrue;
+        outOfFuelRuns = savedOutOfFuelRuns; padsCollectedThisRun = savedPadsCollectedThisRun;
+        cfg.msgEl.textContent = savedMsgText; cfg.msgEl.className = savedMsgClass;
+        running = false;
+        cfg.runBtn.disabled = false;
+        cfg.watchAgainBtn.disabled = false;
+      });
+    }
+
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
       running = true;
       attempts++;
       conditionFiredTrue = false;
+      hideWatchAgain();
       cfg.runBtn.disabled = true;
       updateContainerBtns();
       resetRunState();
@@ -1339,9 +1441,8 @@
             failCount++; updateHintUI();
           } else {
             succeeded = true;
-            cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag' + (mission.fuel ? ' with ' + fuel + ' FUEL to spare!' : '!');
-            cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess();
+            winningProgram = JSON.parse(JSON.stringify(program));
+            celebrate();
           }
         } else {
           cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
@@ -1350,7 +1451,13 @@
         }
       } catch (e) {
         if (e instanceof MissionFail) {
-          cfg.msgEl.textContent = e.message;
+          let extra = '';
+          // T3: ran dry without ever touching the pad -- on a mission that actually has one. M1 has
+          // no pads at all (pads: []), so this can never fire there, which is correct (plan §3 T3).
+          if (e.message.includes('Out of fuel') && padsCollectedThisRun === 0 && mission.fuel && mission.fuel.pads && mission.fuel.pads.length > 0) {
+            extra += ' ⚡ Your route never touched the charging pad — the tank can\'t cover this distance on its own. Find a way through the ⚡ square first.';
+          }
+          cfg.msgEl.textContent = e.message + extra;
           cfg.msgEl.className = 'mission-msg bad';
           failCount++; updateHintUI();
         } else { throw e; }
@@ -1393,6 +1500,7 @@
     addRepeatBtn: document.getElementById('addRepeat1'), addConditionBtn: document.getElementById('addCondition1'),
     fuelEl: document.getElementById('fuel1'),
     hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
     condSources: ['wall'],
     // E14 starter: REPEAT 2 [ Up ] -- the cadet raises the count to 4 to reach the flag's row. Per
@@ -1405,6 +1513,11 @@
     hints: {
       after3: 'Watch the FUEL number as the rover moves. What happens right before it stops?',
       after6: 'There\'s no wall or pad to worry about here — just count the rows to the flag and match your REPEAT to that number.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! You watched the number and matched your loop to it.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 made the climb. Watching FUEL fall is how you learn what a variable does.',
+      normal: '🎉 MISSION COMPLETE — Rover-7 reached the flag!'
     },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
@@ -1427,11 +1540,17 @@
     addRepeatBtn: document.getElementById('addRepeat2'), addConditionBtn: document.getElementById('addCondition2'),
     fuelEl: document.getElementById('fuel2'),
     hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
     condSources: ['wall', 'fuelLow'],
     hints: {
       after3: 'Watch the FUEL number as the rover moves. What happens right before it stops?',
       after6: 'There isn\'t enough fuel for the long way round. Look for the ⚡ pad and plan a route that goes through it.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! You read the tank, spotted the pad, and planned around both.',
+      afterStruggle: '🎉 MISSION COMPLETE — the long way round was too long, so you refuelled. That\'s using a variable to decide, Cadet.',
+      normal: '🎉 MISSION COMPLETE — Rover-7 refuelled and reached the flag!'
     },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });

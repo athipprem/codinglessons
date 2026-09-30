@@ -387,6 +387,23 @@
     user-select: none;
   }
 
+  /* V2 E15: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a handful
+     of sparkle particles, so a win reads as a moment, not just a text swap. Ported verbatim from
+     unit_01_sequence.html via Unit 4's T3 (T1). */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
+
   .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   .quiz-q:first-of-type { border-top: none; padding-top: 0; }
   .qtext { font-weight: 700; }
@@ -586,6 +603,9 @@
           </div>
         </div>
         <p class="mission-msg" id="msg1"></p>
+        <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+          <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+        </div>
         <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText1"></p></div>
         <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
       </div>
@@ -638,6 +658,9 @@
           <div class="chip-order" id="prog2"></div>
         </div>
         <p class="mission-msg" id="msg2"></p>
+        <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+          <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
+        </div>
         <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
         <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
       </div>
@@ -927,7 +950,10 @@
   const COND_LABEL = { wall: '🧱 Wall Ahead' };
   const UNTIL_COND_LABEL = { wall: '🧱 Wall Ahead', atFlag: '🚩 At Flag' };
 
-  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  // V2 E15: "Watch Again" replays the winning program at 1.5x speed (2/3 the real-run delay) by
+  // scaling every wait() through this shared factor while a replay is in flight.
+  let replaySpeedFactor = 1;
+  function wait(ms) { return new Promise(res => setTimeout(res, ms * replaySpeedFactor)); }
   class MissionFail extends Error {}
   function pickOne(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -955,6 +981,14 @@
     let conditionFiredTrue = false;
     let usedUntilBlock = false;
     let infiniteLoopHits = 0;
+    let edgeFired = false; // T2(b): a wall-condition came out TRUE because the cell ahead was off the
+                            // platform edge, not a real wall -- reset on every Run.
+    let wrongStopFired = false; // T4: the innermost active UNTIL was stopping on "at flag" when the
+                                 // rover crashed (wall or edge) -- reset on every Run, unlike wrongStopHits.
+    let wrongStopHits = 0; // T4: persists across runs like infiniteLoopHits.
+    let untilCondStack = []; // T4: which UNTIL block(s) are currently executing their children, innermost
+                              // last -- so a MissionFail thrown mid-body can be blamed on the right loop.
+    let winningProgram = null; // V2 E15: snapshot of the program tree that just won, for "Watch Again"
     let cellEls = [];
 
     function updateHintUI() {
@@ -987,7 +1021,12 @@
       if (key === 'wall') {
         const d = DELTA[mission.primaryDir];
         const nr = st.r + d.dr, nc = st.c + d.dc;
-        return !inBounds(nr, nc) || isWall(nr, nc);
+        const offEdge = !inBounds(nr, nc);
+        // T2(b): the edge counts as a wall too (unchanged semantics, V2 plan exclusion) -- but track
+        // when THAT'S what actually fired, so a failed run can explain it instead of leaving the cadet
+        // to guess why the IF fired somewhere with no wall in sight.
+        if (offEdge) edgeFired = true;
+        return offEdge || isWall(nr, nc);
       }
       if (key === 'atFlag') {
         return st.r === mission.goal.r && st.c === mission.goal.c;
@@ -1071,8 +1110,8 @@
         const span = document.createElement('span');
         span.className = 'empty-hint';
         span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat / Condition / Repeat Until block) from the panel above.'
-          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+          ? 'Add commands (or a Repeat / Condition / Repeat Until block) from the panel on the left.'
+          : (hintMode ? 'Click commands on the left — they’ll go in here.' : '(empty)');
         containerEl.appendChild(span);
         return;
       }
@@ -1330,6 +1369,7 @@
       program = cloneStarter();
       openStack = (cfg.starterOpenOuter && program.length && program[0].type === 'repeat') ? [program[0]] : [];
       renderProgram();
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
@@ -1339,6 +1379,7 @@
       updateRoverPosition(true);
       updateFog();
       updateFlagChip();
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
@@ -1352,6 +1393,23 @@
       updateFog();
       updateFlagChip();
       await wait(400);
+    }
+
+    // T2(a): "IF after the move" -- some repeat's children have a cmd sitting before its condition, so
+    // the check fires against the state AFTER stepping instead of before. Checked structurally (not by
+    // simulating), and recurses into nested repeats since Unit 3's one-level nesting still applies here.
+    function repeatHasIfAfterMove(items) {
+      for (const item of items) {
+        if (item.type === 'repeat') {
+          const firstCmdIdx = item.children.findIndex(c => c.type === 'cmd');
+          const condIdx = item.children.findIndex(c => c.type === 'condition');
+          if (firstCmdIdx !== -1 && condIdx !== -1 && condIdx > firstCmdIdx) return true;
+          if (repeatHasIfAfterMove(item.children)) return true;
+        } else if (item.type === 'condition' || item.type === 'until') {
+          if (repeatHasIfAfterMove(item.children)) return true;
+        }
+      }
+      return false;
     }
 
     async function runItems(items) {
@@ -1381,10 +1439,93 @@
               throw new MissionFail('🔁 Rover-7 kept going forever — that\'s an INFINITE LOOP, and every programmer writes one eventually. Your stop-condition never became true. Which condition would actually happen?');
             }
             usedUntilBlock = true;
-            await runItems(item.children);
+            // T4: track the innermost active UNTIL's stop-condition while its body runs, so a crash
+            // (wall collision or off-edge) that happens because "at flag" could never come true --
+            // Rover-7 was never heading toward the flag on this stretch -- gets its own teaching tip
+            // instead of a bare COLLISION/SYSTEM ERROR message.
+            untilCondStack.push(item.cond);
+            try {
+              await runItems(item.children);
+            } catch (e) {
+              if (e instanceof MissionFail && untilCondStack[untilCondStack.length - 1] === 'atFlag') {
+                wrongStopFired = true;
+                wrongStopHits++;
+              }
+              throw e;
+            } finally {
+              untilCondStack.pop();
+            }
           }
         }
       }
+    }
+
+    // ---- V2 E15: mission-complete celebration -- spin+scale+sparkle, a Commander line that varies
+    // by how the run went, and a "Watch Again" replay of the winning program at 1.5x speed. Ported
+    // from Unit 4's T3 (which itself ported Unit 1's), replaying through this unit's own runItems(program)
+    // -- there's no handler map here (no events in this unit), so the call is simpler than Unit 4's. ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess();
+    }
+    if (cfg.watchAgainBtn) {
+      cfg.watchAgainBtn.addEventListener('click', async () => {
+        if (running || !winningProgram || !winningProgram.length) return;
+        running = true;
+        cfg.runBtn.disabled = true;
+        cfg.watchAgainBtn.disabled = true;
+        // A replay is not an attempt: snapshot everything the real run's telemetry depends on, so
+        // re-running the tree for the replay's fog/flag-chip updates can't leak back into
+        // attempts/succeeded/conditionFiredTrue/usedUntilBlock/infiniteLoopHits/failCount.
+        const savedAttempts = attempts, savedSucceeded = succeeded, savedFailCount = failCount;
+        const savedConditionFiredTrue = conditionFiredTrue, savedUsedUntilBlock = usedUntilBlock;
+        const savedInfiniteLoopHits = infiniteLoopHits, savedEdgeFired = edgeFired;
+        const savedWrongStopFired = wrongStopFired, savedWrongStopHits = wrongStopHits;
+        const savedMsgText = cfg.msgEl.textContent, savedMsgClass = cfg.msgEl.className;
+        state = { r: mission.start.r, c: mission.start.c };
+        updateRoverPosition(false);
+        updateFog();
+        updateFlagChip();
+        replaySpeedFactor = 2 / 3; // 1.5x speed
+        try {
+          await runItems(winningProgram);
+        } catch (e) {
+          if (!(e instanceof MissionFail)) throw e;
+        } finally {
+          replaySpeedFactor = 1;
+        }
+        attempts = savedAttempts; succeeded = savedSucceeded; failCount = savedFailCount;
+        conditionFiredTrue = savedConditionFiredTrue; usedUntilBlock = savedUsedUntilBlock;
+        infiniteLoopHits = savedInfiniteLoopHits; edgeFired = savedEdgeFired;
+        wrongStopFired = savedWrongStopFired; wrongStopHits = savedWrongStopHits;
+        cfg.msgEl.textContent = savedMsgText; cfg.msgEl.className = savedMsgClass;
+        running = false;
+        cfg.runBtn.disabled = false;
+        cfg.watchAgainBtn.disabled = false;
+      });
     }
 
     cfg.runBtn.addEventListener('click', async () => {
@@ -1392,6 +1533,9 @@
       running = true;
       attempts++;
       conditionFiredTrue = false;
+      edgeFired = false;
+      wrongStopFired = false;
+      hideWatchAgain();
       cfg.runBtn.disabled = true;
       updateContainerBtns();
       state = { r: mission.start.r, c: mission.start.c };
@@ -1416,18 +1560,29 @@
             failCount++; updateHintUI();
           } else {
             succeeded = true;
-            cfg.msgEl.textContent = '🎉 MISSION COMPLETE — Rover reached the flag!';
-            cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess();
+            winningProgram = JSON.parse(JSON.stringify(program));
+            celebrate();
           }
         } else {
-          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+          let extra = '';
+          if (edgeFired) extra += ' 🧱 At the top of the platform the EDGE counts as a wall too — so your IF stepped sideways up there. Count the rows to the flag and make your REPEAT exactly that many.';
+          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.' + extra;
           cfg.msgEl.className = 'mission-msg bad';
           failCount++; updateHintUI();
         }
       } catch (e) {
         if (e instanceof MissionFail) {
-          cfg.msgEl.textContent = e.message;
+          let extra = '';
+          if (e.message.includes('COLLISION') && repeatHasIfAfterMove(program)) {
+            extra += ' 👀 Rover-7 moved BEFORE it checked — your IF comes after the Up inside the loop. Use ▲ on the IF block to move it above the Up, so the rover looks first and steps second.';
+          }
+          if (edgeFired) {
+            extra += ' 🧱 At the top of the platform the EDGE counts as a wall too — so your IF stepped sideways up there. Count the rows to the flag and make your REPEAT exactly that many.';
+          }
+          if (wrongStopFired) {
+            extra += ' 🎯 Your loop was waiting for "at flag" — but the flag isn\'t in the direction Rover-7 was driving, so it crashed before that could ever come true. What does Rover-7 actually meet at the end of this stretch?';
+          }
+          cfg.msgEl.textContent = e.message + extra;
           cfg.msgEl.className = 'mission-msg bad';
           failCount++; updateHintUI();
         } else { throw e; }
@@ -1450,6 +1605,7 @@
       get usedConditionOnSuccess() { return succeeded && conditionFiredTrue; },
       get usedUntilBlockOnSuccess() { return succeeded && usedUntilBlock; },
       get infiniteLoopHits() { return infiniteLoopHits; },
+      get wrongStopHits() { return wrongStopHits; },
       get hintsUsed() { return hintsUsed; }
     };
   }
@@ -1479,6 +1635,7 @@
     addRepeatBtn: document.getElementById('addRepeat1'), addConditionBtn: document.getElementById('addCondition1'),
     flagChipEl: document.getElementById('flagChip1'),
     hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
     condSources: ['wall'],
     requireConditionUsed: true,
@@ -1490,6 +1647,11 @@
     hints: {
       after3: 'You can\'t see the wall until you\'re next to it. What if the rover checked, every single step?',
       after6: 'Put an IF wall ahead inside your REPEAT, so it checks before each move.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! Your IF spotted the wall through the fog and stepped Rover-7 around it.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 found its way through the fog. Checking before every step was the key, Cadet.',
+      normal: '🎉 MISSION COMPLETE — your IF checked every step and Rover-7 reached the flag!'
     },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
@@ -1516,6 +1678,7 @@
     addRepeatBtn: document.getElementById('addRepeat2'), addConditionBtn: document.getElementById('addCondition2'),
     addUntilBtn: document.getElementById('addUntil2'),
     hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
     condSources: ['wall'],
     untilSources: ['wall', 'atFlag'],
@@ -1523,6 +1686,11 @@
     hints: {
       after3: 'You don\'t know how many steps it is. Is there a loop that doesn\'t need a number?',
       after6: 'Repeat Until keeps going until its condition comes true — try \'until wall ahead\'.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! No counting needed: your loops stopped exactly when they should.',
+      afterStruggle: '🎉 MISSION COMPLETE — you found the right stop-conditions. That\'s the hardest part of any REPEAT UNTIL.',
+      normal: '🎉 MISSION COMPLETE — both REPEAT UNTIL loops stopped at the right moment!'
     },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
@@ -1679,7 +1847,8 @@
         mission_2: {
           succeeded: mission2.succeeded, attempts: mission2.attempts,
           used_until_block: mission2.usedUntilBlockOnSuccess,
-          infinite_loop_hits: mission2.infiniteLoopHits, hints_used: mission2.hintsUsed
+          infinite_loop_hits: mission2.infiniteLoopHits, hints_used: mission2.hintsUsed,
+          wrong_stop_hits: mission2.wrongStopHits
         }
       },
       quiz: {
