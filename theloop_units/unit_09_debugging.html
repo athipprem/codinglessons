@@ -24,9 +24,13 @@
     --danger: #FF6B7F; --danger-tint: #3A1620;
     --success: #4BE39A; --success-tint: #113526;
     --nova: #C77DFF; --nova-tint: #241238;
-    --tool: #FF6BCF; --tool-tint: #3A1030;
-    --list: #2DD4BF; --list-tint: #0E2E2B;
     --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+    /* Master style: Mission 1/2 zone theming (ported from Units 1-3's approved full-screen mission
+       stage) -- Mission 1 reads purple, Mission 2 reads orange, green stays reserved for the goal
+       cell. Theme-invariant, never redefined for light mode (see the light-mode tint override below). */
+    --purple: #C77DFF; --purple-ink: #2B0E45; --purple-tint: #241040;
+    --orange: #FF8C00; --orange-ink: #3A1B00; --orange-tint: #3A2000;
+    --green: #4BE39A; --green-ink: #06281C; --green-tint: #0F3324;
   }
   * { box-sizing: border-box; }
   body {
@@ -51,9 +55,10 @@
   /* ---------------- Flow Academy topbar ---------------- */
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
   #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
-  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
-  #brand:hover { color: var(--cyan); }
+  #brand, .brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo, .brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover, .brand:hover { color: var(--cyan); }
+  .game-topbar-left .brand { flex-shrink: 0; }
 
   .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
   .hud.show { display: flex; }
@@ -145,12 +150,6 @@
 
   .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
   .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
-  .repeat-card.event-card { border-color: var(--cyan); background: var(--cyan-tint); }
-  .repeat-card.event-card.open { box-shadow: 0 0 0 2px var(--cyan); }
-  .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
-  .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
-  .repeat-card.block-card { border-color: var(--tool); background: var(--tool-tint); }
-  .repeat-card.block-card.open { box-shadow: 0 0 0 2px var(--tool); }
   .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
   .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
   .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
@@ -172,25 +171,201 @@
   .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
   .cmd-btn.event-btn { border-color: var(--cyan); }
   .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
-  .cmd-btn.condition-btn { border-color: var(--nova); }
-  .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
-  .cmd-btn.score-btn { border-color: var(--success); }
-  .cmd-btn.score-btn:hover { color: var(--success); border-color: var(--success); }
-  .cmd-btn.block-btn { border-color: var(--tool); }
-  .cmd-btn.block-btn:hover { color: var(--tool); border-color: var(--tool); }
-  .cmd-btn.list-btn { border-color: var(--list); }
-  .cmd-btn.list-btn:hover { color: var(--list); border-color: var(--list); }
 
-  .score-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--amber); background: var(--amber-tint); border: 1px solid var(--amber); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
-  .cargo-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--list); background: var(--list-tint); border: 1px solid var(--list); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; margin-left: 8px; }
+  .fuel-chip { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--cyan); background: var(--cyan-tint); border: 1px solid var(--cyan); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .fuel-chip.low { color: var(--amber); background: var(--amber-tint); border-color: var(--amber); }
+
+  /* ---------------- Master style: full-screen mission stage (Missions 1 & 2 only) ----------------
+     Ported from Units 1-3's approved full-screen mission stage -- this was missing on Units 4-6, a
+     regression flagged by Lui and fixed here. Command deck floats as a translucent HUD panel on the
+     left, the mission grid gets the whole rest of the viewport on the right, over a starfield/galaxy
+     backdrop. Boot, Transmission 1 and Final Systems Check stay the normal in-page layout -- only the
+     two missions, the ones that are actually a "game", take over the screen. */
+  .screen.fullscreen-mission { display: none; }
+  .screen.fullscreen-mission.active { display: flex; position: fixed; inset: 0; z-index: 40; background: var(--bg); flex-direction: column; }
+  .game-topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--bg-raised); gap: 10px; flex-wrap: wrap; }
+  .game-topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .game-topbar-right { display: flex; align-items: center; gap: 12px; }
+  .game-xp { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .game-xp .xp-value { color: var(--amber); font-weight: 700; }
+  .theme-toggle-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor: pointer; padding: 0; flex-shrink: 0; }
+  .theme-toggle-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .game-body { flex: 1 1 auto; position: relative; min-height: 0; overflow: hidden; --palette-w: min(640px, 58vw); }
+  /* CSS-only starfield/galaxy backdrop, reused verbatim from Unit 1. */
+  .stage-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, #38E6EE 26%, transparent), transparent 70%),
+      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, #FFC24B 18%, transparent), transparent 70%),
+      radial-gradient(1px 1px at 8% 10%, var(--star), transparent),
+      radial-gradient(1px 1px at 18% 22%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 34% 6%, var(--star), transparent),
+      radial-gradient(1px 1px at 47% 18%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 62% 9%, var(--star), transparent),
+      radial-gradient(1px 1px at 71% 24%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 85% 14%, var(--star), transparent),
+      radial-gradient(1px 1px at 93% 28%, var(--star), transparent),
+      radial-gradient(1px 1px at 5% 40%, var(--star), transparent),
+      radial-gradient(1px 1px at 40% 45%, var(--star), transparent),
+      radial-gradient(1px 1px at 65% 42%, var(--star), transparent),
+      var(--bg);
+    opacity: .9;
+  }
+  .game-stage-col { position: absolute; inset: 0; left: var(--palette-w); display: flex; align-items: center; justify-content: center; }
+  .stage-grid-wrap { position: relative; z-index: 1; }
+  .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
+  .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
+  .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.pad { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.pad.collected { background: rgba(233,236,255,.08); opacity: 0.6; }
+  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
+  .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
+
+  .game-palette-col {
+    position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+    width: var(--palette-w);
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    overflow-y: auto;
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  }
+  .dialogue.compact { padding: 10px 12px; font-size: 14px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact .avatar { font-size: 18px; }
+
+  .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  /* Keep the whole control rail visible when a long mission message appears below it (the message
+     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
+  .game-palette-col .palette-cols { min-height: 360px; }
+  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
+  .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
+  .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
+  .control-rail .mission-actions button { width: 100%; }
+  .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
+  .control-rail .dpad { align-self: center; }
+
+  /* Program column: the FUEL chip sits attached to the top of THIS column (same row as the
+     control-rail, right-aligned) -- same convention as Units 2-3/5's own slot/flag chip. */
+  .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
+
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--amber); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
+
+  /* Phone-width fallback, ported verbatim from Unit 1. */
+  @media (max-width: 760px) {
+    .game-body { display: flex; flex-direction: column; overflow-y: auto; }
+    .game-palette-col {
+      position: relative; top: auto; left: auto; bottom: auto; right: auto;
+      width: auto; max-width: none; max-height: 58vh; flex: 0 0 auto;
+      border-right: none; border-bottom: 1px solid rgba(56,230,238,.35);
+    }
+    .game-stage-col {
+      position: relative; inset: auto; left: auto;
+      flex: 1 1 auto; min-height: 220px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .palette-cols { flex-direction: column; flex: 0 0 auto; }
+    .control-rail { flex: 0 0 auto; }
+    .prog-col { flex: 0 0 auto; }
+    .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
+  }
+
+  /* Master style: .panel's cosmic-vibes gradient border (pg2/scr-t1 and pg5/scr-final), applying in
+     BOTH themes -- ported verbatim from Units 1-3. */
+  .panel {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, var(--purple) 0%, #38E6EE 30%, var(--green) 55%, var(--orange) 80%, #FFC24B 100%) border-box;
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
+    background: color-mix(in srgb, var(--green) 48%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
+    background: color-mix(in srgb, var(--danger) 48%, transparent);
+  }
+  html[data-theme="light"] {
+    --purple-tint: #F3E9FE;
+    --orange-tint: #FFF2DC;
+  }
+
+  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform Oscar) reads purple, Mission 2
+     (Platform Papa) reads orange, in BOTH themes. REPEAT keeps their own dedicated accent
+     colors regardless of zone -- amber/nova mark WHAT KIND of block it is, the same way zone color
+     marks WHICH mission it is; the two systems don't overlap. */
+  #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  #scr-t2 .transmission-tag { color: var(--purple); }
+  #scr-t2 .dialogue { border-left-color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); }
+  #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
+  #scr-t2 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
+  }
+  #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  #scr-t2 .stage-bg::before,
+  #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+
+  #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  #scr-t3 .transmission-tag { color: var(--orange); }
+  #scr-t3 .dialogue { border-left-color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); }
+  #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
+  #scr-t3 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  }
+  #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  #scr-t3 .stage-bg::before,
+  #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
+
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
 
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
   .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
-  .cell.beacon { background: var(--cyan-tint); }
-  .cell.beacon::after { content: "📡"; font-size: 16px; }
+  .cell.pad { background: var(--cyan-tint); font-size: 13px; font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--cyan); }
+  .cell.pad.collected { background: var(--bg-raised); color: var(--ink-soft); opacity: 0.5; }
   .cell.goal { background: var(--success-tint); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
@@ -200,6 +375,25 @@
     pointer-events: none;
     user-select: none;
   }
+
+  /* V2 E15: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a handful
+     of sparkle particles, so a win reads as a moment, not just a text swap. Ported verbatim from
+     unit_01_sequence.html via Units 4/5's T1/T3 -- the per-zone `.rover.celebrating` filter rules
+     above were already in place (copied along with the zone theming block) but had no animation or
+     JS to trigger them until this build. */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
 
   .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   .quiz-q:first-of-type { border-top: none; padding-top: 0; }
@@ -242,6 +436,75 @@
   footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* ---------------- Unit 8: E10 ordered manifest (pads, chip, delivery toast) ---------------- */
+  .manifest-chip {
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px;
+    color: var(--cyan); background: var(--cyan-tint); border: 1px solid var(--cyan);
+    border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start;
+  }
+  .manifest-chip.complete { color: var(--success); background: var(--success-tint); border-color: var(--success); }
+  .manifest-chip .mf-item.done { text-decoration: line-through; opacity: .6; }
+  .cell.mpad { flex-direction: column; gap: 1px; line-height: 1.05; }
+  .cell.mpad .pad-emoji { font-size: 20px; }
+  .cell.mpad .pad-label { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 11px; letter-spacing: .02em; color: var(--ink); }
+  .cell.mpad.delivered { opacity: .5; }
+  .cell.mpad.delivered .pad-label::after { content: " ✓"; }
+  .stage-grid-wrap .cell.pad-red, #scr-t2 .stage-grid-wrap .cell.pad-red, #scr-t3 .stage-grid-wrap .cell.pad-red { background: color-mix(in srgb, #E5484D 38%, transparent); border-color: color-mix(in srgb, #E5484D 85%, transparent); }
+  .stage-grid-wrap .cell.pad-blue, #scr-t2 .stage-grid-wrap .cell.pad-blue, #scr-t3 .stage-grid-wrap .cell.pad-blue { background: color-mix(in srgb, #3E8BFF 38%, transparent); border-color: color-mix(in srgb, #3E8BFF 85%, transparent); }
+  .stage-grid-wrap .cell.pad-green, #scr-t2 .stage-grid-wrap .cell.pad-green, #scr-t3 .stage-grid-wrap .cell.pad-green { background: color-mix(in srgb, #30C17A 38%, transparent); border-color: color-mix(in srgb, #30C17A 85%, transparent); }
+  .stage-grid-wrap .cell.pad-yellow, #scr-t2 .stage-grid-wrap .cell.pad-yellow, #scr-t3 .stage-grid-wrap .cell.pad-yellow { background: color-mix(in srgb, #F2C230 38%, transparent); border-color: color-mix(in srgb, #F2C230 85%, transparent); }
+
+  .deliver-toast {
+    position: absolute; left: 50%; top: calc(100% + 12px); transform: translate(-50%, -6px);
+    width: max-content; max-width: min(380px, 90vw); text-align: center;
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13.5px;
+    color: var(--success); background: var(--success-tint); border: 1.5px solid var(--success);
+    border-radius: 10px; padding: 8px 14px; opacity: 0; pointer-events: none; z-index: 6;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .deliver-toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 760px) { .deliver-toast { top: calc(100% + 6px); } }
+
+  /* Worked example (Field Manual): a small drawn 3x3 platform, not a mission layout. */
+  .demo-grid { display: grid; grid-template-columns: repeat(3, 62px); grid-template-rows: repeat(3, 62px); gap: 3px; margin: 8px 0 4px; width: max-content; }
+  .demo-cell { border: 1px solid var(--line); background: var(--bg-panel); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; font-size: 20px; }
+  .demo-cell .demo-lab { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 10.5px; color: var(--ink); }
+  .demo-cell.d-red { background: color-mix(in srgb, #E5484D 38%, transparent); border-color: #E5484D; }
+  .demo-cell.d-yellow { background: color-mix(in srgb, #F2C230 38%, transparent); border-color: #F2C230; }
+
+  /* ---------------- Unit 9: debugging (locked editing, step mode, prediction gate) ---------------- */
+  .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .cmd-btn.condition-btn { border-color: var(--nova); }
+  .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
+  .repeat-card.until-card { border-color: var(--cyan); background: var(--cyan-tint); }
+  .repeat-card.until-card.open { box-shadow: 0 0 0 2px var(--cyan); }
+  .cmd-btn.until-btn { border-color: var(--cyan); }
+  .cmd-btn.until-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .dir-select { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 4px 6px; }
+  .dir-select:hover:not(:disabled) { border-color: var(--cyan); }
+  .dir-select:disabled { opacity: 0.6; }
+  .cond-select option, .dir-select option { background: var(--bg-panel); color: var(--ink); }
+  .row-badge { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; color: var(--ink-soft); margin-right: 6px; }
+  .head-label { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--ink); }
+  .lock-note { font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 0; line-height: 1.4; }
+  .predictable { cursor: pointer; }
+  .order-row.predictable:hover, .repeat-card.predictable > .repeat-head:hover { outline: 2px dashed var(--cyan); outline-offset: 1px; }
+  .order-row.predicted, .repeat-card.predicted { box-shadow: 0 0 0 3px var(--nova); }
+  .order-row.executing { background: var(--success-tint); border-color: var(--success); box-shadow: 0 0 0 2px var(--success); }
+  .repeat-card.active-check { box-shadow: 0 0 0 2px var(--cyan); }
+  .order-row.checked-false, .repeat-card.checked-false { outline: 2px dashed var(--danger); outline-offset: 1px; opacity: .75; }
+  .control-rail .cmd-palette { gap: 5px; }
+  .control-rail .cmd-btn { padding: 5px 10px; font-size: 12.5px; }
+  .control-rail .dpad { grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(2, 34px); gap: 4px; }
+  .control-rail .mission-actions { gap: 5px; }
+  .control-rail .mission-actions button { padding: 7px 12px; font-size: 12.5px; }
+  .lock-note { font-size: 12px; margin: 4px 0 0; }
+  .demo-grid.cols4 { grid-template-columns: repeat(4, 62px); }
+  .demo-cell.d-flag { background: var(--success-tint); border-color: var(--success); }
+  #scr-t2 .stage-grid-wrap .cell.pad:not(.mpad), #scr-t3 .stage-grid-wrap .cell.pad:not(.mpad) { background: color-mix(in srgb, var(--cyan) 30%, transparent); border-color: var(--cyan); }
+  #scr-t2 .stage-grid-wrap .cell.pad.collected:not(.mpad), #scr-t3 .stage-grid-wrap .cell.pad.collected:not(.mpad) { background: rgba(233,236,255,.08); opacity: .6; }
 </style>
 </head>
 <body>
@@ -250,8 +513,8 @@
     <div class="topbar-left">
       <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     </div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button id="theme-toggle" type="button"></button>
+    <div style="display:flex; align-items:center; gap:10px;" id="topbarRightHome">
+      <button id="theme-toggle" class="theme-toggle-btn" type="button"></button>
       <div id="acct-wrap">
         <button id="acct-btn"></button>
         <div id="acct-menu"></div>
@@ -262,17 +525,27 @@
     (function(){
       var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
       var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
-      var btn = document.getElementById('theme-toggle');
+      // Master style: the two mission screens are fixed full-viewport overlays (z-index 40) that
+      // visually cover #topbar while open, so each carries its own .theme-toggle-btn -- all of them
+      // (main topbar + both mission topbars) share this one apply()/click wiring via the class
+      // selector, delegated on document since the mission-screen buttons don't exist yet at parse
+      // time. Ported verbatim from Unit 1.
       function apply(theme){
         if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
         else document.documentElement.removeAttribute('data-theme');
-        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
-        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+          btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+          btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        });
       }
-      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-      btn.addEventListener('click', function(){
+      document.addEventListener('DOMContentLoaded', function(){
+        apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      });
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.theme-toggle-btn');
+        if (!btn) return;
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e2) {}
         apply(next);
       });
     })();
@@ -280,7 +553,7 @@
 
   <div class="hud" id="hud">
     <span>CADET: <span class="cadet" id="hudName">—</span></span>
-    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span>XP: <span class="xp xp-value" id="hudXp">0</span></span>
     <span class="tx" id="hudTx">TRANSMISSION 1/3</span>
     <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
   </div>
@@ -291,7 +564,7 @@
       <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
       <h1>FLOW ACADEMY</h1>
       <div class="tagline">The Loop · Unit 09 · Debug Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Every cadet's program breaks sometimes — that's normal, not a failure. What separates a good cadet from a stuck one is DEBUGGING: comparing what a program was SUPPOSED to do against what it ACTUALLY did, finding the exact piece that's wrong, and fixing just that piece. Today you don't build anything new — you're handed two already-written programs that are both broken, and your job is to find out why.</p>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Programs break. A count is off by one, a move points the wrong way, two lines swap places, a loop waits for the wrong thing. This unit is about DEBUGGING: reproduce the problem, watch exactly where it goes wrong, and fix only the broken piece. Command Control needs you to master it — this time the programs are already written, and they are already broken.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="primary" id="beginBtn">Begin Training →</button>
         <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
@@ -312,14 +585,13 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on List Protocol, Cadet. Every tool you've learned so far — Repeat, Event, Condition, Variable, Custom Block, List — can be typed in wrong. A REPEAT with the wrong count. A turn in the wrong direction. That's not a new kind of mistake; it's the MOST common one, and it happens to every real programmer, every single day.</p>
-        <p><strong>DEBUGGING</strong> is the skill of finding out WHY something's wrong, not just noticing that it is. The method is always the same: run it, watch exactly what actually happens, compare that against what SHOULD have happened, and the GAP between the two tells you exactly where to look. Then you fix only that piece — you don't need to rebuild everything from scratch.</p>
+        <p><strong>COMMANDER:</strong> Good work on Lists, Cadet. Every tool you've learned can be typed in wrong — a count off by one, a move in the wrong direction, two lines in the wrong order, a loop waiting for the wrong thing. This time the programs are already written, and they're broken. Your job is to find WHY — and fix only the broken piece. You can't add new commands. If you ever get lost, ↺ Original Program puts it back exactly how it started.</p>
       </div>
     </div>
 
     <div class="panel">
       <h2>Calibration Test: Find the Bug</h2>
-      <p class="sub">A rover's mission: reach a flag exactly 4 cells straight ahead. Its program is <strong>REPEAT 3 [ Forward ]</strong>. Every single run, it stops exactly 1 cell short of the flag. What's the correct diagnosis?</p>
+      <p class="sub">A rover must reach a flag 4 squares straight Up. Its program is Repeat ×3 [Up]. Every run, it stops 1 square short. What's the best diagnosis?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -329,12 +601,22 @@
 
     <div class="field-manual" id="fieldManual" style="display:none;">
       <h3>📖 Field Manual: DEBUGGING</h3>
-      <p>Three rules for finding a bug fast, instead of guessing:</p>
+      <p>Five steps, in this order:</p>
       <ol>
-        <li><strong>Run it and watch exactly where it actually stops or goes wrong</strong> — not where you assume it does. The real result is always more informative than a guess.</li>
-        <li><strong>Compare the ACTUAL result against what SHOULD have happened</strong> — the size and direction of that gap (1 cell short? Went the wrong way entirely?) points straight at which piece is broken.</li>
-        <li><strong>Fix only the broken piece</strong> — a wrong REPEAT count, a wrong turn direction — using the same Remove / Add / reorder tools you already know. You almost never need to rebuild the whole program.</li>
+        <li><strong>Reproduce:</strong> run it and see the problem for yourself.</li>
+        <li><strong>Watch:</strong> use ⏭ Step and find the FIRST moment it stops matching what you expected.</li>
+        <li><strong>Guess once:</strong> which ONE line could cause exactly that?</li>
+        <li><strong>Change one thing</strong> — a number, a direction, a condition, or the order.</li>
+        <li><strong>Re-test.</strong> If nothing changed, your guess was wrong — put it back and guess again.</li>
       </ol>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:4px 0 0;">It's the same loop you use checking a wrong answer in a maths competition: redo it, find the first line where your working stops matching, fix only that line.</p>
+      <p style="margin-top:10px;"><strong>Worked example</strong> — a small drawn platform. The program is <code>Repeat ×2 [Right] · Up · Up</code>, and the flag is one square further right than Rover-7 reaches:</p>
+      <div class="demo-grid cols4" role="img" aria-label="A 4 by 3 platform. Rover-7 starts bottom-left. After the program it ends in the top row, two squares from the left. The flag is in the top row, one square further right.">
+        <div class="demo-cell"></div><div class="demo-cell"></div><div class="demo-cell"><span>🚀</span><span class="demo-lab">ENDS</span></div><div class="demo-cell d-flag"><span>🚩</span><span class="demo-lab">FLAG</span></div>
+        <div class="demo-cell"></div><div class="demo-cell"></div><div class="demo-cell"></div><div class="demo-cell"></div>
+        <div class="demo-cell"><span>🚀</span><span class="demo-lab">START</span></div><div class="demo-cell"></div><div class="demo-cell"></div><div class="demo-cell"></div>
+      </div>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:4px 0 0;">Rover-7 ends one square LEFT of the flag. Which line decides how far right it goes? Only the Repeat. Guess: the count should be 3. Change only that, re-run — ✅.</p>
     </div>
 
     <div class="mission-actions">
@@ -343,98 +625,127 @@
   </section>
 
   <!-- TRANSMISSION 2 -->
-  <section class="screen" id="scr-t2">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 2 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">Next ▶</button>
+  <section class="screen fullscreen-mission" id="scr-t2">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 2 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight2">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Quebec's program is already written — <strong>REPEAT 2 [ Forward ]</strong> — but Rover-7 keeps stopping short of the flag. Command Control didn't tell you what's wrong. Click Run, watch exactly where it stops, and fix ONLY the broken piece — don't delete the whole program.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 1 · Platform Quebec</h2>
-      <div class="score-readout" id="score1">SCORE: 0</div>
-      <div class="cargo-readout" id="cargo1">CARGO: [ ]</div>
-      <div class="cmd-palette" id="palette1">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
-        <button class="cmd-btn event-btn" type="button" id="addEvent1">🔔 Add Event</button>
-        <button class="cmd-btn condition-btn" type="button" id="addCondition1">🔀 Add Condition</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
-        <button class="cmd-btn block-btn" type="button" id="addBlock1">🧩 Define Block: U-Turn</button>
-        <button class="cmd-btn block-btn" type="button" id="callBlock1">▶ Call U-Turn</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LA">📦 Add Cargo</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LF">⏮ Remove 1st Cargo</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LL">⏭ Remove Last Cargo</button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform Quebec's program is already written — but Rover-7 never makes it to the flag. You can't add commands here: change a number, a direction or a condition, move a line, or delete one. First tap the line you think is wrong. Then ▶ Run or ⏭ Step it and watch where it stops matching what you expected.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette1">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right" disabled><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat1" disabled>🔁 Add Repeat</button>
+              <button class="cmd-btn condition-btn" type="button" id="addCondition1" disabled>🔀 Add Condition</button>
+              <button class="cmd-btn until-btn" type="button" id="addUntil1" disabled>🔄 Repeat Until</button>
+            </div>
+            <p class="lock-note">🔒 Debug mode: no new commands — change, move or delete what's there.</p>
+            <div class="mission-actions">
+              <button class="primary" id="run1">▶ Run Program</button>
+              <button class="ghost" id="step1">⏭ Step</button>
+              <button class="ghost" id="reset1">Reset Rover</button>
+              <button class="ghost" id="restore1">↺ Original Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+              <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <div class="fuel-chip" id="fuel1"></div>
+            </div>
+            <div class="chip-order" id="prog1"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg1"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText1"></p></div>
+        <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
       </div>
-      <div class="chip-order" id="prog1"></div>
-      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run1">▶ Run Program</button>
-        <button class="ghost" id="reset1">Reset Rover</button>
-        <button class="ghost" id="clear1">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg1"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
     </div>
   </section>
 
-  <!-- TRANSMISSION 3 -->
-  <section class="screen" id="scr-t3">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 3 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+  <!-- TRANSMISSION 3 (full-screen mission stage -- master style) -->
+  <section class="screen fullscreen-mission" id="scr-t3">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 3 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight3">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform Romeo's program is also already written — but this bug is trickier: it's not a count, it's a DIRECTION. Watch which way the rover actually turns versus which way it needs to turn, then fix the turn command AND its position in the sequence.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 2 · Platform Romeo</h2>
-      <div class="score-readout" id="score2">SCORE: 0</div>
-      <div class="cargo-readout" id="cargo2">CARGO: [ ]</div>
-      <div class="cmd-palette" id="palette2">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
-        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Event</button>
-        <button class="cmd-btn condition-btn" type="button" id="addCondition2">🔀 Add Condition</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
-        <button class="cmd-btn block-btn" type="button" id="addBlock2">🧩 Define Block: U-Turn</button>
-        <button class="cmd-btn block-btn" type="button" id="callBlock2">▶ Call U-Turn</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LA">📦 Add Cargo</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LF">⏮ Remove 1st Cargo</button>
-        <button class="cmd-btn list-btn" type="button" data-cmd="LL">⏭ Remove Last Cargo</button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform Romeo: a delivery program with a loop in it — broken in two places. Same rules as Quebec. Run it, watch it, and fix only what's broken. When one bug is fixed, run it again — the next bug may look completely different.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette2">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down" disabled><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right" disabled><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat2" disabled>🔁 Add Repeat</button>
+              <button class="cmd-btn condition-btn" type="button" id="addCondition2" disabled>🔀 Add Condition</button>
+              <button class="cmd-btn until-btn" type="button" id="addUntil2" disabled>🔄 Repeat Until</button>
+            </div>
+            <p class="lock-note">🔒 Debug mode: no new commands — change, move or delete what's there.</p>
+            <div class="mission-actions">
+              <button class="primary" id="run2">▶ Run Program</button>
+              <button class="ghost" id="step2">⏭ Step</button>
+              <button class="ghost" id="reset2">Reset Rover</button>
+              <button class="ghost" id="restore2">↺ Original Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+              <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <div class="manifest-chip" id="manifest2"></div>
+            </div>
+            <div class="chip-order" id="prog2"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg2"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
+        <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
       </div>
-      <div class="chip-order" id="prog2"></div>
-      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run2">▶ Run Program</button>
-        <button class="ghost" id="reset2">Reset Rover</button>
-        <button class="ghost" id="clear2">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+          <div class="deliver-toast" id="toast2" role="status" aria-live="polite"></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg2"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
     </div>
   </section>
 
@@ -457,28 +768,28 @@
       <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. A rover's program is REPEAT 5 [ Forward ], but it needs to stop exactly 2 cells short of where it currently ends up. What's the most useful first debugging step? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q1" value="0">Run it, see exactly where it actually stops versus where it should stop, then adjust the REPEAT count by exactly that difference</label>
-        <label class="choice"><input type="radio" name="q1" value="1">Delete the whole program and guess a brand new one at random</label>
-        <label class="choice"><input type="radio" name="q1" value="2">Assume the flag secretly moved and don't change the program at all</label>
-        <label class="choice"><input type="radio" name="q1" value="3">Add a Custom Block somewhere without first checking what's actually wrong</label>
+        <div class="qtext">1. Rover-7 finishes in the wrong place. What should you do FIRST? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">Run it again and watch exactly where it stops matching what you expected.</label>
+        <label class="choice"><input type="radio" name="q1" value="1">Delete the whole program and write a new one.</label>
+        <label class="choice"><input type="radio" name="q1" value="2">Change every number by one and see what happens.</label>
+        <label class="choice"><input type="radio" name="q1" value="3">Decide the map must be wrong.</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A program is REPEAT 4 [ Forward ], but the rover ends up 2 cells short of the flag every run. What should the REPEAT count actually be? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">4 — leave it exactly as it is</label>
-        <label class="choice"><input type="radio" name="q2" value="1">6 — it's short by 2, so add that 2 onto the current count of 4</label>
-        <label class="choice"><input type="radio" name="q2" value="2">2 — subtract the shortfall instead of adding it</label>
-        <label class="choice"><input type="radio" name="q2" value="3">8 — just double the current count</label>
+        <div class="qtext">2. A cadet thinks two different lines might be wrong. What's the best next step? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">Change ONE of them, re-run, and check whether the result changed the way you expected.</label>
+        <label class="choice"><input type="radio" name="q2" value="1">Change both at once to save time.</label>
+        <label class="choice"><input type="radio" name="q2" value="2">Change neither — run it ten more times and hope it works.</label>
+        <label class="choice"><input type="radio" name="q2" value="3">Delete both lines.</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really "debugging" (comparing what should happen against what actually did, then fixing the specific broken piece) — or is it something else?</div>
-        <div class="yn-row" data-idx="0"><div class="yn-text">A cake came out too dry, so you check whether you baked it too long before changing anything else</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="1"><div class="yn-text">Your bike tire is flat, so you throw the whole bike away and buy a new one without checking for a puncture</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="2"><div class="yn-text">A LEGO model doesn't match the instructions, so you go back one step at a time to find exactly where the pieces stopped matching</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="3"><div class="yn-text">Your favorite show won't play, so you immediately decide the TV is broken forever and stop trying anything else</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="4"><div class="yn-text">A recipe tastes too salty, so you check how much salt you actually added against how much the recipe asked for</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Is there a BUG here — one wrong piece making what happened different from the plan?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">A cake recipe says 2 cups of flour, you put in 3, and the cake comes out dry.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">You put your socks on AFTER your shoes.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">You wait at the bus stop for the 8:00 bus, but that bus was cancelled — you'd wait forever unless you check the timetable.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Your team loses a match even though everyone played their positions exactly as planned — the other team was just faster.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">You solve a maths question a long way round, and your answer matches the answer key.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -570,23 +881,35 @@
 
   function addXp(n) {
     xp += n;
-    document.getElementById('hudXp').textContent = xp;
+    // Updates every '.xp-value' on the page (main hud + both mission topbars), same as Units 1-3.
+    document.querySelectorAll('.xp-value').forEach(el => { el.textContent = xp; });
     document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+  // Master style: the two mission screens are fixed full-viewport overlays that visually cover
+  // #topbar's acct-wrap while open, so the widget physically relocates into whichever mission
+  // topbar is active (and back to the home topbar otherwise). Ported verbatim from Unit 1.
+  function relocateAcctWidget(screenId) {
+    const acctWrap = document.getElementById('acct-wrap');
+    if (!acctWrap) return;
+    const targetId = screenId === 'scr-t2' ? 'gameTopbarRight2'
+      : screenId === 'scr-t3' ? 'gameTopbarRight3'
+      : 'topbarRightHome';
+    const target = document.getElementById(targetId);
+    if (target && acctWrap.parentElement !== target) target.appendChild(acctWrap);
   }
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
+    relocateAcctWidget(id);
+    if (typeof syncReviewNav === 'function') syncReviewNav(id);
   }
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event / Add
-  // Condition / +1 Score / Reset Score / Define Block / Call Block / Add Cargo / Remove 1st /
-  // Remove Last) is deliberately NOT shuffled — it's a fixed toolbar, same order every load and
-  // every unit, so cadets build muscle memory for the tool itself instead of re-reading button
-  // positions each time. The List commands are appended last since they're this unit's new tools,
-  // in teaching order (Repeat → Event → Condition → Variable → Custom Block → List).
+  // NOTE: the command palette (the d-pad and the Add buttons) is deliberately NOT shuffled -- it's a fixed
+  // toolbar, same order every load and every unit, so cadets build muscle memory for the tool itself
+  // instead of re-reading button positions each time.
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -616,12 +939,16 @@
     document.getElementById('beginBtn').click();
   });
 
-  // ================= Calibration: Find the Bug =================
+  // ================= Calibration: Find the bug =================
   const CAL_CHOICES = [
-    { id: 0, label: '🔍 The REPEAT\'s count is too low — it needs to run one more time to cover the missing cell', correct: true },
-    { id: 1, label: '🧩 The REPEAT should be a Custom Block instead', correct: false },
-    { id: 2, label: '🤖 The Forward command is broken and needs to be replaced with Turn Right', correct: false },
-    { id: 3, label: '🚩 This can\'t be fixed — the flag must have moved', correct: false },
+    { id: 0, label: 'The Repeat\'s count is one too small — change 3 to 4 and run it again.', correct: true,
+      fb: '✅ Correct. The gap (1 square short, same direction) points straight at the one number that decides how far it goes.' },
+    { id: 1, label: 'Up is the wrong direction.', correct: false,
+      fb: 'Not quite — it IS going the right way, just not far enough. A wrong direction would send it somewhere else entirely.' },
+    { id: 2, label: 'The flag must have moved.', correct: false,
+      fb: 'Not quite — it stops in the same place every run. Same program, same result: the program is what\'s wrong.' },
+    { id: 3, label: 'Delete it and write a new program.', correct: false,
+      fb: 'Not quite — the program is almost right. Finding the one broken piece is faster, and you learn why it broke.' },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -660,24 +987,14 @@
       if (c.correct) label.classList.add('correct');
       else if (input === picked) label.classList.add('incorrect');
     });
+    msg.textContent = choice.fb;
     if (choice.correct) {
       calAnswered = true;
-      msg.textContent = '✅ Correct. Stopping 1 cell short, every single time, points straight at the REPEAT count — it\'s exactly 1 too low. Bump it up and the same program works.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
       addXp(10);
-    } else if (choice.id === 1) {
-      msg.textContent = '🤖 Swapping in a different TOOL doesn\'t fix anything here — the REPEAT itself is the right tool, its count is just wrong by exactly 1.';
-      msg.className = 'puzzle-msg bad';
-    } else if (choice.id === 2) {
-      msg.textContent = '🤖 Forward isn\'t broken — the rover is moving correctly, just not far enough. Replacing it with a turn would make things worse, not better.';
-      msg.className = 'puzzle-msg bad';
-    } else if (choice.id === 3) {
-      msg.textContent = '🤖 That\'s giving up without diagnosing anything. A consistent 1-cell shortfall, every single run, is a real, fixable clue — not a moved flag.';
-      msg.className = 'puzzle-msg bad';
     } else {
-      msg.textContent = 'Not quite — compare exactly where the rover stops against where it needs to stop, and think about which piece explains that gap.';
       msg.className = 'puzzle-msg bad';
     }
   });
@@ -695,101 +1012,136 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ REPEAT + EVENT + CONDITION + VARIABLE + CUSTOM BLOCK support =================
-  const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
-  const ROT = { N: 0, E: 90, S: 180, W: 270 };
-  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
-  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
-  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right', 'S+': '🔢 +1 Score', SR: '↺ Reset Score', CB: '▶ Call U-Turn', LA: '📦 Add Cargo', LF: '⏮ Remove 1st Cargo', LL: '⏭ Remove Last Cargo' };
-  const COND_LABEL = { wall: '🧱 Wall Ahead', beacon: '📡 On Beacon' };
+  // ================= Rover engine: locked editing (E11), step mode (E11), prediction gate (E12) =================
+  const DELTA = { UP: { dr: -1, dc: 0 }, DOWN: { dr: 1, dc: 0 }, LEFT: { dr: 0, dc: -1 }, RIGHT: { dr: 0, dc: 1 } };
+  const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right' };
+  const DIR_ORDER = ['UP', 'RIGHT', 'DOWN', 'LEFT'];
+  const COND_LABEL = { wall: '🧱 Wall Ahead', fuelLow: '⛽ Fuel Low' };
+  const UNTIL_COND_LABEL = { wall: '🧱 Wall Ahead', atFlag: '🚩 At Flag' };
 
-  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  // V2 E15: "Watch Again" replays the winning program at 1.5x speed (2/3 the real-run delay) by
+  // scaling every wait() through this shared factor while a replay is in flight.
+  let replaySpeedFactor = 1;
+  function wait(ms) { return new Promise(res => setTimeout(res, ms * replaySpeedFactor)); }
   class MissionFail extends Error {}
+  class OutOfOrderFail extends MissionFail {}
+  function pickOne(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-  // Reshuffle each mission's destination cell on every load (walls/beacon/start stay put — only
-  // the goal moves), so the flag isn't always in the same corner from a past run. BFS guarantees
-  // the new goal is reachable, and never lands on the beacon cell.
-  function bfsReachable(mission) {
-    const key = (r, c) => r + ',' + c;
-    const visited = new Set([key(mission.start.r, mission.start.c)]);
-    const queue = [[mission.start.r, mission.start.c]];
-    while (queue.length) {
-      const [r, c] = queue.shift();
-      [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([nr, nc]) => {
-        if (nr < 0 || nr >= mission.rows || nc < 0 || nc >= mission.cols) return;
-        if (mission.walls.some(w => w.r === nr && w.c === nc)) return;
-        const k = key(nr, nc);
-        if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
-      });
-    }
-    return visited;
-  }
-  function randomizeGoal(mission, minDist) {
-    const reachable = bfsReachable(mission);
-    const candidates = [];
-    reachable.forEach(k => {
-      const [r, c] = k.split(',').map(Number);
-      if (r === mission.start.r && c === mission.start.c) return;
-      if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) return;
-      if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
-      candidates.push({ r, c });
-    });
-    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
-  }
+  const MSG_PREDICT = '🎯 First — tap the line you think is wrong. A wrong guess costs nothing; it just unlocks editing.';
+  const MSG_UNLOCKED = '🔓 Editing unlocked. Change a number, a direction or a condition, move a line with ▲ ▼, or delete one with ✕.';
+  const MSG_GUTTED = '🔧 Looks like most of the program went missing. Hit ↺ Original Program to get it back — the bug is only in a line or two, and finding it is the whole mission.';
+  const MSG_PREDICT_TAIL = ' 🎯 Now tap the line you think is wrong to unlock editing.';
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
-    // {type:'event', trigger, children}, {type:'condition', condA, combinator, condB, children},
-    // or {type:'block', name, children} -- a Custom Block definition. 'cmd' items now include 'S+'
-    // (+1 Score), 'SR' (Reset Score), 'CB' (Call U-Turn), and 'LA'/'LF'/'LL' (List Add/Remove-1st/
-    // Remove-Last) alongside F/L/R -- they're all flat leaf commands like movement, so they compose
-    // everywhere a cmd already could (top level, inside a repeat, inside an event's/condition's/
-    // block's own flat children) with no new container rules.
-    // A 'block' definition itself, like 'event', can ONLY ever be added at true top level (nothing
-    // else open) and can only ever hold flat commands -- no nested containers, and only one U-Turn
-    // block may exist per mission (H.14: mutually exclusive with repeat/event/condition; the Call
-    // button is disabled while the block's own definition is open, so it can't call itself).
-    // Debugging missions seed the program tree pre-populated with an already-broken attempt
-    // (cfg.initialProgram) instead of starting empty -- deep-cloned so each mission gets its own
-    // independent copy. Every other unit's missions start from program = [] as before.
-    let program = cfg.initialProgram ? JSON.parse(JSON.stringify(cfg.initialProgram)) : [];
-    let openStack = [];
-    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
-    let score = cfg.initialScore || 0;
-    let cargoList = [...(cfg.initialCargo || [])];
+    // program is a tree of items: {type:'cmd', cmd}, {type:'repeat', count, children},
+    // {type:'condition', cond, children} (IF, no else-branch) or {type:'until', cond, children}.
+    // This unit's missions are already-written programs that are BROKEN (E11): no new command can be
+    // added, only changed (count / direction / condition), moved, or deleted. Fuel (E7), IF (E8),
+    // REPEAT UNTIL (E6) and the ordered manifest (E10) come from earlier units and are used as-is.
+    function clone(x) { return JSON.parse(JSON.stringify(x)); }
+    let program = clone(cfg.initialProgram);
+    function countItems(items) { return items.reduce((n, it) => n + 1 + (it.children ? countItems(it.children) : 0), 0); }
+    const initialTotal = countItems(cfg.initialProgram);
+    let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
     let succeeded = false;
     let attempts = 0;
-    let eventTriggered = false;
-    let conditionFiredTrue = false;
-    let conditionFiredWithCombinator = false;
-    let blockCallCount = 0;
+    let failCount = 0;
+    let hintsUsed = 0;
+    let fuel = mission.fuel ? mission.fuel.start : null;
+    let padsCollected = new Set();
+    let padsCollectedThisRun = 0;
+    let outOfFuelRuns = 0;
+    let infiniteLoopHits = 0;
+    let wrongStopFired = false;   // the innermost active UNTIL was stopping on "at flag" when the rover crashed
+    let wrongStopHits = 0;
+    let untilCondStack = [];
+    // E10 manifest state (M2)
+    let delivered = new Set();
+    let nextIdx = 0;
+    let outOfOrderAttempts = 0;
+    let deliveredAll = false;
+    let toastTimer = null;
+    const toastLog = [];
+    // E11/E12 state
+    let editUnlocked = false;
+    let predictedRow = null, predictionHit = null, predictedItem = null;
+    let stepsUsed = 0, editsMade = 0, restoresUsed = 0;
+    let stepGen = null;
+    let winningProgram = null;
+    let bugsFixedAtSuccess = null;
+    let cellEls = [];
+    let rowEls = new Map();   // item -> its rendered element (row or card), for .executing / .active-check
+    let rowNums = new Map();  // item -> 1-based rendered row number
+    let rowCounter = 0;
+
+    function updateHintUI() {
+      if (!cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    cfg.hintBtnEl.addEventListener('click', () => {
+      cfg.hintTextEl.textContent = cfg.hintBtnEl.dataset.pending || '';
+      hintsUsed++;
+      cfg.hintBtnEl.style.display = 'none';
+      updateHintUI();
+    });
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function padAt(r, c) { return mission.fuel ? mission.fuel.pads.find(p => p.r === r && p.c === c) : null; }
+    function cellEl(r, c) { return cellEls[r * mission.cols + c]; }
+    const PAD_EMOJI = { RED: '🟥', BLUE: '🟦', GREEN: '🟩', YELLOW: '🟨' };
+    function manifestPadColour(r, c) {
+      if (!mission.manifestPads) return null;
+      return Object.keys(mission.manifestPads).find(k => mission.manifestPads[k].r === r && mission.manifestPads[k].c === c) || null;
+    }
+
+    // "Wall Ahead" checks the mission's own fixed primaryDir (no heading in this absolute d-pad model);
+    // the platform edge counts as a wall. "Fuel Low" is the current FUEL against a fixed threshold, and
+    // "At Flag" (REPEAT UNTIL only) is the rover standing on the goal.
     function checkCond(key, st) {
       if (key === 'wall') {
-        const d = DELTA[st.dir];
+        const d = DELTA[mission.primaryDir];
         const nr = st.r + d.dr, nc = st.c + d.dc;
         return !inBounds(nr, nc) || isWall(nr, nc);
       }
-      if (key === 'beacon') {
-        return !!(mission.beacon && st.r === mission.beacon.r && st.c === mission.beacon.c);
-      }
+      if (key === 'fuelLow') return mission.fuel ? fuel <= 2 : false;
+      if (key === 'atFlag') return st.r === mission.goal.r && st.c === mission.goal.c;
       return false;
     }
-    function evalCondition(item, st) {
-      const a = checkCond(item.condA, st);
-      if (item.combinator === 'none') return a;
-      const b = checkCond(item.condB, st);
-      return item.combinator === 'and' ? (a && b) : (a || b);
+
+    function updateFuelUI() {
+      if (!cfg.fuelEl || !mission.fuel) return;
+      cfg.fuelEl.textContent = '⛽ FUEL: ' + fuel;
+      cfg.fuelEl.classList.toggle('low', fuel <= 2);
     }
-    function updateScoreDisplay() { cfg.scoreEl.textContent = 'SCORE: ' + score; }
-    function updateCargoDisplay() { cfg.cargoEl.textContent = 'CARGO: [' + cargoList.join(', ') + ']'; }
+    function renderManifestChip() {
+      if (!cfg.manifestEl || !mission.manifest) return;
+      cfg.manifestEl.innerHTML = '📦 MANIFEST: ' + mission.manifest.map(col =>
+        '<span class="mf-item' + (delivered.has(col) ? ' done' : '') + '">' + col + '</span>').join(' → ');
+      cfg.manifestEl.classList.toggle('complete', delivered.size === mission.manifest.length);
+    }
+    function showToast(text) {
+      toastLog.push(text);
+      if (!cfg.toastEl) return;
+      cfg.toastEl.textContent = text;
+      cfg.toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => cfg.toastEl.classList.remove('show'), 2400);
+    }
+    function hideToast() {
+      clearTimeout(toastTimer);
+      if (cfg.toastEl) cfg.toastEl.classList.remove('show');
+    }
 
     function buildGrid() {
       cfg.gridEl.innerHTML = '';
+      cellEls = [];
       cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
       cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
       for (let r = 0; r < mission.rows; r++) {
@@ -797,9 +1149,23 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
-          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
+          const pad = padAt(r, c);
+          if (pad) {
+            cell.classList.add('pad');
+            cell.textContent = '⚡' + pad.amount;
+            if (padsCollected.has(r + ',' + c)) cell.classList.add('collected');
+          }
+          const mcol = mission.manifest ? manifestPadColour(r, c) : null;
+          if (mcol) {
+            cell.classList.add('mpad', 'pad-' + mcol.toLowerCase());
+            if (delivered.has(mcol)) cell.classList.add('delivered');
+            const em = document.createElement('span'); em.className = 'pad-emoji'; em.textContent = PAD_EMOJI[mcol];
+            const lab = document.createElement('span'); lab.className = 'pad-label'; lab.textContent = mcol;
+            cell.append(em, document.createTextNode(' '), lab);
+          }
           if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
+          cellEls.push(cell);
         }
       }
       cfg.gridEl.appendChild(cfg.roverEl);
@@ -810,592 +1176,648 @@
       const y = state.r * mission.cellPx + mission.cellPx * 0.15;
       cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
       cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
-      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
     }
 
-    function findBlockDef() { return program.find(it => it.type === 'block') || null; }
-
+    // E11: every palette button is visible but disabled for the whole unit.
     function updateContainerBtns() {
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
-      cfg.addEventBtn.disabled = running || openStack.length !== 0;
-      cfg.addConditionBtn.disabled = running || openStack.length !== 0;
-      cfg.addBlockBtn.disabled = running || openStack.length !== 0 || !!findBlockDef();
-      const blockDef = findBlockDef();
-      cfg.callBlockBtn.disabled = running || !blockDef || blockDef.children.length === 0 || topType === 'block';
+      cfg.paletteEl.querySelectorAll('button').forEach(btn => { btn.disabled = true; });
+      cfg.stepBtn.disabled = running;
+      cfg.restoreBtn.disabled = running;
     }
 
-    function currentTarget() {
-      return openStack.length ? openStack[openStack.length - 1].children : program;
+    function noteEdit() { editsMade++; abandonStep(); hideWatchAgain(); }
+    const editsOff = () => running || !editUnlocked;
+
+    function attachPredict(el, item) {
+      if (editUnlocked) return;
+      el.classList.add('predictable');
+      el.addEventListener('click', (ev) => {
+        if (editUnlocked || running) return;
+        if (ev.target.closest('button, select')) return;
+        predictedItem = item;
+        predictedRow = rowNums.get(item);
+        predictionHit = cfg.bugRows.includes(predictedRow);
+        editUnlocked = true;
+        cfg.msgEl.textContent = MSG_UNLOCKED; cfg.msgEl.className = 'mission-msg';
+        renderProgram();
+      });
     }
 
-    function renderItems(items, containerEl, hintMode) {
+    function makeMoveButtons(items, i, cls, item) {
+      const mk = (txt, label, fn, dis) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = txt; b.setAttribute('aria-label', label);
+        if (cls) b.className = cls;
+        b.disabled = dis; b.addEventListener('click', fn);
+        return b;
+      };
+      const up = mk('▲', 'Move up', () => { if (editsOff()) return; [items[i - 1], items[i]] = [items[i], items[i - 1]]; noteEdit(); renderProgram(); }, editsOff() || i === 0);
+      const down = mk('▼', 'Move down', () => { if (editsOff()) return; [items[i + 1], items[i]] = [items[i], items[i + 1]]; noteEdit(); renderProgram(); }, editsOff() || i === items.length - 1);
+      return { up, down };
+    }
+
+    function renderItems(items, containerEl) {
       containerEl.innerHTML = '';
       if (items.length === 0) {
         const span = document.createElement('span');
         span.className = 'empty-hint';
-        span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat / Event / Condition block) from the panel above.'
-          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+        span.textContent = '(empty)';
         containerEl.appendChild(span);
         return;
       }
       items.forEach((item, i) => {
+        const rowNo = ++rowCounter;
+        rowNums.set(item, rowNo);
+        const removeItem = () => {
+          if (editsOff()) return;
+          items.splice(i, 1);
+          noteEdit(); renderProgram();
+        };
+        const badge = () => { const s = document.createElement('span'); s.className = 'row-badge'; s.textContent = '#' + rowNo; return s; };
+
         if (item.type === 'cmd') {
           const row = document.createElement('div');
-          row.className = 'order-row';
+          row.className = 'order-row' + (predictedItem === item ? ' predicted' : '');
           const label = document.createElement('span');
           label.className = 'order-label';
-          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + CMD_LABEL[item.cmd];
+          label.appendChild(badge());
+          // T3: in locked mode a command row carries a direction dropdown instead of a static label.
+          const sel = document.createElement('select');
+          sel.className = 'dir-select';
+          sel.setAttribute('aria-label', 'Direction for row ' + rowNo);
+          sel.disabled = editsOff();
+          DIR_ORDER.forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k; opt.textContent = CMD_LABEL[k];
+            if (item.cmd === k) opt.selected = true;
+            sel.appendChild(opt);
+          });
+          sel.addEventListener('change', () => { if (editsOff()) return; item.cmd = sel.value; noteEdit(); renderProgram(); });
+          label.appendChild(sel);
           row.appendChild(label);
-
           const btns = document.createElement('div');
           btns.className = 'order-btns';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
-          const rmBtn = document.createElement('button');
-          rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
-          rmBtn.disabled = running;
-          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
-
-          btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+          const mv = makeMoveButtons(items, i, '', item);
+          const rm = document.createElement('button');
+          rm.type = 'button'; rm.className = 'remove'; rm.textContent = '✕'; rm.setAttribute('aria-label', 'Remove');
+          rm.disabled = editsOff(); rm.addEventListener('click', removeItem);
+          btns.append(mv.up, mv.down, rm);
           row.appendChild(btns);
+          rowEls.set(item, row);
+          attachPredict(row, item);
           containerEl.appendChild(row);
-        } else if (item.type === 'repeat' || item.type === 'event' || item.type === 'block') {
-          const isRepeat = item.type === 'repeat';
-          const isBlock = item.type === 'block';
-          const isOpen = openStack.includes(item);
-          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+        } else {
+          const kind = item.type; // repeat | condition | until
           const card = document.createElement('div');
-          card.className = 'repeat-card' + (isRepeat ? '' : isBlock ? ' block-card' : ' event-card') + (isOpen ? ' open' : '');
+          card.className = 'repeat-card' + (kind === 'condition' ? ' condition-card' : kind === 'until' ? ' until-card' : '') + (predictedItem === item ? ' predicted' : '');
           const head = document.createElement('div');
           head.className = 'repeat-head';
-
-          if (isRepeat) {
+          head.appendChild(badge());
+          if (kind === 'repeat') {
             const minus = document.createElement('button');
-            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
-            minus.disabled = running;
-            minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
+            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−'; minus.setAttribute('aria-label', 'Fewer repeats');
+            minus.disabled = editsOff();
+            minus.addEventListener('click', () => { if (editsOff()) return; item.count = Math.max(2, item.count - 1); noteEdit(); renderProgram(); });
             const plus = document.createElement('button');
-            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
-            plus.disabled = running;
-            plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
+            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+'; plus.setAttribute('aria-label', 'More repeats');
+            plus.disabled = editsOff();
+            plus.addEventListener('click', () => { if (editsOff()) return; item.count = Math.min(6, item.count + 1); noteEdit(); renderProgram(); });
             const label = document.createElement('span');
+            label.className = 'head-label';
             label.textContent = '🔁 Repeat × ' + item.count;
             head.append(minus, label, plus);
-          } else if (isBlock) {
-            const label = document.createElement('span');
-            label.textContent = '🧩 ' + item.name + ' Block';
-            head.append(label);
           } else {
             const label = document.createElement('span');
-            label.textContent = '🔔 On Signal Beacon';
-            head.append(label);
-          }
-
-          const actions = document.createElement('div');
-          actions.className = 'repeat-head-actions';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
-          const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', isRepeat ? 'Remove loop' : isBlock ? 'Remove block' : 'Remove event');
-          remove.disabled = running;
-          remove.addEventListener('click', () => {
-            if (running) return;
-            items.splice(i, 1);
-            const idx = openStack.indexOf(item);
-            if (idx !== -1) openStack = openStack.slice(0, idx);
-            renderProgram();
-          });
-          actions.append(upBtn, downBtn, remove);
-          head.appendChild(actions);
-          card.appendChild(head);
-
-          const childrenEl = document.createElement('div');
-          childrenEl.className = 'repeat-children';
-          renderItems(item.children, childrenEl, isOpen);
-          card.appendChild(childrenEl);
-
-          if (isInnermostOpen) {
-            const done = document.createElement('button');
-            done.type = 'button';
-            done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this ' + (isRepeat ? 'loop' : isBlock ? 'block' : 'event');
-            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
-            card.appendChild(done);
-          }
-          containerEl.appendChild(card);
-        } else if (item.type === 'condition') {
-          const isOpen = openStack.includes(item);
-          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
-          const card = document.createElement('div');
-          card.className = 'repeat-card condition-card' + (isOpen ? ' open' : '');
-          const head = document.createElement('div');
-          head.className = 'repeat-head';
-
-          const ifLabel = document.createElement('span');
-          ifLabel.textContent = '🔀 IF';
-          head.appendChild(ifLabel);
-
-          const condASel = document.createElement('select');
-          condASel.className = 'cond-select';
-          condASel.disabled = running;
-          ['wall', 'beacon'].forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k; opt.textContent = COND_LABEL[k];
-            if (item.condA === k) opt.selected = true;
-            condASel.appendChild(opt);
-          });
-          condASel.addEventListener('change', () => { item.condA = condASel.value; });
-          head.appendChild(condASel);
-
-          const combSel = document.createElement('select');
-          combSel.className = 'cond-select';
-          combSel.disabled = running;
-          [['none', '(just this)'], ['and', 'AND'], ['or', 'OR']].forEach(([v, l]) => {
-            const opt = document.createElement('option');
-            opt.value = v; opt.textContent = l;
-            if (item.combinator === v) opt.selected = true;
-            combSel.appendChild(opt);
-          });
-          combSel.addEventListener('change', () => { item.combinator = combSel.value; renderProgram(); });
-          head.appendChild(combSel);
-
-          if (item.combinator !== 'none') {
-            const condBSel = document.createElement('select');
-            condBSel.className = 'cond-select';
-            condBSel.disabled = running;
-            ['wall', 'beacon'].forEach(k => {
+            label.className = 'head-label';
+            label.textContent = kind === 'condition' ? '🔀 IF' : '🔄 REPEAT UNTIL';
+            head.appendChild(label);
+            const sources = kind === 'condition' ? (cfg.condSources || ['wall']) : (cfg.untilSources || ['wall', 'atFlag']);
+            const labels = kind === 'condition' ? COND_LABEL : UNTIL_COND_LABEL;
+            const condSel = document.createElement('select');
+            condSel.className = 'cond-select';
+            condSel.setAttribute('aria-label', 'Condition for row ' + rowNo);
+            condSel.disabled = editsOff();
+            sources.forEach(k => {
               const opt = document.createElement('option');
-              opt.value = k; opt.textContent = COND_LABEL[k];
-              if (item.condB === k) opt.selected = true;
-              condBSel.appendChild(opt);
+              opt.value = k; opt.textContent = labels[k];
+              if (item.cond === k) opt.selected = true;
+              condSel.appendChild(opt);
             });
-            condBSel.addEventListener('change', () => { item.condB = condBSel.value; });
-            head.appendChild(condBSel);
+            condSel.addEventListener('change', () => { if (editsOff()) return; item.cond = condSel.value; noteEdit(); renderProgram(); });
+            head.appendChild(condSel);
           }
-
           const actions = document.createElement('div');
           actions.className = 'repeat-head-actions';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
+          const mv = makeMoveButtons(items, i, 'repeat-move-btn', item);
           const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove condition');
-          remove.disabled = running;
-          remove.addEventListener('click', () => {
-            if (running) return;
-            items.splice(i, 1);
-            const idx = openStack.indexOf(item);
-            if (idx !== -1) openStack = openStack.slice(0, idx);
-            renderProgram();
-          });
-          actions.append(upBtn, downBtn, remove);
+          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕';
+          remove.setAttribute('aria-label', kind === 'repeat' ? 'Remove loop' : kind === 'condition' ? 'Remove condition' : 'Remove Repeat Until');
+          remove.disabled = editsOff(); remove.addEventListener('click', removeItem);
+          actions.append(mv.up, mv.down, remove);
           head.appendChild(actions);
           card.appendChild(head);
-
           const childrenEl = document.createElement('div');
           childrenEl.className = 'repeat-children';
-          renderItems(item.children, childrenEl, isOpen);
+          renderItems(item.children, childrenEl);
           card.appendChild(childrenEl);
-
-          if (isInnermostOpen) {
-            const done = document.createElement('button');
-            done.type = 'button';
-            done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this IF';
-            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
-            card.appendChild(done);
-          }
+          rowEls.set(item, card);
+          attachPredict(head, item);
           containerEl.appendChild(card);
         }
       });
     }
 
     function renderProgram() {
-      renderItems(program, cfg.programListEl, 'top');
+      rowEls = new Map(); rowNums = new Map(); rowCounter = 0;
+      renderItems(program, cfg.programListEl);
       updateContainerBtns();
     }
 
-    cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (running) return;
-        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
-        renderProgram();
-      });
-    });
-
-    cfg.addRepeatBtn.addEventListener('click', () => {
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
-      const newRepeat = { type: 'repeat', count: 2, children: [] };
-      currentTarget().push(newRepeat);
-      openStack.push(newRepeat);
-      renderProgram();
-    });
-
-    cfg.addEventBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0) return;
-      const newEvent = { type: 'event', trigger: 'signal', children: [] };
-      currentTarget().push(newEvent);
-      openStack.push(newEvent);
-      renderProgram();
-    });
-
-    cfg.addConditionBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0) return;
-      const newCondition = { type: 'condition', condA: 'wall', combinator: 'none', condB: 'beacon', children: [] };
-      currentTarget().push(newCondition);
-      openStack.push(newCondition);
-      renderProgram();
-    });
-
-    cfg.addBlockBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0 || findBlockDef()) return;
-      const newBlock = { type: 'block', name: 'U-Turn', children: [] };
-      currentTarget().push(newBlock);
-      openStack.push(newBlock);
-      renderProgram();
-    });
-
-    // Call U-Turn is a flat leaf command like +1 Score, but it needs its own guard (not the generic
-    // [data-cmd] wiring below): it must never be placeable while the U-Turn block's own definition
-    // is the open container, since that would let the block call itself and recurse forever.
-    cfg.callBlockBtn.addEventListener('click', () => {
+    // ---- E11: Original Program restores the starting program exactly; Reset never touches the program ----
+    cfg.restoreBtn.addEventListener('click', () => {
       if (running) return;
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      if (topType === 'block') return;
-      const blockDef = findBlockDef();
-      if (!blockDef || blockDef.children.length === 0) return;
-      currentTarget().push({ type: 'cmd', cmd: 'CB' });
-      renderProgram();
-    });
-
-    cfg.clearBtn.addEventListener('click', () => {
-      if (running) return;
-      program = []; openStack = [];
-      renderProgram();
+      program = clone(cfg.initialProgram);
+      restoresUsed++;
+      abandonStep();
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+      renderProgram();
     });
+
+    function resetRunState() {
+      state = { r: mission.start.r, c: mission.start.c };
+      fuel = mission.fuel ? mission.fuel.start : null;
+      padsCollected = new Set();
+      padsCollectedThisRun = 0;
+      delivered = new Set();
+      nextIdx = 0;
+      hideToast();
+      updateFuelUI();
+      renderManifestChip();
+      buildGrid();
+    }
+
+    function clearHighlights() {
+      cfg.programListEl.querySelectorAll('.executing, .active-check, .checked-false').forEach(el => el.classList.remove('executing', 'active-check', 'checked-false'));
+    }
+    function abandonStep() { stepGen = null; clearHighlights(); }
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
-      score = cfg.initialScore || 0;
-      updateScoreDisplay();
-      cargoList = [...(cfg.initialCargo || [])];
-      updateCargoDisplay();
+      abandonStep();
+      resetRunState();
       updateRoverPosition(true);
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
     });
 
-    // Collects top-level 'event' items into a trigger -> [handler,...] map. Events aren't tied to
-    // their position in the program -- wherever they sit in the list, they're "listening" for the
-    // whole run, per the Field Manual. 'condition' items are NOT collected here -- they're checked
-    // in-place, exactly when runItems reaches them (see below), not registered as handlers.
-    function collectHandlers(items) {
-      const handlers = {};
-      items.forEach(item => {
-        if (item.type === 'event') {
-          handlers[item.trigger] = handlers[item.trigger] || [];
-          handlers[item.trigger].push(item);
-        }
-      });
-      return handlers;
-    }
-
-    async function executeOne(cmd, handlers, inHandler) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; updateRoverPosition(true); await wait(400); }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; updateRoverPosition(true); await wait(400); }
-      else if (cmd === 'F') {
-        const d = DELTA[state.dir];
-        const nr = state.r + d.dr, nc = state.c + d.dc;
-        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
-        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
-        state.r = nr; state.c = nc;
-        updateRoverPosition(true);
-        await wait(400);
-
-        // Trigger check: only after an actual move, only outside of a handler's own reaction (so a
-        // handler that itself steps onto the beacon can't re-fire itself), and only if a handler for
-        // this beacon's trigger is actually registered in the program.
-        if (!inHandler && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
-          const list = (handlers && handlers['signal']) || [];
-          if (list.length) {
-            eventTriggered = true;
-            for (const handler of list) {
-              for (const child of handler.children) {
-                await executeOne(child.cmd, handlers, true);
-              }
-            }
+    // The one place a movement command changes the world. Throws a MissionFail the instant the move
+    // breaks a rule, so Run and Step both show the reason on the same move.
+    function applyMove(item) {
+      clearHighlights();
+      const el = rowEls.get(item); if (el) el.classList.add('executing');
+      const d = DELTA[item.cmd];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      if (mission.fuel) {
+        fuel -= mission.fuel.costPerMove;
+        const pad = padAt(nr, nc);
+        if (pad) {
+          const key = nr + ',' + nc;
+          if (!padsCollected.has(key)) {
+            padsCollected.add(key);
+            padsCollectedThisRun++;
+            fuel += pad.amount;
+            const pe = cellEl(nr, nc);
+            if (pe) pe.classList.add('collected');
           }
         }
-      } else if (cmd === 'S+') {
-        score += 1;
-        updateScoreDisplay();
-        await wait(250);
-      } else if (cmd === 'SR') {
-        score = 0;
-        updateScoreDisplay();
-        await wait(250);
-      } else if (cmd === 'CB') {
-        // Calling a Custom Block just replays its exact recorded steps, in order, right now --
-        // same mechanism as an event handler's inline execution above, just triggered by an
-        // explicit Call command instead of a beacon trigger.
-        blockCallCount++;
-        const blockDef = findBlockDef();
-        if (blockDef) {
-          for (const child of blockDef.children) {
-            await executeOne(child.cmd, handlers, inHandler);
-          }
+        updateFuelUI();
+      }
+      let wrongMsg = null;
+      const col = mission.manifest ? manifestPadColour(nr, nc) : null;
+      if (col && !delivered.has(col)) {
+        const next = mission.manifest[nextIdx];
+        if (col === next) {
+          delivered.add(col);
+          nextIdx++;
+          const ce = cellEl(nr, nc);
+          if (ce) ce.classList.add('delivered');
+          renderManifestChip();
+          const after = nextIdx < mission.manifest.length ? 'next: ' + mission.manifest[nextIdx] : 'now the 🚩 flag!';
+          showToast('✅ ' + col + ' delivered — ' + after);
+        } else {
+          wrongMsg = '📦 Rover-7 rolled onto ' + col + ', but the manifest says ' + next + ' is next. A list has an ORDER — first really does mean first. Find a route to ' + next + ' that doesn\'t touch ' + col + '.';
         }
-      } else if (cmd === 'LA') {
-        // Add Cargo always appends the NEXT number in order onto the end (list length + 1) --
-        // deterministic on purpose, so there's no separate number-entry UI to teach: the cadet
-        // only ever needs to reason about WHERE a value lands, not WHAT arbitrary value to type.
-        cargoList.push(cargoList.length + 1);
-        updateCargoDisplay();
-        await wait(250);
-      } else if (cmd === 'LF') {
-        cargoList.shift();
-        updateCargoDisplay();
-        await wait(250);
-      } else if (cmd === 'LL') {
-        cargoList.pop();
-        updateCargoDisplay();
-        await wait(250);
+      }
+      updateRoverPosition(true);
+      if (wrongMsg) throw new OutOfOrderFail(wrongMsg);
+      if (mission.fuel && fuel <= 0) {
+        outOfFuelRuns++;
+        let m = '⛽ Out of fuel! Rover-7 stalled ' + (Math.abs(mission.goal.r - nr) + Math.abs(mission.goal.c - nc)) + ' square(s) from the flag — look at where the charging pads are and plan a route through one.';
+        if (padsCollectedThisRun === 0 && mission.fuel.pads && mission.fuel.pads.length > 0) {
+          m += ' ⚡ Your route never touched the charging pad — the tank can\'t cover this distance on its own. Find a way through the ⚡ square first.';
+        }
+        throw new MissionFail(m);
       }
     }
 
-    async function runItems(items, handlers, inHandler) {
+    // E11: the run is a generator. It stops at "ready to move" before each movement command; the driver
+    // (Run: on a timer, Step: one press at a time) resumes it, which performs that one move.
+    function* runItems(items) {
       for (const item of items) {
         if (item.type === 'cmd') {
-          await executeOne(item.cmd, handlers, inHandler);
+          yield item;
+          applyMove(item);
         } else if (item.type === 'repeat') {
+          const el = rowEls.get(item);
           for (let n = 0; n < item.count; n++) {
-            await runItems(item.children, handlers, inHandler);
+            if (el) el.classList.add('active-check');
+            yield* runItems(item.children);
           }
+          if (el) el.classList.remove('active-check');
         } else if (item.type === 'condition') {
-          // Checked right here, right now -- using the rover's real state at this exact point in
-          // the program, not once at the start and not on a schedule.
-          const result = evalCondition(item, state);
-          if (result) {
-            conditionFiredTrue = true;
-            if (item.combinator !== 'none') conditionFiredWithCombinator = true;
-            await runItems(item.children, handlers, inHandler);
+          const el = rowEls.get(item);
+          // Checked right here, right now -- the rover's real state (and current FUEL) at this exact point.
+          if (checkCond(item.cond, state)) {
+            if (el) el.classList.add('active-check');
+            yield* runItems(item.children);
+            if (el) el.classList.remove('active-check');
+          } else if (el) {
+            // H.22: a false check moves on silently, so make the skipped branch visible.
+            el.classList.add('checked-false');
+            setTimeout(() => el.classList.remove('checked-false'), 400);
           }
+        } else if (item.type === 'until') {
+          // E6: re-check BEFORE every single pass. Hard-capped at 30 passes so a stop-condition that
+          // never becomes true ends the run with a teaching message instead of freezing the page.
+          const el = rowEls.get(item);
+          let iterations = 0;
+          while (!checkCond(item.cond, state)) {
+            iterations++;
+            if (iterations > 30) {
+              infiniteLoopHits++;
+              throw new MissionFail('🔁 Rover-7 kept going forever — that\'s an INFINITE LOOP, and every programmer writes one eventually. Your stop-condition never became true. Which condition would actually happen?');
+            }
+            untilCondStack.push(item.cond);
+            if (el) el.classList.add('active-check');
+            try {
+              yield* runItems(item.children);
+            } catch (e) {
+              if (e instanceof MissionFail && untilCondStack[untilCondStack.length - 1] === 'atFlag') {
+                wrongStopFired = true;
+                wrongStopHits++;
+              }
+              throw e;
+            } finally {
+              untilCondStack.pop();
+            }
+          }
+          if (el) el.classList.remove('active-check');
         }
-        // 'event' and 'block' items are declarations, not inline steps -- skipped here on
-        // purpose. A block's children only ever run when a 'CB' (Call) leaf command reaches
-        // them, exactly like an event's children only ever run when its trigger fires.
       }
+    }
+    // Drive a generator to completion on the move timer (Run and Watch Again).
+    async function driveAll(gen) {
+      let r = gen.next();
+      while (!r.done) {
+        r = gen.next();
+        await wait(400);
+      }
+    }
+
+    // ---- V2 E15: mission-complete celebration -- spin+scale+sparkle, a Commander line that varies by
+    // how the run went, and a "Watch Again" replay of the winning (edited) program at 1.5x speed. The
+    // replay resets fuel, pads and the manifest first and is never an attempt. ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      const base = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.textContent = mission.fuel ? base + ' ⛽ ' + fuel + ' FUEL to spare.' : base;
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess();
+    }
+    cfg.watchAgainBtn.addEventListener('click', async () => {
+      if (running || !winningProgram || !winningProgram.length) return;
+      running = true;
+      abandonStep();
+      cfg.runBtn.disabled = true;
+      cfg.watchAgainBtn.disabled = true;
+      updateContainerBtns();
+      // A replay is not an attempt: snapshot every counter the real run's telemetry depends on.
+      const saved = {
+        attempts, succeeded, failCount, hintsUsed, stepsUsed, editsMade, restoresUsed, infiniteLoopHits,
+        wrongStopHits, outOfFuelRuns, outOfOrderAttempts, deliveredAll, wrongStopFired
+      };
+      const savedMsgText = cfg.msgEl.textContent, savedMsgClass = cfg.msgEl.className;
+      const live = program;
+      program = winningProgram; // the generator runs the winning tree; rows are looked up by item identity
+      resetRunState();
+      updateRoverPosition(false);
+      replaySpeedFactor = 2 / 3; // 1.5x speed
+      try {
+        await driveAll(runItems(clone(winningProgram)));
+      } catch (e) {
+        if (!(e instanceof MissionFail)) throw e;
+      } finally {
+        replaySpeedFactor = 1;
+        program = live;
+      }
+      ({ attempts, succeeded, failCount, hintsUsed, stepsUsed, editsMade, restoresUsed, infiniteLoopHits,
+         wrongStopHits, outOfFuelRuns, outOfOrderAttempts, deliveredAll, wrongStopFired } = saved);
+      untilCondStack = [];
+      clearHighlights();
+      cfg.msgEl.textContent = savedMsgText; cfg.msgEl.className = savedMsgClass;
+      running = false;
+      cfg.runBtn.disabled = false;
+      cfg.watchAgainBtn.disabled = false;
+      updateContainerBtns();
+    });
+
+    // ---- shared run lifecycle (Run and the first Step press) ----
+    function integrityOK() {
+      if (countItems(program) < initialTotal - 2) {
+        cfg.msgEl.textContent = MSG_GUTTED;
+        cfg.msgEl.className = 'mission-msg bad';
+        return false;
+      }
+      return true;
+    }
+    function beginRun() {
+      attempts++;
+      wrongStopFired = false;
+      untilCondStack = [];
+      hideWatchAgain();
+      resetRunState();
+      updateRoverPosition(false);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+    }
+    function pendingTail() { return (!editUnlocked) ? MSG_PREDICT_TAIL : ''; }
+    function evalEnd() {
+      const remaining = mission.manifest ? mission.manifest.slice(nextIdx) : [];
+      const onGoal = state.r === mission.goal.r && state.c === mission.goal.c;
+      if (mission.manifest && remaining.length === 0) deliveredAll = true;
+      if (onGoal && remaining.length === 0) {
+        if (mission.fuel && fuel <= 0) {
+          cfg.msgEl.textContent = '⛽ Rover reached the flag on fumes — FUEL is already at 0. That doesn\'t count as a clean arrival; find a route that lands with fuel to spare.' + pendingTail();
+          cfg.msgEl.className = 'mission-msg bad';
+          failCount++; updateHintUI();
+        } else {
+          succeeded = true;
+          winningProgram = clone(program);
+          bugsFixedAtSuccess = cfg.bugCheck(program);
+          celebrate();
+        }
+      } else {
+        let m;
+        if (remaining.length) m = '📦 Rover-7 stopped, but the manifest still lists ' + remaining.join(', ') + '. Every colour, in order — then the flag.';
+        else if (mission.manifest) m = '📦 Every crate delivered! Now finish on the 🚩 flag.';
+        else m = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+        cfg.msgEl.textContent = m + pendingTail();
+        cfg.msgEl.className = 'mission-msg bad';
+        failCount++; updateHintUI();
+      }
+    }
+    function handleFail(e) {
+      if (!(e instanceof MissionFail)) throw e;
+      if (e instanceof OutOfOrderFail) outOfOrderAttempts++;
+      let extra = '';
+      if (wrongStopFired) {
+        extra += ' 🎯 Your loop was waiting for "at flag" — but the flag isn\'t in the direction Rover-7 was driving, so it crashed before that could ever come true. What does Rover-7 actually meet at the end of this stretch?';
+      }
+      cfg.msgEl.textContent = e.message + extra + pendingTail();
+      cfg.msgEl.className = 'mission-msg bad';
+      failCount++; updateHintUI();
     }
 
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
+      if (!integrityOK()) return;
+      abandonStep();
       running = true;
-      attempts++;
-      const handlers = collectHandlers(program);
-      eventTriggered = false;
-      conditionFiredTrue = false;
-      conditionFiredWithCombinator = false;
-      blockCallCount = 0;
-      score = cfg.initialScore || 0;
-      updateScoreDisplay();
-      cargoList = [...(cfg.initialCargo || [])];
-      updateCargoDisplay();
       cfg.runBtn.disabled = true;
+      beginRun();
       updateContainerBtns();
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
-      updateRoverPosition(false);
       await wait(150);
-      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
-
       try {
-        await runItems(program, handlers, false);
-        if (state.r === mission.goal.r && state.c === mission.goal.c) {
-          let blockedMsg = null;
-          if (cfg.requireEventUsed && !eventTriggered) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Wire up an ON SIGNAL BEACON handler and make sure your route genuinely passes over the beacon (📡) so it actually fires, then run it again.';
-          } else if (cfg.requireCombinedConditionUsed && !conditionFiredWithCombinator) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control needs a COMBINED condition (AND or OR) to actually fire TRUE during this run. Combine two checks in your IF block, place it where it\'s genuinely true, then run it again.';
-          } else if (cfg.requireConditionUsed && !conditionFiredTrue) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Build an IF block and make sure its condition is actually TRUE at some point during the run.';
-          } else if (cfg.targetScore !== undefined && score !== cfg.targetScore) {
-            blockedMsg = '🛰 Rover reached the flag — but SCORE reads ' + score + ', not ' + cfg.targetScore + '. Command Control checks the exact final value, not just whether you used +1 Score. Adjust your Score commands and run it again.';
-          } else if (cfg.requireBlockCallCount && blockCallCount < cfg.requireBlockCallCount) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control needs your U-Turn block actually CALLED ' + cfg.requireBlockCallCount + ' time' + (cfg.requireBlockCallCount === 1 ? '' : 's') + ' during this run (it ran ' + blockCallCount + '). Add more Call U-Turn commands to your route and run it again.';
-          } else if (cfg.requireListEndState && JSON.stringify(cargoList) !== JSON.stringify(cfg.requireListEndState)) {
-            blockedMsg = '🛰 Rover reached the flag — but CARGO reads [' + cargoList.join(', ') + '], not [' + cfg.requireListEndState.join(', ') + ']. Command Control checks the exact final list, in the exact same order. Adjust your Cargo commands and run it again.';
-          }
-          if (blockedMsg) {
-            cfg.msgEl.textContent = blockedMsg;
-            cfg.msgEl.className = 'mission-msg bad';
-          } else {
-            succeeded = true;
-            cfg.msgEl.textContent = cfg.targetScore !== undefined
-              ? '🎉 MISSION COMPLETE — Rover reached the flag with SCORE at exactly ' + score + '!'
-              : '🎉 MISSION COMPLETE — Rover reached the flag!';
-            cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess();
-          }
-        } else {
-          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
-          cfg.msgEl.className = 'mission-msg bad';
-        }
+        await driveAll(runItems(program));
+        evalEnd();
       } catch (e) {
-        if (e instanceof MissionFail) {
-          cfg.msgEl.textContent = e.message;
-          cfg.msgEl.className = 'mission-msg bad';
-        } else { throw e; }
+        handleFail(e);
       } finally {
         running = false;
         cfg.runBtn.disabled = false;
+        clearHighlights();
         updateContainerBtns();
       }
     });
 
-    buildGrid();
+    // ⏭ Step: the first press starts a stepped run from the start state; each press performs exactly one move.
+    cfg.stepBtn.addEventListener('click', () => {
+      if (running || program.length === 0) return;
+      if (!stepGen) {
+        if (!integrityOK()) return;
+        beginRun();
+        stepGen = runItems(program);
+        stepGen.next(); // run forward to the first "ready to move"
+      }
+      stepsUsed++;
+      try {
+        const r = stepGen.next(); // performs the pending move, then runs on to the next "ready to move"
+        if (r.done) { stepGen = null; evalEnd(); clearHighlights(); }
+      } catch (e) {
+        stepGen = null;
+        handleFail(e);
+      }
+    });
+
+    resetRunState();
     updateRoverPosition(false);
-    updateScoreDisplay();
-    updateCargoDisplay();
     renderProgram();
+    updateHintUI();
+    cfg.msgEl.textContent = MSG_PREDICT; cfg.msgEl.className = 'mission-msg';
 
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
-      get finalScore() { return score; },
-      get blockCallCount() { return blockCallCount; },
-      get finalCargo() { return [...cargoList]; }
+      get hintsUsed() { return hintsUsed; },
+      get predictedRow() { return predictedRow; },
+      get predictionHit() { return predictionHit; },
+      get stepsUsed() { return stepsUsed; },
+      get editsMade() { return editsMade; },
+      get restoresUsed() { return restoresUsed; },
+      get infiniteLoopHits() { return infiniteLoopHits; },
+      get wrongStopHits() { return wrongStopHits; },
+      get outOfFuelRuns() { return outOfFuelRuns; },
+      get outOfOrderAttempts() { return outOfOrderAttempts; },
+      get bugsFixed() { return succeeded && bugsFixedAtSuccess !== null ? bugsFixedAtSuccess : cfg.bugCheck(program); },
+      get fuelRemaining() { return fuel; },
+      get position() { return { r: state.r, c: state.c }; },
+      get program() { return clone(program); },
+      get initialProgram() { return clone(cfg.initialProgram); },
+      get toasts() { return toastLog.slice(); },
+      get editUnlocked() { return editUnlocked; }
     };
   }
 
-  // Mission 1 · Platform Quebec — FIXED goal, not randomized (every debugging mission needs a
-  // known, reproducible bug, so BFS goal-shuffling is deliberately skipped here). Straight line,
-  // 3 cells north, no turns needed. Pre-populated with a REPEAT 2 [ Forward ] -- one short of the
-  // REPEAT 3 [ Forward ] that actually reaches the flag -- so running it unmodified provably stops
-  // 1 cell short every time. The only forcing needed is the existing goal-reached check: this
-  // starting program cannot reach the flag until the count is genuinely fixed.
-  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: null, walls: [], goal: { r: 1, c: 2 } };
+  const T = (cmd) => ({ type: 'cmd', cmd });
+  const REP = (count, ...children) => ({ type: 'repeat', count, children });
+
+  // Mission 1 · Platform Quebec -- a count and a direction. BUG A: the first Repeat is x3 (should be x2),
+  // so the rover climbs column 3 and misses the pad; BUG B: the IF steps LEFT (should be RIGHT) --
+  // it only matters once bug A is fixed. Bug rows (rendered, 1-based): 1, 4, 5.
+  const mission1Def = {
+    rows: 6, cols: 6, cellPx: 64, start: { r: 5, c: 0 }, goal: { r: 0, c: 5 }, walls: [{ r: 3, c: 2 }],
+    primaryDir: 'UP', fuel: { start: 6, costPerMove: 1, pads: [{ r: 4, c: 2, amount: 5 }] }
+  };
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
-    runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
-    clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
-    addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
-    addConditionBtn: document.getElementById('addCondition1'), scoreEl: document.getElementById('score1'),
-    addBlockBtn: document.getElementById('addBlock1'), callBlockBtn: document.getElementById('callBlock1'),
-    cargoEl: document.getElementById('cargo1'),
+    runBtn: document.getElementById('run1'), stepBtn: document.getElementById('step1'),
+    resetBtn: document.getElementById('reset1'), restoreBtn: document.getElementById('restore1'),
+    paletteEl: document.getElementById('palette1'),
+    fuelEl: document.getElementById('fuel1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
-    initialScore: 0,
-    initialCargo: [],
-    initialProgram: [ { type: 'repeat', count: 2, children: [ { type: 'cmd', cmd: 'F' } ] } ],
+    lockedEditing: true,
+    condSources: ['wall', 'fuelLow'],
+    initialProgram: [
+      REP(3, T('RIGHT')),
+      REP(5, { type: 'condition', cond: 'wall', children: [T('LEFT')] }, T('UP')),
+      REP(2, T('RIGHT'))
+    ],
+    bugRows: [1, 4, 5],
+    bugCheck: (p) => {
+      let n = 0;
+      if (p[0] && p[0].type === 'repeat' && p[0].count === 2) n++;
+      const iff = p[1] && p[1].children && p[1].children[0];
+      if (iff && iff.type === 'condition' && iff.children[0] && iff.children[0].cmd === 'RIGHT') n++;
+      return n;
+    },
+    hints: {
+      after3: 'Use ⏭ Step and watch the FUEL number. Does Rover-7 climb the column you expected — the one with the ⚡ pad?',
+      after6: 'Look at the first REPEAT\'s count. Step through it and count the moves out loud. Then watch what the IF does when it sees the wall.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — fixed before the very first run! You read the program like a detective.',
+      afterStruggle: '🎉 MISSION COMPLETE — reproduce, watch, guess, change one thing. That loop just fixed two bugs, Cadet.',
+      normal: '🎉 MISSION COMPLETE — two bugs found, two lines fixed, Rover-7 home!'
+    },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
+  window.__mission1 = mission1; window.__mission1Def = mission1Def; // test hook, not used in gameplay
 
-  // Mission 2 · Platform Romeo — FIXED goal, 2 cells due east of start, no wall needed (the bug
-  // itself is the obstacle this time). Pre-populated with [ Turn Left, Forward, Forward ] -- the
-  // correct fix is [ Turn Right, Forward, Forward ], so BOTH the wrong command (L instead of R)
-  // AND its position (already first, correctly) matter. Turning the wrong way sends the rover the
-  // opposite direction entirely, so running it unmodified provably misses. Harder than Mission 1
-  // on purpose (a direction bug, not just a count) -- matches the "mission 2 is harder" pattern
-  // from every prior unit.
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: null, walls: [], goal: { r: 4, c: 4 } };
+  // Mission 2 · Platform Romeo -- a stop-condition and an order. BUG C: the Repeat Until waits for
+  // "at flag" (should be "wall ahead"), so Rover-7 drives into the wall; BUG D: the Down block and the
+  // Right block are in the wrong order. Bug rows: 1, 3, 4, 5, 6.
+  const mission2Def = {
+    rows: 6, cols: 6, cellPx: 64, start: { r: 5, c: 0 }, goal: { r: 4, c: 5 }, walls: [{ r: 1, c: 0 }],
+    primaryDir: 'UP',
+    manifest: ['RED', 'BLUE', 'GREEN'],
+    manifestPads: { RED: { r: 3, c: 0 }, BLUE: { r: 2, c: 3 }, GREEN: { r: 4, c: 3 } }
+  };
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
-    runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
-    clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
-    addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
-    addConditionBtn: document.getElementById('addCondition2'), scoreEl: document.getElementById('score2'),
-    addBlockBtn: document.getElementById('addBlock2'), callBlockBtn: document.getElementById('callBlock2'),
-    cargoEl: document.getElementById('cargo2'),
+    runBtn: document.getElementById('run2'), stepBtn: document.getElementById('step2'),
+    resetBtn: document.getElementById('reset2'), restoreBtn: document.getElementById('restore2'),
+    paletteEl: document.getElementById('palette2'),
+    manifestEl: document.getElementById('manifest2'), toastEl: document.getElementById('toast2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
-    initialScore: 0,
-    initialCargo: [],
-    initialProgram: [ { type: 'cmd', cmd: 'L' }, { type: 'cmd', cmd: 'F' }, { type: 'cmd', cmd: 'F' } ],
+    lockedEditing: true,
+    untilSources: ['wall', 'atFlag'],
+    initialProgram: [
+      { type: 'until', cond: 'atFlag', children: [T('UP')] },
+      REP(2, T('DOWN')),
+      REP(3, T('RIGHT')),
+      REP(2, T('RIGHT'))
+    ],
+    bugRows: [1, 3, 4, 5, 6],
+    bugCheck: (p) => {
+      let n = 0;
+      if (p[0] && p[0].type === 'until' && p[0].cond === 'wall') n++;
+      const a = p[1], b = p[2];
+      if (a && b && a.type === 'repeat' && b.type === 'repeat' && a.children[0] && b.children[0]
+          && a.children[0].cmd === 'RIGHT' && b.children[0].cmd === 'DOWN') n++;
+      return n;
+    },
+    hints: {
+      after3: 'Step through it. Which line is running when Rover-7 crashes — and what is that loop waiting for?',
+      after6: 'A Repeat Until keeps going until its condition is TRUE. Does Rover-7 ever reach the flag by driving straight Up from the start? Then check the manifest against the order the crates get delivered.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — fixed before the very first run! Stop-condition and order, both spotted.',
+      afterStruggle: '🎉 MISSION COMPLETE — you fixed WHEN the loop stops and WHAT ORDER the crates go in. That\'s real debugging, Cadet.',
+      normal: '🎉 MISSION COMPLETE — crates in order, loop stopping on time!'
+    },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
+  window.__mission2 = mission2; window.__mission2Def = mission2Def; // test hook, not used in gameplay
+
 
   // ================= Finish / Debrief =================
-  const QUIZ_ANSWERS = { q1: 0, q2: 1 };
-  const Q3_CORRECT = [0, 2, 4];
+  const QUIZ_ANSWERS = { q1: 0, q2: 0 };
+  const Q3_CORRECT = [0, 1, 2];
   const Q3_ALL = [0, 1, 2, 3, 4];
 
   const Q_EXPLAIN = {
     q1: {
       correct: 0,
       why: {
-        0: "Exactly right. Run it, compare the actual result against the intended one, and the SIZE of that gap tells you exactly how much to adjust — no guessing required.",
-        1: "Deleting everything throws away the information you already have — the program is almost entirely correct, only one piece is off.",
-        2: "Ignoring a repeatable, consistent gap means the bug never gets fixed — that's avoidance, not debugging.",
-        3: "Adding something unrelated without first diagnosing the actual problem is guessing, not debugging — it might not even touch the real bug."
+        0: "Exactly right. Seeing the problem for yourself, and noticing exactly where it stops matching what you expected, tells you which line to look at.",
+        1: "That throws away everything that's already right, and you'd never learn what was actually broken. The bug is usually only a line or two.",
+        2: "That's guessing. If it works you won't know which change did it, and if it doesn't you may have added new bugs.",
+        3: "The map is the same every run. The program is the part that can be wrong — so that's where to look."
       },
-      codeLife: "Why it matters for coding: real programs almost never work perfectly on the first try — debugging (comparing expected vs. actual, then fixing just the gap) is what every working programmer does, every day. Why it matters in life: most real fixes — a recipe, a routine, a plan — come from noticing exactly where things went off track, not starting over from zero."
+      codeLife: "Why it matters for coding: a bug you can't see is a bug you can't fix, so you reproduce it first and watch where it begins. Why it matters in life: a doctor, a mechanic and a teacher marking your work all start the same way — look at exactly what went wrong before changing anything."
     },
     q2: {
-      correct: 1,
+      correct: 0,
       why: {
-        0: "Leaving it at 4 doesn't fix anything — that's the exact count that's already causing the 2-cell shortfall.",
-        1: "Right. The rover falls short by 2, so the REPEAT needs to run 2 MORE times — 4 + 2 = 6.",
-        2: "Subtracting makes the rover stop even further short, not closer to the flag — the gap needs to be added, not removed.",
-        3: "Doubling overshoots by a lot more than needed — the fix should match the exact size of the gap (2), not just scale up."
+        0: "If you change two things and it works — or breaks differently — you can't tell which change did it. One change, one re-test.",
+        1: "That's the trap: if the result changes, you can't tell which of the two edits caused it — or whether one of them made things worse.",
+        2: "Running the same program again gives the same result. Nothing has changed, so nothing can get better.",
+        3: "Deleting throws away lines that might be perfectly fine, and you still wouldn't know which one was the problem."
       },
-      codeLife: "Why it matters for coding: fixing an off-by-N bug means adjusting by exactly N, not by a guess — precision is what separates a real fix from a lucky one. Why it matters in life: if a recipe needs 2 more minutes in the oven, you add 2 minutes — not double the whole bake time."
+      codeLife: "Why it matters for coding: one change at a time is how you know which line was the bug. Why it matters in life: in an experiment, a recipe or a game strategy, changing one thing and checking is the only way to learn what really mattered."
     }
   };
-  // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
-  // (built at render time, based on what THIS cadet actually checked) carry the correctness signal.
+  // Neutral facts only -- the check mark and its lead-in (built at render time from what THIS cadet actually
+  // answered) carry the correctness signal. Each item names its parts and gives a coding and a life line.
   const Q3_EXPLAIN = {
-    0: "checking what actually caused the result (too long in the oven) before changing anything else is real debugging — diagnose first.",
-    1: "replacing the whole bike without ever checking for a puncture skips diagnosis entirely — that's not debugging, that's guessing at a fix.",
-    2: "going back step by step to find exactly where it stopped matching is comparing expected vs. actual, one piece at a time — real debugging.",
-    3: "deciding it's broken forever without checking anything (a loose cable, a different input) is giving up, not diagnosing.",
-    4: "comparing the actual amount added against the recipe's instructions is exactly the expected-vs-actual comparison debugging is built on."
+    0: "the plan was fine — one <strong>value</strong> was wrong (3 cups instead of 2). Coding: that's a wrong number, like a Repeat with the wrong count. Life: check the amounts against the recipe one at a time, and fix only the one that's off.",
+    1: "everything was done, but two steps are in the wrong <strong>order</strong>. Coding: two correct blocks sitting in the wrong order are still a bug. Life: swap the two steps and the problem goes away.",
+    2: "the waiting never ends because the <strong>stop-condition</strong> (that bus arriving) can never become true. Coding: a Repeat Until that waits for the wrong thing. Life: fix WHEN you stop waiting — check the timetable.",
+    3: "everyone followed the plan exactly, and the other team was simply faster. There's <strong>no wrong piece</strong> to find. Coding: a program that ran exactly as written has no bug, even if you don't like the result. Life: you can't fix a line that isn't wrong — getting faster is a different job from debugging.",
+    4: "the answer matches the key, so there's <strong>nothing to fix</strong>. Coding: a long route isn't a bug if it reaches the right place. Life: don't \"fix\" something that already works."
   };
 
   // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — keeps the interaction
@@ -1474,14 +1896,14 @@
     q2Box.classList.add('show');
 
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE tracked values that change over time — YES is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE bugs — one wrong piece — so YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
       const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT tracked/changing values — NO is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These have NO wrong piece — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
       const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
@@ -1498,11 +1920,25 @@
       cadet_name: cadetName,
       completed_at: new Date().toISOString(),
       xp_earned: xp,
+      mission_version: 2,
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, bug_type: 'repeat_count_off_by_one' },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, bug_type: 'wrong_turn_direction' }
+        mission_1: {
+          succeeded: mission1.succeeded, attempts: mission1.attempts,
+          predicted_row: mission1.predictedRow, prediction_hit: mission1.predictionHit,
+          steps_used: mission1.stepsUsed, edits_made: mission1.editsMade, restores_used: mission1.restoresUsed,
+          infinite_loop_hits: mission1.infiniteLoopHits, out_of_fuel_runs: mission1.outOfFuelRuns,
+          bugs_fixed: mission1.bugsFixed, hints_used: mission1.hintsUsed
+        },
+        mission_2: {
+          succeeded: mission2.succeeded, attempts: mission2.attempts,
+          predicted_row: mission2.predictedRow, prediction_hit: mission2.predictionHit,
+          steps_used: mission2.stepsUsed, edits_made: mission2.editsMade, restores_used: mission2.restoresUsed,
+          infinite_loop_hits: mission2.infiniteLoopHits, wrong_stop_hits: mission2.wrongStopHits,
+          out_of_order_attempts: mission2.outOfOrderAttempts,
+          bugs_fixed: mission2.bugsFixed, hints_used: mission2.hintsUsed
+        }
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,

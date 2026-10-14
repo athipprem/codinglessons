@@ -1,0 +1,2008 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script>
+  // Runs before first paint so the page never flashes the wrong theme on load.
+  try {
+    if (localStorage.getItem('flow_theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch (e) {}
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Academy — Unit 7: Custom Block Protocol</title>
+<link rel="icon" type="image/png" href="../assets/flow_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../flow-academy.css">
+<style>
+  :root {
+    --bg: #0A0E1E; --bg-raised: #131A33; --bg-panel: #171F42;
+    --ink: #E9ECFF; --ink-soft: #9AA3CC; --line: #2B3560;
+    --cyan: #38E6EE; --cyan-ink: #06282C; --cyan-tint: #123138;
+    --amber: #FFC24B; --amber-tint: #3A2B0E;
+    --danger: #FF6B7F; --danger-tint: #3A1620;
+    --success: #4BE39A; --success-tint: #113526;
+    --nova: #C77DFF; --nova-tint: #241238;
+    --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+    /* Master style: Mission 1/2 zone theming (ported from Units 1-3's approved full-screen mission
+       stage) -- Mission 1 reads purple, Mission 2 reads orange, green stays reserved for the goal
+       cell. Theme-invariant, never redefined for light mode (see the light-mode tint override below). */
+    --purple: #C77DFF; --purple-ink: #2B0E45; --purple-tint: #241040;
+    --orange: #FF8C00; --orange-ink: #3A1B00; --orange-tint: #3A2000;
+    --green: #4BE39A; --green-ink: #06281C; --green-tint: #0F3324;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1px 1px at 10% 20%, var(--star), transparent),
+      radial-gradient(1px 1px at 80% 10%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 40% 70%, var(--star), transparent),
+      radial-gradient(1px 1px at 60% 40%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 90% 80%, var(--star), transparent),
+      radial-gradient(1px 1px at 25% 85%, var(--star), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+    font-size: 17px; line-height: 1.6;
+  }
+  h1, h2, h3, .display { font-family: "Orbitron", ui-sans-serif, system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; border-radius: 4px; }
+  a { color: var(--cyan); }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 18px 90px; }
+
+  /* ---------------- Flow Academy topbar ---------------- */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
+  #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #brand, .brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo, .brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover, .brand:hover { color: var(--cyan); }
+  .game-topbar-left .brand { flex-shrink: 0; }
+
+  .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
+  .hud.show { display: flex; }
+  .hud .cadet { color: var(--ink); font-weight: 600; }
+  .hud .xp { color: var(--amber); font-weight: 700; }
+  .hud .tx { margin-left: auto; }
+  .hud-bar { flex-basis: 100%; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .hud-bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--success)); transition: width 0.5s ease; }
+
+  .screen { display: none; flex-direction: column; gap: 20px; }
+  .screen.active { display: flex; }
+
+  .boot-card { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 20px; padding: 40px 28px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 40px; }
+  .boot-card .logo { height: 52px; width: auto; filter: drop-shadow(0 0 14px #38e6ee66); }
+  .boot-card h1 { font-size: clamp(22px, 6vw, 30px); letter-spacing: 0.02em; background: linear-gradient(135deg, var(--cyan), var(--amber)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .boot-card .tagline { color: var(--ink-soft); font-family: "JetBrains Mono", monospace; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .boot-card input { font-family: inherit; font-size: 16px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel); color: var(--ink); width: 100%; max-width: 280px; text-align: center; }
+  .boot-card label { font-size: 14px; color: var(--ink-soft); }
+
+  button.primary { font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 0.03em; background: linear-gradient(135deg, var(--cyan), #1c8fa0); color: var(--cyan-ink); border: none; padding: 12px 24px; border-radius: 999px; box-shadow: 0 6px 16px #38e6ee33; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  button.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  button.ghost { font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 13px; background: transparent; color: var(--ink-soft); border: 1.5px solid var(--line); padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: transform .12s ease, border-color .12s ease, color .12s ease; }
+  button.ghost:hover { border-color: var(--cyan); color: var(--cyan); transform: translateY(-1px); }
+  button.ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .transmission-tag { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cyan); }
+  .tx-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tx-nav { display: flex; gap: 8px; }
+  .tx-nav-btn {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700;
+    background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft);
+    border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .tx-nav-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .tx-nav-btn:disabled { opacity: .35; cursor: default; }
+  #lastResultCard {
+    margin-top: 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--bg-panel); font-size: .86rem; color: var(--ink-soft); text-align: left;
+  }
+  #lastResultCard strong { color: var(--ink); }
+  .dialogue { background: var(--bg-panel); border: 1px solid var(--line); border-left: 4px solid var(--cyan); border-radius: 12px; padding: 16px 20px; display: flex; gap: 12px; align-items: flex-start; }
+  .dialogue .avatar { font-size: 26px; flex-shrink: 0; }
+  .dialogue p { margin: 0 0 8px; }
+  .dialogue p:last-child { margin-bottom: 0; }
+
+  .panel { background: var(--bg-raised); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .panel h2 { font-size: 18px; color: var(--ink); }
+  .panel .sub { color: var(--ink-soft); font-size: 14.5px; }
+
+  .field-manual { background: var(--amber-tint); border-left: 4px solid var(--amber); border-radius: 10px; padding: 14px 18px; font-size: 15px; }
+  .field-manual h3 { font-size: 15px; margin-bottom: 6px; color: var(--ink); }
+  .field-manual ol { margin: 6px 0 0; padding-left: 20px; }
+  .field-manual li { margin: 4px 0; }
+
+  .chip-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; align-items: flex-start; }
+  .chip-order { display: flex; flex-direction: column; gap: 8px; min-height: 40px; padding: 10px; border-radius: 10px; background: var(--bg-panel); border: 1px solid var(--line); }
+  .step-chip, .cmd-chip { font-size: 14px; padding: 8px 13px; border-radius: 10px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); cursor: pointer; font-family: inherit; }
+  .step-chip:hover, .cmd-chip:hover { border-color: var(--cyan); }
+  .step-chip.placed, .cmd-chip { background: var(--cyan-tint); border-color: var(--cyan); }
+  .num { font-family: "JetBrains Mono", monospace; font-weight: 700; margin-right: 6px; }
+  .empty-hint { color: var(--ink-soft); font-size: 13.5px; }
+
+  .order-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--cyan-tint); border: 1.5px solid var(--cyan); border-radius: 10px;
+    padding: 7px 8px 7px 13px;
+  }
+  .order-row .order-label { flex: 1; font-size: 14px; text-align: left; }
+  .order-row .order-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .order-row .order-btns button {
+    font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+    width: 30px; height: 30px; padding: 0; border-radius: 7px;
+    border: 1px solid var(--line); background: var(--bg-raised); color: var(--ink);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .order-row .order-btns button:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+  .order-row .order-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .order-row .order-btns button.remove:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); }
+
+  .debrief-note {
+    display: none; background: var(--bg-panel); border-left: 3px solid var(--cyan);
+    border-radius: 8px; padding: 10px 14px; font-size: 14px; color: var(--ink-soft);
+  }
+  .debrief-note.show { display: block; }
+  .debrief-note strong { color: var(--ink); }
+  .debrief-note ul { margin: 6px 0 0; padding-left: 20px; }
+  .debrief-note li { margin: 3px 0; }
+
+  .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
+  .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
+  .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
+  .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+  .repeat-move-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
+  .repeat-move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .repeat-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px; }
+  .repeat-children { display: flex; flex-direction: column; gap: 6px; min-height: 30px; padding-left: 14px; border-left: 2px dashed var(--line); }
+  .repeat-done-btn { align-self: flex-start; font-family: "Orbitron", sans-serif; font-weight: 600; font-size: 11.5px; background: var(--success); color: #06281B; border: none; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
+
+  .cond-select { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 600; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 4px 6px; }
+  .cond-select:hover { border-color: var(--nova); }
+  .cond-select:disabled { opacity: 0.5; }
+
+  .cmd-palette { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cmd-btn { font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 14px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+  .cmd-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .cmd-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .cmd-btn.repeat-btn { border-color: var(--amber); }
+  .cmd-btn.repeat-btn:hover { color: var(--amber); border-color: var(--amber); }
+  .cmd-btn.event-btn { border-color: var(--cyan); }
+  .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+  .cmd-btn.condition-btn { border-color: var(--nova); }
+  .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
+
+  .fuel-chip { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--cyan); background: var(--cyan-tint); border: 1px solid var(--cyan); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .fuel-chip.low { color: var(--amber); background: var(--amber-tint); border-color: var(--amber); }
+
+  /* ---------------- Master style: full-screen mission stage (Missions 1 & 2 only) ----------------
+     Ported from Units 1-3's approved full-screen mission stage -- this was missing on Units 4-6, a
+     regression flagged by Lui and fixed here. Command deck floats as a translucent HUD panel on the
+     left, the mission grid gets the whole rest of the viewport on the right, over a starfield/galaxy
+     backdrop. Boot, Transmission 1 and Final Systems Check stay the normal in-page layout -- only the
+     two missions, the ones that are actually a "game", take over the screen. */
+  .screen.fullscreen-mission { display: none; }
+  .screen.fullscreen-mission.active { display: flex; position: fixed; inset: 0; z-index: 40; background: var(--bg); flex-direction: column; }
+  .game-topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--bg-raised); gap: 10px; flex-wrap: wrap; }
+  .game-topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .game-topbar-right { display: flex; align-items: center; gap: 12px; }
+  .game-xp { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .game-xp .xp-value { color: var(--amber); font-weight: 700; }
+  .theme-toggle-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor: pointer; padding: 0; flex-shrink: 0; }
+  .theme-toggle-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .game-body { flex: 1 1 auto; position: relative; min-height: 0; overflow: hidden; --palette-w: min(640px, 58vw); }
+  /* CSS-only starfield/galaxy backdrop, reused verbatim from Unit 1. */
+  .stage-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, #38E6EE 26%, transparent), transparent 70%),
+      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, #FFC24B 18%, transparent), transparent 70%),
+      radial-gradient(1px 1px at 8% 10%, var(--star), transparent),
+      radial-gradient(1px 1px at 18% 22%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 34% 6%, var(--star), transparent),
+      radial-gradient(1px 1px at 47% 18%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 62% 9%, var(--star), transparent),
+      radial-gradient(1px 1px at 71% 24%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 85% 14%, var(--star), transparent),
+      radial-gradient(1px 1px at 93% 28%, var(--star), transparent),
+      radial-gradient(1px 1px at 5% 40%, var(--star), transparent),
+      radial-gradient(1px 1px at 40% 45%, var(--star), transparent),
+      radial-gradient(1px 1px at 65% 42%, var(--star), transparent),
+      var(--bg);
+    opacity: .9;
+  }
+  .game-stage-col { position: absolute; inset: 0; left: var(--palette-w); display: flex; align-items: center; justify-content: center; }
+  .stage-grid-wrap { position: relative; z-index: 1; }
+  .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
+  .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
+  .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.pad { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.pad.collected { background: rgba(233,236,255,.08); opacity: 0.6; }
+  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
+  .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
+
+  .game-palette-col {
+    position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+    width: var(--palette-w);
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    overflow-y: auto;
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  }
+  .dialogue.compact { padding: 10px 12px; font-size: 14px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact .avatar { font-size: 18px; }
+
+  .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  /* Keep the whole control rail visible when a long mission message appears below it (the message
+     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
+  .game-palette-col .palette-cols { min-height: 360px; }
+  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
+  .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
+  .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
+  .control-rail .mission-actions button { width: 100%; }
+  .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
+  .control-rail .dpad { align-self: center; }
+
+  /* Program column: the FUEL chip sits attached to the top of THIS column (same row as the
+     control-rail, right-aligned) -- same convention as Units 2-3/5's own slot/flag chip. */
+  .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
+
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--amber); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
+
+  /* Phone-width fallback, ported verbatim from Unit 1. */
+  @media (max-width: 760px) {
+    .game-body { display: flex; flex-direction: column; overflow-y: auto; }
+    .game-palette-col {
+      position: relative; top: auto; left: auto; bottom: auto; right: auto;
+      width: auto; max-width: none; max-height: 58vh; flex: 0 0 auto;
+      border-right: none; border-bottom: 1px solid rgba(56,230,238,.35);
+    }
+    .game-stage-col {
+      position: relative; inset: auto; left: auto;
+      flex: 1 1 auto; min-height: 220px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .palette-cols { flex-direction: column; flex: 0 0 auto; }
+    .control-rail { flex: 0 0 auto; }
+    .prog-col { flex: 0 0 auto; }
+    .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
+  }
+
+  /* Master style: .panel's cosmic-vibes gradient border (pg2/scr-t1 and pg5/scr-final), applying in
+     BOTH themes -- ported verbatim from Units 1-3. */
+  .panel {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, var(--purple) 0%, #38E6EE 30%, var(--green) 55%, var(--orange) 80%, #FFC24B 100%) border-box;
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
+    background: color-mix(in srgb, var(--green) 48%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
+    background: color-mix(in srgb, var(--danger) 48%, transparent);
+  }
+  html[data-theme="light"] {
+    --purple-tint: #F3E9FE;
+    --orange-tint: #FFF2DC;
+  }
+
+  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform Kilo) reads purple, Mission 2
+     (Platform Lima) reads orange, in BOTH themes. REPEAT/Condition keep their own dedicated accent
+     colors regardless of zone -- amber/nova mark WHAT KIND of block it is, the same way zone color
+     marks WHICH mission it is; the two systems don't overlap. */
+  #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  #scr-t2 .transmission-tag { color: var(--purple); }
+  #scr-t2 .dialogue { border-left-color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); }
+  #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
+  #scr-t2 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
+  }
+  #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  #scr-t2 .stage-bg::before,
+  #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+
+  #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  #scr-t3 .transmission-tag { color: var(--orange); }
+  #scr-t3 .dialogue { border-left-color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); }
+  #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
+  #scr-t3 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  }
+  #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  #scr-t3 .stage-bg::before,
+  #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
+
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
+
+  .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
+  .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
+  .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.wall::after { content: "🚧"; font-size: 16px; }
+  .cell.pad { background: var(--cyan-tint); font-size: 13px; font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--cyan); }
+  .cell.pad.collected { background: var(--bg-raised); color: var(--ink-soft); opacity: 0.5; }
+  .cell.goal { background: var(--success-tint); }
+  .rover { position: absolute; transform-origin: 50% 50%; }
+  .rover-shape {
+    width: 100%; height: 100%;
+    display: block;
+    filter: drop-shadow(0 0 3px rgba(56,230,238,0.5));
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* V2 E15: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a handful
+     of sparkle particles, so a win reads as a moment, not just a text swap. Ported verbatim from
+     unit_01_sequence.html via Units 4/5's T1/T3 -- the per-zone `.rover.celebrating` filter rules
+     above were already in place (copied along with the zone theming block) but had no animation or
+     JS to trigger them until this build. */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
+
+  .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .quiz-q:first-of-type { border-top: none; padding-top: 0; }
+  .qtext { font-weight: 700; }
+  .choice { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; background: var(--bg-panel); }
+  .choice:hover { border-color: var(--cyan); }
+  .choice input { margin-top: 3px; accent-color: var(--cyan); }
+  .choice.correct { border-color: var(--success); background: var(--success-tint); }
+  .choice.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px;
+    border-radius: 10px; border: 1px solid var(--line); background: var(--bg-panel);
+  }
+  .yn-text { flex: 1; }
+  .yn-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .yn-btn {
+    font-family: "Orbitron", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 0.03em;
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: transparent;
+    color: var(--ink-soft); cursor: pointer;
+  }
+  .yn-btn:hover { border-color: var(--cyan); color: var(--ink); }
+  .yn-btn.selected-yes { border-color: var(--cyan); background: var(--cyan-tint); color: var(--cyan); }
+  .yn-btn.selected-no { border-color: var(--ink-soft); background: var(--bg-raised); color: var(--ink); }
+  .yn-row.correct { border-color: var(--success); background: var(--success-tint); }
+  .yn-row.incorrect { border-color: var(--danger); background: var(--danger-tint); }
+  .yn-row.correct .yn-btn.selected-yes, .yn-row.correct .yn-btn.selected-no { border-color: var(--success); background: transparent; color: var(--success); }
+  .yn-row.incorrect .yn-btn.selected-yes, .yn-row.incorrect .yn-btn.selected-no { border-color: var(--danger); background: transparent; color: var(--danger); }
+
+  .mission-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .puzzle-msg, .mission-msg { font-size: 14.5px; font-weight: 600; min-height: 20px; }
+  .puzzle-msg.ok, .mission-msg.ok { color: var(--success); }
+  .puzzle-msg.bad, .mission-msg.bad { color: var(--danger); }
+
+  .result-box { display: none; background: var(--success-tint); border-radius: 12px; padding: 16px 18px; font-size: 15px; }
+  .result-box.show { display: block; }
+  .result-box strong { font-family: "Orbitron", sans-serif; }
+  .post-debrief-nav { display: none; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .post-debrief-nav.show { display: flex; }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
+
+  /* ---------------- Unit 7: slot budget (E1) + open route (E2) + custom block (E9) ---------------- */
+  .slot-chip {
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 12px; display: inline-block; align-self: flex-start;
+  }
+  .slot-chip.over { color: var(--danger); background: var(--danger-tint); border-color: var(--danger); }
+  .slot-chip.complete { color: var(--success); background: var(--success-tint); border-color: var(--success); }
+
+  /* E2: the amber route is drawn on the grid from load; each cell tints as the rover walks it. */
+  .cell.patrol { box-shadow: inset 0 0 0 2px var(--amber); }
+  .cell.visited { background: var(--cyan-tint); }
+  .cell.patrol.visited { background: var(--cyan-tint); box-shadow: inset 0 0 0 2px var(--amber); }
+  .stage-grid-wrap .cell.visited { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.patrol { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--amber) 75%, transparent); }
+  #scr-t2 .stage-grid-wrap .cell.visited { background: color-mix(in srgb, var(--purple) 40%, rgba(56,230,238,.28)); }
+  #scr-t3 .stage-grid-wrap .cell.visited { background: color-mix(in srgb, var(--orange) 40%, rgba(56,230,238,.28)); }
+  html[data-theme="light"] .stage-grid-wrap .cell.patrol { box-shadow: inset 0 0 0 3px #B86E00; }
+
+  /* E9: the named block. Purple "nova" accent for the definition, green for a call. */
+  .cmd-btn.block-btn { border-color: var(--nova); }
+  .cmd-btn.block-btn:hover:not(:disabled) { color: var(--nova); border-color: var(--nova); }
+  .cmd-btn.call-btn { border-color: var(--success); }
+  .cmd-btn.call-btn:hover:not(:disabled) { color: var(--success); border-color: var(--success); }
+  .repeat-card.def-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.def-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .def-head { gap: 8px; }
+  .def-name { font-family: "Orbitron", sans-serif; font-weight: 700; color: var(--nova); letter-spacing: .04em; }
+  .def-name-input { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; width: 8.5em; text-transform: uppercase; background: var(--bg-panel); border: 1.5px solid var(--nova); color: var(--ink); border-radius: 6px; padding: 3px 6px; }
+  .def-edit-btn { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--ink); padding: 0; }
+  .def-edit-btn:hover:not(:disabled) { border-color: var(--nova); }
+  .def-num-label { display: inline-flex; align-items: center; gap: 4px; font-family: "Atkinson Hyperlegible", sans-serif; font-size: 12.5px; font-weight: 700; color: var(--ink); cursor: pointer; }
+  .def-num-label input { accent-color: var(--nova); width: 16px; height: 16px; }
+  .def-note { font-size: 12.5px; font-weight: 700; color: var(--danger); min-height: 0; }
+  .def-note:empty { display: none; }
+  .def-cap { font-size: 12.5px; font-weight: 700; color: var(--amber); }
+  .def-reopen-btn { align-self: flex-start; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 11.5px; background: var(--bg-panel); border: 1px solid var(--nova); color: var(--ink); padding: 4px 9px; border-radius: 7px; cursor: pointer; }
+  .n-toggle { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); border-radius: 6px; min-width: 24px; height: 22px; cursor: pointer; padding: 0 6px; }
+  .n-toggle.on { background: var(--nova); border-color: var(--nova); color: #1B0A2E; }
+  .n-toggle:disabled { opacity: .35; cursor: not-allowed; }
+  .order-row.call-row { border-color: var(--success); background: var(--success-tint); }
+  #scr-t2 .order-row.call-row, #scr-t3 .order-row.call-row { border-color: var(--success); background: var(--success-tint); }
+  .call-stepper { display: inline-flex; align-items: center; gap: 4px; }
+  .call-stepper-n { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; color: var(--ink-soft); }
+  /* H.22: visible while a call runs -- the call row and the definition card light up. */
+  .order-row.executing, #scr-t2 .order-row.executing, #scr-t3 .order-row.executing { box-shadow: 0 0 0 3px var(--amber); }
+  .repeat-card.executing { box-shadow: 0 0 0 3px var(--amber); }
+  @keyframes def-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--nova); } 50% { box-shadow: 0 0 0 5px var(--nova); } }
+  .repeat-card.def-card.pulse { animation: def-pulse .8s ease-in-out infinite; }
+  .wk-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .wk-row { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg-panel); color: var(--ink); overflow-wrap: anywhere; }
+  .wk-row.wk-def { border-color: var(--nova); background: var(--nova-tint); }
+  .wk-row.wk-call { border-color: var(--success); background: var(--success-tint); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="topbar">
+    <div class="topbar-left">
+      <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;" id="topbarRightHome">
+      <button id="theme-toggle" class="theme-toggle-btn" type="button"></button>
+      <div id="acct-wrap">
+        <button id="acct-btn"></button>
+        <div id="acct-menu"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function(){
+      var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
+      var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
+      // Master style: the two mission screens are fixed full-viewport overlays (z-index 40) that
+      // visually cover #topbar while open, so each carries its own .theme-toggle-btn -- all of them
+      // (main topbar + both mission topbars) share this one apply()/click wiring via the class
+      // selector, delegated on document since the mission-screen buttons don't exist yet at parse
+      // time. Ported verbatim from Unit 1.
+      function apply(theme){
+        if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+          btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+          btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        });
+      }
+      document.addEventListener('DOMContentLoaded', function(){
+        apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      });
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.theme-toggle-btn');
+        if (!btn) return;
+        var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        try { localStorage.setItem('flow_theme', next); } catch (e2) {}
+        apply(next);
+      });
+    })();
+  </script>
+
+  <div class="hud" id="hud">
+    <span>CADET: <span class="cadet" id="hudName">—</span></span>
+    <span>XP: <span class="xp xp-value" id="hudXp">0</span></span>
+    <span class="tx" id="hudTx">TRANSMISSION 1/3</span>
+    <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- BOOT -->
+  <section class="screen active" id="scr-boot">
+    <div class="boot-card">
+      <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
+      <h1>FLOW ACADEMY</h1>
+      <div class="tagline">The Loop · Unit 07 · Custom Block Protocol</div>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Some moves keep coming back again and again. Rebuilding them by hand every time costs program slots and a lot of tapping. Command Control needs you to master the custom BLOCK: build a routine once, give it a name, and call it wherever you need it — even with a different number each time.</p>
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="primary" id="beginBtn">Begin Training →</button>
+        <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
+      </div>
+      <div id="lastResultCard" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 1 -->
+  <section class="screen" id="scr-t1">
+    <div class="tx-header">
+      <div class="transmission-tag">Transmission 1 of 3</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" disabled>◀ Prev</button>
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div>
+        <p><strong>COMMANDER:</strong> Good work on Variables, Cadet. Some moves keep coming back — the same little routine, in different places along a route. Rebuilding it by hand every time wastes slots and taps. A BLOCK fixes that: you build the routine once, give it a name, and then CALL it wherever you need it. Like riding a bike — you learn it once and use it on every ride.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Calibration Test: Spot the Working Block</h2>
+      <p class="sub">Command Control wants Rover-7 to do the same 3-move SCAN — Right, Up, Left — at two spots, with Up, Up in between. Which program does exactly that?</p>
+      <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
+      <div class="mission-actions">
+        <button class="primary" id="calCheckBtn">Run Calibration</button>
+      </div>
+      <p class="puzzle-msg" id="calMsg"></p>
+    </div>
+
+    <div class="field-manual" id="fieldManual" style="display:none;">
+      <h3>📖 Field Manual: CUSTOM BLOCKS</h3>
+      <ol>
+        <li><strong>Build it once.</strong> 🧩 Define Block, give it a name, put moves inside, ✅ Done. A recipe on its own does nothing.</li>
+        <li><strong>▶ Call runs the whole recipe</strong> right where the call sits. Three calls = the recipe runs three times.</li>
+        <li><strong>A block's recipe costs ONE program slot, and each call costs ONE.</strong> A routine you need in three places is cheaper as a block.</li>
+        <li><strong>A block can take a NUMBER.</strong> Tick "takes a number", set a Repeat inside it to n, and every call picks its own n.</li>
+      </ol>
+      <p style="margin-top:10px;"><strong>Worked example</strong> — one recipe, two sizes:</p>
+      <div class="wk-rows">
+        <div class="wk-row wk-def">🧩 STEP (takes a number) = [ Repeat n [Right], Up ]</div>
+        <div class="wk-row wk-call">▶ STEP(3) → Right, Right, Right, Up</div>
+        <div class="wk-row wk-call">▶ STEP(1) → Right, Up</div>
+      </div>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:6px 0 0;">One recipe, two sizes. In Python this is <code>def step(n):</code> — you'll write exactly this on The Core.</p>
+    </div>
+
+    <div class="mission-actions">
+      <button class="primary" id="toT2Btn" disabled>Continue to Transmission 2 →</button>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 2 -->
+  <section class="screen fullscreen-mission" id="scr-t2">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 2 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight2">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
+      </div>
+    </div>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform Mike's survey route is drawn in amber. Look closely: the same little hop shows up three times, with different moves in between — and you only have 7 program slots. I've started a block called HOP and placed one call for you. Fill in HOP's recipe once, then call it wherever the route hops.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette1">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+              <button class="cmd-btn block-btn" type="button" id="defineBlock1">🧩 Define Block</button>
+              <button class="cmd-btn call-btn" type="button" id="callBlock1">▶ Call</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run1">▶ Run Program</button>
+              <button class="ghost" id="reset1">Reset Rover</button>
+              <button class="ghost" id="clear1">Clear Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+              <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots1">SLOTS: 0 / 7</span>
+              <span class="slot-chip" id="route1">ROUTE: 0 / 13</span>
+            </div>
+            <div class="chip-order" id="prog1"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg1"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText1"></p></div>
+        <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
+      </div>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRANSMISSION 3 (full-screen mission stage -- master style) -->
+  <section class="screen fullscreen-mission" id="scr-t3">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 3 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight3">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
+      </div>
+    </div>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform November has three hops again — but this time they're different heights. One block can still fly all three, if each call can hand it a number. Build it from scratch. You have 6 slots.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette2">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+              <button class="cmd-btn block-btn" type="button" id="defineBlock2">🧩 Define Block</button>
+              <button class="cmd-btn call-btn" type="button" id="callBlock2">▶ Call</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run2">▶ Run Program</button>
+              <button class="ghost" id="reset2">Reset Rover</button>
+              <button class="ghost" id="clear2">Clear Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+              <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots2">SLOTS: 0 / 6</span>
+              <span class="slot-chip" id="route2">ROUTE: 0 / 17</span>
+            </div>
+            <div class="chip-order" id="prog2"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg2"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
+        <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
+      </div>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL SYSTEMS CHECK -->
+  <section class="screen" id="scr-final">
+    <div class="tx-header">
+      <div class="transmission-tag">Final Systems Check</div>
+      <div class="tx-nav">
+        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">◀ Prev</button>
+        <button type="button" class="tx-nav-btn" disabled>Next ▶</button>
+      </div>
+    </div>
+    <div class="dialogue">
+      <div class="avatar">🧑‍🚀</div>
+      <div><p><strong>COMMANDER:</strong> Last check, Cadet, before Command Control logs Custom Block Protocol as mastered.</p></div>
+    </div>
+
+    <div class="panel">
+      <h2>Final Systems Check</h2>
+      <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
+
+      <div class="quiz-q" data-qid="q1">
+        <div class="qtext">1. What makes a block different from a REPEAT? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">A block has a name, and you can call it from several different places in your program — a REPEAT runs its moves over and over right where it sits.</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A block can only ever be called once.</label>
+        <label class="choice"><input type="radio" name="q1" value="2">There's no real difference — they always do the same thing.</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A REPEAT can be called by name from other places, but a block can't.</label>
+        <div class="debrief-note" id="explainQ1"></div>
+      </div>
+      <div class="quiz-q" data-qid="q2">
+        <div class="qtext">2. A block HOP takes a number: Repeat n [Up], Right, Repeat n [Down]. The program is ▶ HOP(2) then ▶ HOP(1). How many Up moves does Rover-7 make in total? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">3</label>
+        <label class="choice"><input type="radio" name="q2" value="1">2</label>
+        <label class="choice"><input type="radio" name="q2" value="2">4</label>
+        <label class="choice"><input type="radio" name="q2" value="3">1</label>
+        <div class="debrief-note" id="explainQ2"></div>
+      </div>
+      <div class="quiz-q" data-qid="q3">
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through each situation and decide: is this really "build it once, then reuse it — sometimes with a different number"?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Learning to tie your shoelaces once, then tying them the same way every morning.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">One pancake recipe card that says "1 egg per person" — the same card works for 2 people or 5 people.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Memorizing the answer to one question that will only ever be asked once.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Learning to ride a bike once, then using that same balance on every ride after.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Watching one particular movie exactly once and never again.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="debrief-note" id="explainQ3"></div>
+      </div>
+
+      <div class="mission-actions" style="flex-direction:column; align-items:flex-start;">
+        <button class="primary" id="finishBtn">📡 Debrief &amp; Save Results</button>
+        <p class="puzzle-msg" id="finishMsg"></p>
+        <div class="result-box" id="resultBox"></div>
+        <div class="post-debrief-nav" id="postDebriefNav">
+          <button class="ghost" onclick="location.href='../the-loop.html'">🏠 Back to The Loop</button>
+          <button class="ghost" id="prevUnitBtn" style="display:none">⬅ Previous Unit</button>
+          <button class="ghost" id="nextUnitBtn" style="display:none">Next Unit ➡</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>Flow Academy · The Loop · Unit 7 of 10</footer>
+</main>
+
+<div id="modal-bg">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+
+<script>window.FLOW_BASE = '../';</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../coding-auth.js"></script>
+<script>
+  var modalBg = document.getElementById('modal-bg');
+  var modalContent = document.getElementById('modal-content');
+  function closeModal(){ modalBg.classList.remove('open'); modalContent.innerHTML = ''; }
+  modalBg.addEventListener('click', function(e){ if (e.target === modalBg) closeModal(); });
+</script>
+<script>
+  // ================= State =================
+  let cadetName = 'Cadet';
+  let xp = 0;
+  let debriefed = false;
+  const XP_TARGET = 100;
+
+  // ================= Review mode =================
+  let isReviewMode = false;
+  let savedRawPayload = null; // this unit's most recent saved raw_payload, once fetched
+
+  function checkForSavedResult() {
+    if (!window.CodingAuth || !CodingAuth.user || typeof CodingAuth.fetchResults !== 'function') return;
+    CodingAuth.fetchResults().then((results) => {
+      const mine = (results || []).find(r => String(r.unit_key) === '7');
+      if (mine && mine.raw_payload) {
+        savedRawPayload = mine.raw_payload;
+        document.getElementById('reviewBtn').style.display = '';
+        const card = document.getElementById('lastResultCard');
+        card.innerHTML = '<strong>Last result:</strong> XP ' + (mine.xp_earned || 0)
+          + ' · Concept quiz ' + mine.concept_score + '/' + mine.concept_out_of
+          + ' · Transfer check ' + mine.life_score + '/' + mine.life_out_of
+          + '<br>Mission 1: ' + (mine.mission1_succeeded ? '✅' : '—') + ' (' + mine.mission1_attempts + ' run' + (mine.mission1_attempts === 1 ? '' : 's') + ')'
+          + ' · Mission 2: ' + (mine.mission2_succeeded ? '✅' : '—') + ' (' + mine.mission2_attempts + ' run' + (mine.mission2_attempts === 1 ? '' : 's') + ')';
+        card.style.display = '';
+      }
+    });
+  }
+  if (window.CodingAuth && typeof CodingAuth.onChange === 'function') {
+    CodingAuth.onChange(() => checkForSavedResult());
+  }
+
+  function prefillReviewAnswers() {
+    if (!savedRawPayload || !savedRawPayload.quiz) return;
+    const q = savedRawPayload.quiz;
+    if (q.q1_answer !== undefined && q.q1_answer !== null) {
+      const input = document.querySelector('input[name="q1"][value="' + q.q1_answer + '"]');
+      if (input) input.checked = true;
+    }
+    if (q.q2_answer !== undefined && q.q2_answer !== null) {
+      const input = document.querySelector('input[name="q2"][value="' + q.q2_answer + '"]');
+      if (input) input.checked = true;
+    }
+    if (q.transfer_check && q.transfer_check.answers) {
+      Object.keys(q.transfer_check.answers).forEach((idx) => {
+        const val = q.transfer_check.answers[idx];
+        q3Answers[idx] = val;
+        const row = document.querySelector('.yn-row[data-idx="' + idx + '"]');
+        if (row) {
+          row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+          const btn = row.querySelector('.yn-btn[data-val="' + val + '"]');
+          if (btn) btn.classList.add(val === 'yes' ? 'selected-yes' : 'selected-no');
+        }
+      });
+    }
+  }
+
+  function addXp(n) {
+    xp += n;
+    // Updates every '.xp-value' on the page (main hud + both mission topbars), same as Units 1-3.
+    document.querySelectorAll('.xp-value').forEach(el => { el.textContent = xp; });
+    document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+  // Master style: the two mission screens are fixed full-viewport overlays that visually cover
+  // #topbar's acct-wrap while open, so the widget physically relocates into whichever mission
+  // topbar is active (and back to the home topbar otherwise). Ported verbatim from Unit 1.
+  function relocateAcctWidget(screenId) {
+    const acctWrap = document.getElementById('acct-wrap');
+    if (!acctWrap) return;
+    const targetId = screenId === 'scr-t2' ? 'gameTopbarRight2'
+      : screenId === 'scr-t3' ? 'gameTopbarRight3'
+      : 'topbarRightHome';
+    const target = document.getElementById(targetId);
+    if (target && acctWrap.parentElement !== target) target.appendChild(acctWrap);
+  }
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    relocateAcctWidget(id);
+    if (typeof syncReviewNav === 'function') syncReviewNav(id);
+  }
+
+  // ================= Load-time randomization =================
+  // Reshuffle quiz answer order so answers can't be memorized by screen position.
+  // NOTE: the command palette (d-pad / Add Repeat / Define Block / Call) is deliberately NOT
+  // shuffled — it's a fixed toolbar, same order every load and every unit, so cadets build muscle
+  // memory for the tool itself instead of re-reading button positions each time. The block tools are
+  // appended last since they're this unit's new tools, in teaching order (Repeat → Block).
+  function shuffleDomChildren(container, selector, anchor) {
+    const items = Array.from(container.querySelectorAll(selector));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    items.forEach(el => container.insertBefore(el, anchor || null));
+  }
+  document.querySelectorAll('.quiz-q').forEach(q => {
+    shuffleDomChildren(q, '.choice, .yn-row', q.querySelector('.debrief-note'));
+  });
+
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    // No name field — the cadet must be signed in (coding-auth.js disables this button and shows
+    // a "Sign In" note until then), so the name comes straight from the real account profile.
+    if (!window.CodingAuth || !CodingAuth.user) { CodingAuth && CodingAuth.openAuth('signin'); return; }
+    cadetName = CodingAuth.displayName || 'Cadet';
+    document.getElementById('hudName').textContent = cadetName;
+    document.getElementById('hud').classList.add('show');
+    showScreen('scr-t1');
+  });
+
+  document.getElementById('reviewBtn').addEventListener('click', () => {
+    isReviewMode = true;
+    document.getElementById('finishBtn').textContent = '📡 Debrief';
+    prefillReviewAnswers();
+    document.getElementById('beginBtn').click();
+  });
+
+  // ================= Calibration: Spot the Working Block =================
+  const CAL_CHOICES = [
+    { id: 0, label: '🧩 SCAN = [Right, Up, Left]  ·  ▶ SCAN  ·  Up  ·  Up  ·  ▶ SCAN', correct: true,
+      msg: '✅ Correct. The recipe is written once, and each ▶ SCAN runs all three moves right where the call sits — first scan, two Ups, second scan.' },
+    { id: 1, label: '🧩 SCAN = [Right, Up, Left]  ·  Up  ·  Up', correct: false,
+      msg: 'Not quite — SCAN\'s recipe is there, but nothing ever CALLS it. A recipe on its own does nothing, so the rover only moves Up, Up.' },
+    { id: 2, label: '🧩 SCAN = [Right, Up, Left]  ·  🔁 Repeat ×2 [▶ SCAN]  ·  Up  ·  Up', correct: false,
+      msg: 'Not quite — both scans run back-to-back at the start, then the Ups. The calls have to sit where the scans should happen.' },
+    { id: 3, label: '🧩 SCAN = [Right, Up, Left, Up, Up]  ·  ▶ SCAN  ·  ▶ SCAN', correct: false,
+      msg: 'Not quite — now the Ups are INSIDE the recipe, so every call does them: that\'s four Ups, not two.' },
+  ];
+  let calAnswered = false;
+  let calAttempts = 0;
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const calOrder = shuffle(CAL_CHOICES);
+  const calChoicesEl = document.getElementById('calChoices');
+  calOrder.forEach(choice => {
+    const label = document.createElement('label');
+    label.className = 'choice';
+    label.innerHTML = '<input type="radio" name="calAnswer" value="' + choice.id + '"><span>' + choice.label + '</span>';
+    calChoicesEl.appendChild(label);
+  });
+
+  document.getElementById('calCheckBtn').addEventListener('click', () => {
+    const msg = document.getElementById('calMsg');
+    const picked = document.querySelector('input[name="calAnswer"]:checked');
+    if (!picked) {
+      msg.textContent = 'Pick an answer first.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    calAttempts++;
+    const choice = CAL_CHOICES.find(c => c.id === Number(picked.value));
+    document.querySelectorAll('#calChoices .choice').forEach(label => {
+      const input = label.querySelector('input');
+      const c = CAL_CHOICES.find(x => x.id === Number(input.value));
+      if (c.correct) label.classList.add('correct');
+      else if (input === picked) label.classList.add('incorrect');
+    });
+    msg.textContent = choice.msg;
+    if (choice.correct) {
+      const firstSolve = !calAnswered;
+      calAnswered = true;
+      msg.className = 'puzzle-msg ok';
+      document.getElementById('fieldManual').style.display = 'block';
+      document.getElementById('toT2Btn').disabled = false;
+      if (firstSolve) addXp(10);
+    } else {
+      msg.className = 'puzzle-msg bad';
+    }
+  });
+
+  document.getElementById('toT2Btn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'TRANSMISSION 2/3';
+    showScreen('scr-t2');
+  });
+  document.getElementById('toT3Btn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'TRANSMISSION 3/3';
+    showScreen('scr-t3');
+  });
+  document.getElementById('toFinalBtn').addEventListener('click', () => {
+    document.getElementById('hudTx').textContent = 'FINAL SYSTEMS CHECK';
+    showScreen('scr-final');
+  });
+
+  // ================= Rover engine: REPEAT + named BLOCK (E9) + slot budget (E1) + open route (E2) =================
+  const DELTA = { UP: { dr: -1, dc: 0 }, DOWN: { dr: 1, dc: 0 }, LEFT: { dr: 0, dc: -1 }, RIGHT: { dr: 0, dc: 1 } };
+  const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right' };
+  const RECIPE_CAP = 6;
+
+  // V2 E15: "Watch Again" replays the winning program at 1.5x speed (2/3 the real-run delay) by
+  // scaling every wait() through this shared factor while a replay is in flight.
+  let replaySpeedFactor = 1;
+  function wait(ms) { return new Promise(res => setTimeout(res, ms * replaySpeedFactor)); }
+  class MissionFail extends Error {}
+  class OffRouteFail extends MissionFail { constructor(msg, k) { super(msg); this.k = k; } }
+
+  function createLoopRoverGame(cfg) {
+    const mission = cfg.mission;
+    // program is a tree of top-level items:
+    //   {type:'cmd', cmd}
+    //   {type:'repeat', count (2..6 or 'n'), children}  -- top level: children are cmds and calls;
+    //                                                      inside a block's recipe: children are cmds only
+    //   {type:'def', name, takesNumber, children}       -- ONE per mission, always index 0; children are
+    //                                                      cmds and flat repeats (no calls, no recursion)
+    //   {type:'call', arg}                              -- runs the recipe in place; arg 1..5 when the
+    //                                                      block "takes a number"
+    // This unit's one new idea is the BLOCK. FUEL/pad code is carried forward from Unit 6 but switched
+    // off (no mission sets mission.fuel); IF blocks are not offered in this unit.
+    function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
+    function starterOpen() { return (cfg.starterOpenDef && program.length && program[0].type === 'def') ? [program[0]] : []; }
+    let program = cloneStarter();
+    let openStack = starterOpen();
+    let state = { r: mission.start.r, c: mission.start.c };
+    let running = false;
+    let succeeded = false;
+    let attempts = 0;
+    let failCount = 0;
+    let hintsUsed = 0;
+    let fuel = mission.fuel ? mission.fuel.start : null;
+    let padsCollected = new Set();
+    let winningProgram = null; // V2 E15: snapshot of the program tree that just won, for "Watch Again"
+    let cellEls = [];
+    let slotsOverBudget = false;
+    // E2 route state
+    let routeIdx = 1;       // next expected index into mission.routePath (0 == start)
+    let routeProgress = 0;  // route moves taken correctly so far this run
+    let offRouteRuns = 0;
+    let offRouteMoves = []; // move number k of each off-route stop (real runs only)
+    let failedRunsNoNumber = 0; // failed runs where a block existed but did NOT take a number
+    // per-run telemetry (real runs only; Watch Again writes to a scratch object instead)
+    let tele = { callCount: 0, callArgs: [], routeProgress: 0, blockName: null, blockTakesArg: false };
+    let activeStats = tele;
+    let currentRoot = program;
+    let replaying = false;
+    const itemEls = new Map();
+
+    // ---- V2 E13: graduated hints ----
+    function updateHintUI() {
+      if (!cfg.hints || !cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    if (cfg.hintBtnEl) {
+      cfg.hintBtnEl.addEventListener('click', () => {
+        cfg.hintTextEl.textContent = cfg.hintBtnEl.dataset.pending || '';
+        hintsUsed++;
+        cfg.hintBtnEl.style.display = 'none';
+        updateHintUI();
+      });
+    }
+
+    function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
+    function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
+    function padAt(r, c) { return mission.fuel ? mission.fuel.pads.find(p => p.r === r && p.c === c) : null; }
+    function cellEl(r, c) { return cellEls[r * mission.cols + c]; }
+    function routeTotal() { return mission.routePath ? mission.routePath.length - 1 : 0; }
+    function getDef(root) { return (root || program).find(i => i.type === 'def') || null; }
+    function recipeCount(def) {
+      return def.children.reduce((n, ch) => n + 1 + (ch.type === 'repeat' ? ch.children.length : 0), 0);
+    }
+    function blockName() { const d = getDef(); return d ? d.name : 'your block'; }
+
+    function updateFuelUI() {
+      if (!cfg.fuelEl || !mission.fuel) return;
+      cfg.fuelEl.textContent = '⛽ FUEL: ' + fuel;
+      cfg.fuelEl.classList.toggle('low', fuel <= 2);
+    }
+
+    function updateRouteChip() {
+      if (!cfg.routeEl) return;
+      const total = routeTotal();
+      cfg.routeEl.textContent = 'ROUTE: ' + Math.min(routeProgress, total) + ' / ' + total;
+      cfg.routeEl.classList.toggle('complete', routeProgress >= total && total > 0);
+    }
+
+    function buildGrid() {
+      cfg.gridEl.innerHTML = '';
+      cellEls = [];
+      cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
+      cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
+      for (let r = 0; r < mission.rows; r++) {
+        for (let c = 0; c < mission.cols; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (isWall(r, c)) cell.classList.add('wall');
+          const pad = padAt(r, c);
+          if (pad) {
+            cell.classList.add('pad');
+            cell.textContent = '⚡' + pad.amount;
+            if (padsCollected.has(r + ',' + c)) cell.classList.add('collected');
+          }
+          if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
+          cfg.gridEl.appendChild(cell);
+          cellEls.push(cell);
+        }
+      }
+      // E2: draw the amber route on the grid from load; the start cell reads as already visited.
+      if (mission.routePath) {
+        mission.routePath.forEach(({ r, c }) => { const el = cellEl(r, c); if (el) el.classList.add('patrol'); });
+        const s = cellEl(mission.start.r, mission.start.c); if (s) s.classList.add('visited');
+      }
+      cfg.gridEl.appendChild(cfg.roverEl);
+    }
+
+    function updateRoverPosition(animate) {
+      const x = state.c * mission.cellPx + mission.cellPx * 0.15;
+      const y = state.r * mission.cellPx + mission.cellPx * 0.15;
+      cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
+      cfg.roverEl.style.left = x + 'px';
+      cfg.roverEl.style.top = y + 'px';
+    }
+
+    // ---- V2 E1: slot budget. A block's definition = 1, every call = 1, every REPEAT = 1, every command = 1. ----
+    function updateSlotGate() {
+      if (typeof cfg.maxSlots !== 'number') return;
+      const used = program.length;
+      if (cfg.slotsEl) {
+        cfg.slotsEl.textContent = 'SLOTS: ' + used + ' / ' + cfg.maxSlots;
+        cfg.slotsEl.classList.toggle('over', used > cfg.maxSlots);
+      }
+      const wasOver = slotsOverBudget;
+      slotsOverBudget = used > cfg.maxSlots;
+      if (slotsOverBudget) {
+        cfg.runBtn.disabled = true;
+        cfg.msgEl.textContent = '⚠ Command Control gave you ' + cfg.maxSlots + ' program slots and you\'re using ' + used + '. A REPEAT counts as ONE slot, a block\'s recipe counts as ONE slot, and every ▶ Call is ONE slot.';
+        cfg.msgEl.className = 'mission-msg bad';
+      } else if (wasOver) {
+        cfg.runBtn.disabled = running;
+        cfg.msgEl.textContent = '';
+        cfg.msgEl.className = 'mission-msg';
+      }
+    }
+
+    // Nesting matrix: top level takes cmds, a Repeat (holds cmds + calls), the one block, and calls.
+    // An open block takes cmds and flat Repeats (no calls, no recursion). An open Repeat takes cmds
+    // (and, at top level only, calls). No Repeat inside a Repeat in this unit.
+    function updateContainerBtns() {
+      const top = openStack.length ? openStack[openStack.length - 1] : null;
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      const capFull = inDef && recipeCount(openStack[0]) >= RECIPE_CAP;
+      const hasDef = !!getDef();
+      cfg.addRepeatBtn.disabled = running || capFull || !(openStack.length === 0 || (openStack.length === 1 && top.type === 'def'));
+      cfg.defineBtn.disabled = running || hasDef;
+      cfg.callBtn.disabled = running || !hasDef || inDef;
+      cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => { btn.disabled = running || capFull; });
+      cfg.callBtn.textContent = '▶ Call' + (hasDef ? ' ' + getDef().name : '');
+    }
+
+    function currentTarget() {
+      return openStack.length ? openStack[openStack.length - 1].children : program;
+    }
+
+    // Name changes touch only text nodes, so typing in the name box never loses focus.
+    function refreshNames() {
+      const d = getDef();
+      const nm = d ? d.name : '';
+      document.querySelectorAll('#' + cfg.programListEl.id + ' [data-nameref]').forEach(el => { el.textContent = nm; });
+      cfg.callBtn.textContent = '▶ Call' + (d ? ' ' + nm : '');
+    }
+
+    function mkBtn(cls, text, label, disabled, onClick) {
+      const b = document.createElement('button');
+      b.type = 'button'; if (cls) b.className = cls; b.textContent = text;
+      if (label) b.setAttribute('aria-label', label);
+      b.disabled = !!disabled;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    function renderItems(items, containerEl, hintMode, ctx) {
+      containerEl.innerHTML = '';
+      if (items.length === 0) {
+        const span = document.createElement('span');
+        span.className = 'empty-hint';
+        span.textContent = hintMode === 'top'
+          ? 'Add commands, a Repeat, or a block from the panel on the left.'
+          : (hintMode ? 'Click commands on the left — they’ll go in here.' : '(empty)');
+        containerEl.appendChild(span);
+        return;
+      }
+      items.forEach((item, i) => {
+        const upBlocked = running || i === 0 || (items === program && i === 1 && items[0].type === 'def'); // the definition always stays on top
+        const moveUp = () => { if (running) return; [items[i - 1], items[i]] = [items[i], items[i - 1]]; renderProgram(); };
+        const moveDown = () => { if (running) return; [items[i + 1], items[i]] = [items[i], items[i + 1]]; renderProgram(); };
+        const removeItem = () => {
+          if (running) return;
+          if (item.type === 'def') {
+            // Removing the definition removes every call to it too -- a call with nothing to call is meaningless.
+            const purge = (arr) => { for (let k = arr.length - 1; k >= 0; k--) {
+              if (arr[k].type === 'call') arr.splice(k, 1);
+              else if (arr[k].type === 'repeat') purge(arr[k].children);
+            } };
+            const idx0 = items.indexOf(item); if (idx0 !== -1) items.splice(idx0, 1);
+            purge(program);
+            openStack = [];
+          } else {
+            items.splice(items.indexOf(item), 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+          }
+          renderProgram();
+        };
+
+        if (item.type === 'cmd') {
+          const row = document.createElement('div');
+          row.className = 'order-row';
+          const label = document.createElement('span');
+          label.className = 'order-label';
+          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + CMD_LABEL[item.cmd];
+          row.appendChild(label);
+          const btns = document.createElement('div');
+          btns.className = 'order-btns';
+          btns.append(
+            mkBtn('', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('remove', '✕', 'Remove', running, removeItem)
+          );
+          row.appendChild(btns);
+          itemEls.set(item, row);
+          containerEl.appendChild(row);
+        } else if (item.type === 'call') {
+          const d = getDef();
+          const row = document.createElement('div');
+          row.className = 'order-row call-row';
+          const label = document.createElement('span');
+          label.className = 'order-label';
+          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>▶ <span data-nameref>' + (d ? d.name : '') + '</span>'
+            + (d && d.takesNumber ? '(' + item.arg + ')' : '');
+          row.appendChild(label);
+          if (d && d.takesNumber) {
+            const step = document.createElement('div');
+            step.className = 'call-stepper';
+            const lab = document.createElement('span'); lab.className = 'call-stepper-n'; lab.textContent = 'n';
+            step.append(
+              mkBtn('repeat-count-btn', '−', 'Lower n', running, () => { if (running) return; item.arg = Math.max(1, item.arg - 1); renderProgram(); }),
+              lab,
+              mkBtn('repeat-count-btn', '+', 'Raise n', running, () => { if (running) return; item.arg = Math.min(5, item.arg + 1); renderProgram(); })
+            );
+            row.appendChild(step);
+          }
+          const btns = document.createElement('div');
+          btns.className = 'order-btns';
+          btns.append(
+            mkBtn('', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('remove', '✕', 'Remove', running, removeItem)
+          );
+          row.appendChild(btns);
+          itemEls.set(item, row);
+          containerEl.appendChild(row);
+        } else if (item.type === 'repeat') {
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card' + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head';
+          const label = document.createElement('span');
+          if (item.count === 'n') {
+            label.textContent = '🔁 Repeat × n';
+            head.append(label);
+          } else {
+            label.textContent = '🔁 Repeat × ' + item.count;
+            head.append(
+              mkBtn('repeat-count-btn', '−', 'Lower count', running, () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); }),
+              label,
+              mkBtn('repeat-count-btn', '+', 'Raise count', running, () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); })
+            );
+          }
+          if (ctx && ctx.def && ctx.def.takesNumber) {
+            const nb = mkBtn('n-toggle' + (item.count === 'n' ? ' on' : ''), 'n', item.count === 'n' ? 'Use a fixed count' : 'Use the block\'s number n', running, () => {
+              if (running) return; item.count = item.count === 'n' ? 2 : 'n'; renderProgram();
+            });
+            head.appendChild(nb);
+          }
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          actions.append(
+            mkBtn('repeat-move-btn', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('repeat-move-btn', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('repeat-remove', '✕', 'Remove loop', running, removeItem)
+          );
+          head.appendChild(actions);
+          card.appendChild(head);
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen, { def: ctx && ctx.def, inRepeat: true });
+          card.appendChild(childrenEl);
+          if (isInnermostOpen) {
+            card.appendChild(mkBtn('repeat-done-btn', '✅ Done adding to this loop', '', false, () => { openStack.pop(); renderProgram(); }));
+          }
+          itemEls.set(item, card);
+          containerEl.appendChild(card);
+        } else if (item.type === 'def') {
+          const isOpen = openStack.includes(item);
+          const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
+          const card = document.createElement('div');
+          card.className = 'repeat-card def-card' + (isOpen ? ' open' : '');
+          const head = document.createElement('div');
+          head.className = 'repeat-head def-head';
+          const tag = document.createElement('span'); tag.textContent = '🧩 BLOCK';
+          const nameSpan = document.createElement('span'); nameSpan.className = 'def-name'; nameSpan.setAttribute('data-nameref', ''); nameSpan.textContent = item.name;
+          const nameInput = document.createElement('input');
+          nameInput.type = 'text'; nameInput.className = 'def-name-input'; nameInput.maxLength = 12; nameInput.value = item.name;
+          nameInput.setAttribute('aria-label', 'Block name'); nameInput.disabled = running;
+          const note = document.createElement('div'); note.className = 'def-note';
+          const showEdit = (on) => {
+            item.editingName = on;
+            nameInput.style.display = on ? '' : 'none';
+            nameSpan.style.display = on ? 'none' : '';
+          };
+          showEdit(!!item.editingName);
+          let lastValid = item.name;
+          nameInput.addEventListener('input', () => {
+            const raw = nameInput.value;
+            if (/^[A-Za-z0-9-]*$/.test(raw)) {
+              note.textContent = '';
+              const up = raw.toUpperCase();
+              nameInput.value = up;
+              if (up.length) { item.name = up; lastValid = up; refreshNames(); }
+            } else {
+              nameInput.value = lastValid;
+              note.textContent = 'Names use letters, numbers and - only.';
+            }
+          });
+          const commit = () => { if (!nameInput.value) nameInput.value = lastValid; showEdit(false); refreshNames(); };
+          nameInput.addEventListener('blur', commit);
+          nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); } });
+          const editBtn = mkBtn('def-edit-btn', '✏', 'Rename block', running, () => { showEdit(true); nameInput.focus(); nameInput.select(); });
+          head.append(tag, nameSpan, nameInput, editBtn);
+          const numLabel = document.createElement('label');
+          numLabel.className = 'def-num-label';
+          const numBox = document.createElement('input');
+          numBox.type = 'checkbox'; numBox.checked = !!item.takesNumber; numBox.disabled = running;
+          numBox.addEventListener('change', () => {
+            if (running) return;
+            item.takesNumber = numBox.checked;
+            if (!item.takesNumber) {
+              // Unticking turns every n back into 2 and resets every call's number.
+              item.children.forEach(ch => { if (ch.type === 'repeat' && ch.count === 'n') ch.count = 2; });
+              const reset = (arr) => arr.forEach(x => { if (x.type === 'call') x.arg = 1; else if (x.type === 'repeat') reset(x.children); });
+              reset(program);
+            }
+            renderProgram();
+          });
+          numLabel.append(numBox, document.createTextNode(' takes a number'));
+          head.appendChild(numLabel);
+          const actions = document.createElement('div');
+          actions.className = 'repeat-head-actions';
+          actions.append(mkBtn('repeat-remove', '✕', 'Remove block', running, removeItem));
+          head.appendChild(actions);
+          card.appendChild(head);
+          card.appendChild(note);
+
+          const childrenEl = document.createElement('div');
+          childrenEl.className = 'repeat-children';
+          renderItems(item.children, childrenEl, isOpen, { def: item });
+          card.appendChild(childrenEl);
+          if (recipeCount(item) >= RECIPE_CAP) {
+            const cap = document.createElement('div'); cap.className = 'def-cap';
+            cap.textContent = '🧩 A block\'s recipe holds up to 6 items.';
+            card.appendChild(cap);
+          }
+          if (isInnermostOpen) {
+            card.appendChild(mkBtn('repeat-done-btn', '✅ Done', '', false, () => { openStack.pop(); renderProgram(); }));
+          } else if (openStack.length === 0 && !running) {
+            // Not in the plan: a way back into a finished recipe, so one wrong move doesn't force a rebuild.
+            card.appendChild(mkBtn('def-reopen-btn', '✎ Edit recipe', '', false, () => { openStack = [item]; renderProgram(); }));
+          }
+          itemEls.set(item, card);
+          containerEl.appendChild(card);
+        }
+      });
+    }
+
+    function renderProgram() {
+      itemEls.clear();
+      renderItems(program, cfg.programListEl, 'top', null);
+      updateContainerBtns();
+      updateSlotGate();
+    }
+
+    function endNameEdit() { const d = getDef(); if (d) d.editingName = false; }
+    cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (running) return;
+        endNameEdit();
+        const inDef = openStack.length > 0 && openStack[0].type === 'def';
+        if (inDef && recipeCount(openStack[0]) >= RECIPE_CAP) return;
+        currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
+        renderProgram();
+      });
+    });
+
+    cfg.addRepeatBtn.addEventListener('click', () => {
+      const top = openStack.length ? openStack[openStack.length - 1] : null;
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && top.type === 'def'))) return;
+      if (inDef && recipeCount(openStack[0]) >= RECIPE_CAP) return;
+      endNameEdit();
+      const nr = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(nr);
+      openStack.push(nr);
+      renderProgram();
+    });
+
+    cfg.defineBtn.addEventListener('click', () => {
+      if (running || getDef()) return;
+      if (openStack.length) {
+        cfg.msgEl.textContent = '🧩 Finish the open Repeat first — tap ✅ Done on it — then define your block.';
+        cfg.msgEl.className = 'mission-msg bad';
+        return;
+      }
+      const def = { type: 'def', name: 'HOP', takesNumber: false, editingName: true, children: [] };
+      program.unshift(def);
+      openStack = [def];
+      renderProgram();
+      const inp = cfg.programListEl.querySelector('.def-name-input');
+      if (inp) { inp.focus(); inp.select(); }
+    });
+
+    cfg.callBtn.addEventListener('click', () => {
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      if (running || !getDef() || inDef) return;
+      endNameEdit();
+      currentTarget().push({ type: 'call', arg: 1 });
+      renderProgram();
+    });
+
+    function resetRunState() {
+      state = { r: mission.start.r, c: mission.start.c };
+      fuel = mission.fuel ? mission.fuel.start : null;
+      padsCollected = new Set();
+      routeIdx = 1;
+      routeProgress = 0;
+      updateFuelUI();
+      buildGrid();
+      updateRouteChip();
+    }
+
+    if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
+    cfg.clearBtn.addEventListener('click', () => {
+      if (running) return;
+      program = cloneStarter();
+      openStack = starterOpen();
+      renderProgram();
+      hideWatchAgain();
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+      updateSlotGate();
+    });
+
+    cfg.resetBtn.addEventListener('click', () => {
+      if (running) return;
+      resetRunState();
+      updateRoverPosition(true);
+      hideWatchAgain();
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+      updateSlotGate();
+    });
+
+    function mark(item, on) {
+      const el = itemEls.get(item);
+      if (el) el.classList.toggle('executing', on);
+    }
+    function clearExecuting() {
+      cfg.programListEl.querySelectorAll('.executing, .pulse').forEach(el => el.classList.remove('executing', 'pulse'));
+    }
+
+    async function executeOne(cmd) {
+      const d = DELTA[cmd];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover-7 drove off the edge of the platform. The platform ends there, so look at which way your moves go.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      if (mission.fuel) {
+        fuel -= mission.fuel.costPerForward;
+        const pad = padAt(nr, nc);
+        if (pad) {
+          const key = nr + ',' + nc;
+          if (!padsCollected.has(key)) {
+            padsCollected.add(key);
+            fuel += pad.amount;
+            const el = cellEl(nr, nc);
+            if (el) el.classList.add('collected');
+          }
+        }
+        updateFuelUI();
+      }
+      updateRoverPosition(true);
+      await wait(400);
+      if (mission.fuel && fuel <= 0) throw new MissionFail('⛽ Out of fuel!');
+      // E2: the amber route is the whole instruction. The first step that isn't the next route cell
+      // ends the run, with the rover left sitting on that off-route cell so the failure is visible.
+      if (mission.routePath) {
+        const expected = mission.routePath[routeIdx];
+        if (expected && expected.r === nr && expected.c === nc) {
+          routeIdx++; routeProgress++;
+          const el = cellEl(nr, nc); if (el) el.classList.add('visited');
+          updateRouteChip();
+        } else {
+          const k = routeProgress + 1;
+          throw new OffRouteFail('🛰 Rover-7 left the amber route on move ' + k + '. The route is the flight plan, so Command Control stopped the run right there. Look at what your program does just before move ' + k + ', and compare it with the shape of the route at that spot.', k);
+        }
+      }
+    }
+
+    async function runItems(items, ctx) {
+      for (const item of items) {
+        if (item.type === 'cmd') {
+          mark(item, true);
+          await executeOne(item.cmd);
+          mark(item, false);
+        } else if (item.type === 'repeat') {
+          const times = item.count === 'n' ? (ctx ? ctx.n : 1) : item.count;
+          for (let n = 0; n < times; n++) await runItems(item.children, ctx);
+        } else if (item.type === 'def') {
+          continue; // a recipe does nothing on its own -- only a ▶ Call runs it
+        } else if (item.type === 'call') {
+          const def = getDef(currentRoot);
+          if (!def) continue;
+          if (def.children.length === 0) {
+            throw new MissionFail('🧩 Rover-7 called ' + def.name + ', but its recipe is empty, so there was nothing to do. Open the block and put its moves inside.');
+          }
+          activeStats.callCount++;
+          activeStats.callArgs.push(item.arg);
+          const defEl = itemEls.get(def);
+          mark(item, true);
+          if (defEl) defEl.classList.add('pulse');
+          try {
+            await runItems(def.children, { n: def.takesNumber ? item.arg : 1 });
+          } finally {
+            mark(item, false);
+            if (defEl) defEl.classList.remove('pulse');
+          }
+        }
+      }
+    }
+
+    // ---- V2 E15: mission-complete celebration + Watch Again (a replay is never an attempt) ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess();
+    }
+    if (cfg.watchAgainBtn) {
+      cfg.watchAgainBtn.addEventListener('click', async () => {
+        if (running || !winningProgram || !winningProgram.length) return;
+        running = true;
+        replaying = true;
+        cfg.runBtn.disabled = true;
+        cfg.watchAgainBtn.disabled = true;
+        updateContainerBtns();
+        // A replay is not an attempt: snapshot everything the real run's telemetry depends on and
+        // restore it afterwards (route progress is reset first, as the plan requires).
+        const savedAttempts = attempts, savedSucceeded = succeeded, savedFailCount = failCount;
+        const savedOffRouteRuns = offRouteRuns, savedOffRouteMoves = offRouteMoves.slice();
+        const savedNoNumber = failedRunsNoNumber, savedTele = tele, savedRoot = currentRoot, savedStats = activeStats;
+        const savedMsgText = cfg.msgEl.textContent, savedMsgClass = cfg.msgEl.className;
+        activeStats = { callCount: 0, callArgs: [] };
+        currentRoot = winningProgram;
+        resetRunState();
+        updateRoverPosition(false);
+        replaySpeedFactor = 2 / 3; // 1.5x speed
+        try {
+          await runItems(winningProgram, null);
+        } catch (e) {
+          if (!(e instanceof MissionFail)) throw e;
+        } finally {
+          replaySpeedFactor = 1;
+          clearExecuting();
+        }
+        attempts = savedAttempts; succeeded = savedSucceeded; failCount = savedFailCount;
+        offRouteRuns = savedOffRouteRuns; offRouteMoves = savedOffRouteMoves;
+        failedRunsNoNumber = savedNoNumber; tele = savedTele; currentRoot = savedRoot; activeStats = savedStats;
+        cfg.msgEl.textContent = savedMsgText; cfg.msgEl.className = savedMsgClass;
+        replaying = false;
+        running = false;
+        cfg.runBtn.disabled = slotsOverBudget;
+        cfg.watchAgainBtn.disabled = false;
+        updateContainerBtns();
+      });
+    }
+
+    function noteFail() {
+      failCount++;
+      const d = getDef();
+      if (d && !d.takesNumber) failedRunsNoNumber++;
+      updateHintUI();
+    }
+
+    cfg.runBtn.addEventListener('click', async () => {
+      if (running || program.length === 0) return;
+      if (typeof cfg.maxSlots === 'number' && program.length > cfg.maxSlots) return;
+      running = true;
+      replaying = false;
+      attempts++;
+      const d0 = getDef();
+      tele = { callCount: 0, callArgs: [], routeProgress: 0, blockName: d0 ? d0.name : null, blockTakesArg: !!(d0 && d0.takesNumber) };
+      activeStats = tele;
+      currentRoot = program;
+      hideWatchAgain();
+      cfg.runBtn.disabled = true;
+      updateContainerBtns();
+      resetRunState();
+      updateRoverPosition(false);
+      await wait(150);
+      cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+
+      try {
+        await runItems(program, null);
+        const total = routeTotal();
+        const atGoal = state.r === mission.goal.r && state.c === mission.goal.c;
+        if (routeProgress >= total && atGoal) {
+          const def = getDef();
+          let blockedMsg = null;
+          if (cfg.requireBlockParam && !(def && def.takesNumber)) {
+            blockedMsg = '🧩 Route complete — but the point of this platform is ONE block for all three sizes. Tick "takes a number" and let each call choose.';
+          } else if (cfg.requireBlockCallCount && tele.callCount < cfg.requireBlockCallCount) {
+            blockedMsg = '🧩 Route complete — but Command Control only logs this when your block does the hopping. Call ' + (def ? def.name : 'your block') + ' at every hop.';
+          }
+          if (blockedMsg) {
+            cfg.msgEl.textContent = blockedMsg;
+            cfg.msgEl.className = 'mission-msg bad';
+            noteFail();
+          } else {
+            succeeded = true;
+            winningProgram = JSON.parse(JSON.stringify(program));
+            celebrate();
+          }
+        } else {
+          cfg.msgEl.textContent = '🛰 Rover-7 stopped after ' + routeProgress + ' of ' + total + ' route moves. The flag is at the end of the amber path — keep building.';
+          cfg.msgEl.className = 'mission-msg bad';
+          noteFail();
+        }
+      } catch (e) {
+        if (e instanceof MissionFail) {
+          let extra = '';
+          if (e instanceof OffRouteFail) {
+            offRouteRuns++;
+            offRouteMoves.push(e.k);
+            const def = getDef();
+            if (cfg.appendNumberHint && def && !def.takesNumber) {
+              extra = ' 🧩 Your block gets one hop right, but the hops are different heights. What if the block could take a NUMBER, and each call chose its own?';
+            }
+          }
+          cfg.msgEl.textContent = e.message + extra;
+          cfg.msgEl.className = 'mission-msg bad';
+          noteFail();
+        } else { throw e; }
+      } finally {
+        tele.routeProgress = routeProgress;
+        running = false;
+        clearExecuting();
+        cfg.runBtn.disabled = false;
+        updateContainerBtns();
+        updateSlotGate();
+      }
+    });
+
+    resetRunState();
+    updateRoverPosition(false);
+    renderProgram();
+    updateHintUI();
+
+    return {
+      get succeeded() { return succeeded; },
+      get attempts() { return attempts; },
+      get hintsUsed() { return hintsUsed; },
+      get slotsUsed() { return program.length; },
+      get blockName() { return tele.blockName; },
+      get blockTakesArg() { return tele.blockTakesArg; },
+      get callArgs() { return tele.callArgs.slice(); },
+      get blockCallCount() { return tele.callCount; },
+      get routeProgress() { return tele.routeProgress; },
+      get routeTotal() { return routeTotal(); },
+      get offRouteRuns() { return offRouteRuns; },
+      get offRouteMoves() { return offRouteMoves.slice(); },
+      get failedRunsNoNumber() { return failedRunsNoNumber; }
+    };
+  }
+
+  // Mission 1 · Platform Mike — the same hop, three places (guided). 4x7, no walls, no fuel. The amber
+  // route is the move string  U R D · R R · U R D · D R · U R D  -- one hop, two steps right, the same
+  // hop, a drop and a step right, the same hop. Fixed per load: the route IS the task.
+  const mission1Def = {
+    rows: 4, cols: 7, cellPx: 64, start: { r: 2, c: 0 }, goal: { r: 3, c: 6 }, walls: [],
+    routePath: [
+      { r: 2, c: 0 }, { r: 1, c: 0 }, { r: 1, c: 1 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 },
+      { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 2, c: 4 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 2, c: 5 },
+      { r: 2, c: 6 }, { r: 3, c: 6 }
+    ]
+  };
+  const mission1 = createLoopRoverGame({
+    gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
+    programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
+    runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
+    clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), defineBtn: document.getElementById('defineBlock1'),
+    callBtn: document.getElementById('callBlock1'),
+    slotsEl: document.getElementById('slots1'), routeEl: document.getElementById('route1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
+    mission: mission1Def,
+    maxSlots: 7,
+    requireBlockCallCount: 3, // backstop only -- no in-budget solution calls the block fewer times
+    // E14 starter: an empty, open block called HOP plus one call. The cadet fills in the recipe.
+    starterProgram: [{ type: 'def', name: 'HOP', takesNumber: false, children: [] }, { type: 'call', arg: 1 }],
+    starterOpenDef: true,
+    hints: {
+      after3: 'Look at the amber route. Can you find the same shape three times? Those moves are what goes inside HOP.',
+      after6: 'HOP\'s recipe is just one hop — three moves. Then build the route left to right: ▶ HOP wherever the route hops, and plain moves for the bits in between.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! You spotted the hop, built it once, and used it three times.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 flew the whole route. Finding the shape that repeats is the hard part, Cadet — and you found it.',
+      normal: '🎉 MISSION COMPLETE — one block, three calls, whole route!'
+    },
+    onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
+  });
+  window.__mission1 = mission1; window.__mission1Def = mission1Def; // test hook, not used in gameplay
+
+  // Mission 2 · Platform November — one block, three sizes (free build). 5x6, no walls, empty program.
+  // Route move string:  UU R DD · R · UUU R DDD · R · U R D  -- three hops of heights 2, 3 and 1. The
+  // last hop is exactly Mission 1's HOP, i.e. HOP(1).
+  const mission2Def = {
+    rows: 5, cols: 6, cellPx: 64, start: { r: 4, c: 0 }, goal: { r: 4, c: 5 }, walls: [],
+    routePath: [
+      { r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 3, c: 1 }, { r: 4, c: 1 },
+      { r: 4, c: 2 }, { r: 3, c: 2 }, { r: 2, c: 2 }, { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 2, c: 3 },
+      { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 4, c: 4 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 4, c: 5 }
+    ]
+  };
+  const mission2 = createLoopRoverGame({
+    gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
+    programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
+    runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
+    clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), defineBtn: document.getElementById('defineBlock2'),
+    callBtn: document.getElementById('callBlock2'),
+    slotsEl: document.getElementById('slots2'), routeEl: document.getElementById('route2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
+    mission: mission2Def,
+    maxSlots: 6,
+    requireBlockParam: true, requireBlockCallCount: 3, // backstops only
+    appendNumberHint: true,
+    hints: {
+      after3: 'Your block gets one hop right. What\'s different about the other two?',
+      after6: 'Tick "takes a number" on your block, and switch the Repeats inside it to n. Then give each call its own number — count how tall each hop is.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! One block, three sizes — that\'s exactly what a number is for.',
+      afterStruggle: '🎉 MISSION COMPLETE — you taught your block to take a number. That\'s the moment a block becomes a real tool, Cadet.',
+      normal: '🎉 MISSION COMPLETE — three hops, three sizes, one block!'
+    },
+    onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
+  });
+  window.__mission2 = mission2; window.__mission2Def = mission2Def; // test hook, not used in gameplay
+
+
+  // ================= Finish / Debrief =================
+  const QUIZ_ANSWERS = { q1: 0, q2: 0 };
+  const Q3_CORRECT = [0, 1, 3];
+  const Q3_ALL = [0, 1, 2, 3, 4];
+
+  const Q_EXPLAIN = {
+    q1: {
+      correct: 0,
+      why: {
+        0: "Exactly right. A block has a name and is built once; every ▶ Call runs it wherever the call sits. A REPEAT has no name — it just runs its moves over and over in the one place it sits.",
+        1: "It's the other way round — the whole point of a block is that you can call it as many times as you like, from as many places as you like.",
+        2: "They're different tools. A REPEAT loops the same moves in one spot; a block is a named recipe you can call from several different places.",
+        3: "That's backwards. A block is the one with a name that you can call from other places — a REPEAT has no name and only runs where it sits."
+      },
+      codeLife: "Why it matters for coding: a named block is what programmers call a function — write it once, call it anywhere, and fix it in one place. Why it matters in life: a skill you learn once, like riding a bike, gets used again and again without relearning it each time."
+    },
+    q2: {
+      correct: 0,
+      why: {
+        0: "HOP(2) runs Up twice, HOP(1) runs Up once: 2 + 1 = 3. Each call uses its OWN number.",
+        1: "That's only the first call.",
+        2: "That treats both calls as HOP(2), but each call brings its own number.",
+        3: "That's only the second call."
+      },
+      codeLife: "Why it matters for coding: the number you hand a block is called an argument — every call can pass a different one, and the block uses it each time it runs. Why it matters in life: a recipe card works the same way — the card stays the same, and you choose how many people it's for each time."
+    }
+  };
+  // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
+  // (built at render time, based on what THIS cadet actually checked) carry the correctness signal.
+  const Q3_EXPLAIN = {
+    0: "<strong>Coding:</strong> tying your laces is one routine you learn once and run again every morning — like a block you build once and ▶ Call each time. <strong>Life:</strong> you never relearn it; you just use it.",
+    1: "<strong>Coding:</strong> the card is the block, \"per person\" is its number — every time you call it, you pick 2 or 5. <strong>Life:</strong> one recipe card, many dinners.",
+    2: "memorizing one answer for one question is a one-time job — nothing is reused, so there's no block here.",
+    3: "<strong>Coding:</strong> your balance is learned once and then called on every ride — a block you built once. <strong>Life:</strong> nobody relearns balancing before each ride.",
+    4: "watching one movie once and never again is a one-time event — nothing is reused, so there's no block here."
+  };
+
+  // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — keeps the interaction
+  // mode consistent with Q1/Q2 (both single-best-choice) by making the *difference* explicit instead
+  // of silently switching formats. Every item requires an explicit click before debriefing is allowed.
+  const q3Answers = {};
+  document.querySelector('.quiz-q[data-qid="q3"]').addEventListener('click', (e) => {
+    const btn = e.target.closest('.yn-btn');
+    if (!btn) return;
+    const row = btn.closest('.yn-row');
+    const idx = Number(row.dataset.idx);
+    q3Answers[idx] = btn.dataset.val;
+    row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('selected-yes', 'selected-no'));
+    btn.classList.add(btn.dataset.val === 'yes' ? 'selected-yes' : 'selected-no');
+  });
+
+  document.getElementById('finishBtn').addEventListener('click', () => {
+    const msg = document.getElementById('finishMsg');
+    const q1 = document.querySelector('input[name="q1"]:checked');
+    const q2 = document.querySelector('input[name="q2"]:checked');
+    const q3AnsweredCount = Q3_ALL.filter(i => q3Answers[i] !== undefined).length;
+
+    if (!q1 || !q2 || q3AnsweredCount < Q3_ALL.length) {
+      msg.textContent = 'Answer questions 1 and 2, and YES or NO for every situation in #3, before debriefing.';
+      msg.className = 'puzzle-msg bad';
+      return;
+    }
+    // Guard against repeated clicks re-scoring/re-adding XP/re-saving.
+    if (debriefed) return;
+    debriefed = true;
+    document.getElementById('finishBtn').disabled = true;
+
+    ['q1', 'q2'].forEach(qid => {
+      const chosen = document.querySelector('input[name="' + qid + '"]:checked');
+      const correctVal = String(QUIZ_ANSWERS[qid]);
+      document.querySelectorAll('.quiz-q[data-qid="' + qid + '"] .choice').forEach(label => {
+        const input = label.querySelector('input');
+        if (input.value === correctVal) label.classList.add('correct');
+        else if (input === chosen) label.classList.add('incorrect');
+      });
+    });
+
+    let q3Hits = 0, q3Misses = 0, q3FalsePositives = 0, q3CorrectRejections = 0;
+    Q3_ALL.forEach(i => {
+      const truthYes = Q3_CORRECT.includes(i);
+      const said = q3Answers[i];
+      const row = document.querySelector(`.yn-row[data-idx="${i}"]`);
+      const correct = (truthYes && said === 'yes') || (!truthYes && said === 'no');
+      row.classList.add(correct ? 'correct' : 'incorrect');
+      if (truthYes && said === 'yes') q3Hits++;
+      else if (truthYes && said === 'no') q3Misses++;
+      else if (!truthYes && said === 'yes') q3FalsePositives++;
+      else q3CorrectRejections++;
+    });
+    const q3Score = q3Hits + q3CorrectRejections;
+    const q3OutOf = Q3_ALL.length;
+
+    const q1Correct = q1.value === String(QUIZ_ANSWERS.q1);
+    const q2Correct = q2.value === String(QUIZ_ANSWERS.q2);
+    const conceptScore = (q1Correct ? 1 : 0) + (q2Correct ? 1 : 0);
+    addXp(conceptScore * 10 + q3Score * 4);
+
+    // ---- Debrief explanations ----
+    const q1Box = document.getElementById('explainQ1');
+    q1Box.innerHTML = '<strong>' + (q1Correct ? '✅ Correct.' : '❌ Not quite.') + '</strong> ' + Q_EXPLAIN.q1.why[q1.value]
+      + (q1Correct ? '' : '<br><br><strong>Correct answer:</strong> ' + Q_EXPLAIN.q1.why[Q_EXPLAIN.q1.correct])
+      + '<br><br>' + Q_EXPLAIN.q1.codeLife;
+    q1Box.classList.add('show');
+
+    const q2Box = document.getElementById('explainQ2');
+    q2Box.innerHTML = '<strong>' + (q2Correct ? '✅ Correct.' : '❌ Not quite.') + '</strong> ' + Q_EXPLAIN.q2.why[q2.value]
+      + (q2Correct ? '' : '<br><br><strong>Correct answer:</strong> ' + Q_EXPLAIN.q2.why[Q_EXPLAIN.q2.correct])
+      + '<br><br>' + Q_EXPLAIN.q2.codeLife;
+    q2Box.classList.add('show');
+
+    let q3Html = '<strong>Transfer check review:</strong>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE "build it once, then reuse it" — YES is correct:</p><ul>';
+    Q3_CORRECT.forEach(i => {
+      const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
+      q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
+    });
+    q3Html += '</ul>';
+    const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT — NO is correct:</p><ul>';
+    q3Decoys.forEach(i => {
+      const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
+      q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
+    });
+    q3Html += '</ul>';
+    const q3Box = document.getElementById('explainQ3');
+    q3Box.innerHTML = q3Html;
+    q3Box.classList.add('show');
+
+    const missionStats = (m, def, extra) => Object.assign({
+      succeeded: m.succeeded, attempts: m.attempts,
+      block_name: m.blockName, block_takes_arg: m.blockTakesArg, call_args: m.callArgs,
+      block_call_count: m.blockCallCount, slots_used: m.slotsUsed, max_slots: def.maxSlots,
+      route_progress: m.routeProgress, route_total: m.routeTotal, off_route_runs: m.offRouteRuns,
+      hints_used: m.hintsUsed,
+      // Additive telemetry (not in plan T10) so the plan's §8 decision table can actually be read:
+      off_route_moves: m.offRouteMoves, failed_runs_block_without_number: m.failedRunsNoNumber
+    }, extra || {});
+
+    const rawPayload = {
+      unit_number: 7,
+      unit_title: 'Custom Blocks',
+      stage: 1,
+      cadet_name: cadetName,
+      completed_at: new Date().toISOString(),
+      xp_earned: xp,
+      mission_version: 2,
+      auto_stats: {
+        calibration_solved: calAnswered,
+        calibration_attempts: calAttempts,
+        mission_1: missionStats(mission1, { maxSlots: 7 }),
+        mission_2: missionStats(mission2, { maxSlots: 6 })
+      },
+      quiz: {
+        concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
+        q1_answer: q1.value, q2_answer: q2.value,
+        transfer_check: { score: q3Score, out_of: q3OutOf, hits: q3Hits, misses: q3Misses, false_positives: q3FalsePositives, correct_rejections: q3CorrectRejections, answers: q3Answers, correct_set: Q3_CORRECT }
+      }
+    };
+
+    msg.textContent = ''; msg.className = '';
+    const box = document.getElementById('resultBox');
+    box.classList.add('show');
+    const summaryHtml = '<strong>' + cadetName + ' — Mission Complete</strong><br>Total XP: ' + xp
+      + ' · Concept quiz: ' + conceptScore + '/2 · Transfer check: ' + q3Score + '/' + q3OutOf
+      + '<br>Mission 1: ' + (mission1.succeeded ? '✅' : '—') + ' (' + mission1.attempts + ' run' + (mission1.attempts === 1 ? '' : 's') + ')'
+      + ' · Mission 2: ' + (mission2.succeeded ? '✅' : '—') + ' (' + mission2.attempts + ' run' + (mission2.attempts === 1 ? '' : 's') + ')';
+    if (isReviewMode) {
+      box.innerHTML = summaryHtml + '<br><br>📋 Review mode — not saved (you already have a saved result for this unit).';
+    } else {
+      box.innerHTML = summaryHtml + '<br><br>Saving to your account…';
+
+      // Results save straight to the signed-in cadet's Supabase account — the next unit unlocks
+      // automatically on The Loop.
+      CodingAuth.saveResult({
+        unit_key: '7',
+        unit_title: 'Custom Blocks',
+        xp_earned: xp,
+        concept_score: conceptScore,
+        concept_out_of: 2,
+        life_score: q3Score,
+        life_out_of: q3OutOf,
+        mission1_succeeded: mission1.succeeded,
+        mission1_attempts: mission1.attempts,
+        mission2_succeeded: mission2.succeeded,
+        mission2_attempts: mission2.attempts,
+        raw_payload: rawPayload
+      }).then((res) => {
+        box.innerHTML = summaryHtml + (res.saved
+          ? '<br><br>✅ Saved to your account — check My Progress any time from the menu up top.'
+          : '<br><br>⚠️ Could not save to your account' + (res.error && res.error.message ? ' (' + res.error.message + ')' : '') + '. Your results are shown above but not stored — try Debrief again once you\'re back online.');
+      });
+    }
+
+    const PREV_UNIT_FILE = 'unit_06_variables.html';
+    const NEXT_UNIT_FILE = 'unit_08_lists.html';
+    const nav = document.getElementById('postDebriefNav');
+    nav.classList.add('show');
+    const prevBtn = document.getElementById('prevUnitBtn');
+    const nextBtn = document.getElementById('nextUnitBtn');
+    if (PREV_UNIT_FILE) { prevBtn.style.display = ''; prevBtn.onclick = () => location.href = PREV_UNIT_FILE; }
+    if (NEXT_UNIT_FILE) { nextBtn.style.display = ''; nextBtn.onclick = () => location.href = NEXT_UNIT_FILE; }
+  });
+</script>
+</body>
+</html>

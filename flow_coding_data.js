@@ -38,7 +38,7 @@ var FLOW_CODING_DATA = {
     { n: 8,  title: "Lists",          concept: "Many values in a fixed order — and working through them one at a time",
       life: "Rankings, a shopping list",
       file: "theloop_units/unit_08_lists.html" },
-    { n: 9,  title: "Debugging",      concept: "Find *why* something's wrong, not just that it is",
+    { n: 9,  title: "Debugging",      concept: "Find WHY it's wrong — reproduce, watch, guess once, change one thing",
       life: "Diagnosing a mistake — where exactly did the logic break?",
       file: "theloop_units/unit_09_debugging.html" },
     { n: "M1", title: "Milestone Test 1", concept: "Mixed conceptual check + a combined hands-on challenge spanning Units 1–9",
