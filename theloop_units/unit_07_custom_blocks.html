@@ -24,8 +24,13 @@
     --danger: #FF6B7F; --danger-tint: #3A1620;
     --success: #4BE39A; --success-tint: #113526;
     --nova: #C77DFF; --nova-tint: #241238;
-    --tool: #FF6BCF; --tool-tint: #3A1030;
     --wall-bg: #3A1420; --star: rgba(233,236,255,0.5);
+    /* Master style: Mission 1/2 zone theming (ported from Units 1-3's approved full-screen mission
+       stage) -- Mission 1 reads purple, Mission 2 reads orange, green stays reserved for the goal
+       cell. Theme-invariant, never redefined for light mode (see the light-mode tint override below). */
+    --purple: #C77DFF; --purple-ink: #2B0E45; --purple-tint: #241040;
+    --orange: #FF8C00; --orange-ink: #3A1B00; --orange-tint: #3A2000;
+    --green: #4BE39A; --green-ink: #06281C; --green-tint: #0F3324;
   }
   * { box-sizing: border-box; }
   body {
@@ -50,9 +55,10 @@
   /* ---------------- Flow Academy topbar ---------------- */
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0 6px; flex-wrap: wrap; gap: 10px; }
   #topbar .topbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
-  #brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
-  #brand:hover { color: var(--cyan); }
+  #brand, .brand { display: flex; align-items: center; gap: 9px; font-family: "Orbitron", sans-serif; font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--ink); }
+  #brand .brand-logo, .brand .brand-logo { height: 28px; width: auto; display: block; filter: drop-shadow(0 0 8px #38e6ee66); }
+  #brand:hover, .brand:hover { color: var(--cyan); }
+  .game-topbar-left .brand { flex-shrink: 0; }
 
   .hud { display: none; align-items: center; gap: 14px; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; margin-bottom: 20px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
   .hud.show { display: flex; }
@@ -144,12 +150,8 @@
 
   .repeat-card { border: 1.5px solid var(--amber); border-radius: 10px; padding: 8px 10px; background: var(--amber-tint); display: flex; flex-direction: column; gap: 6px; }
   .repeat-card.open { box-shadow: 0 0 0 2px var(--amber); }
-  .repeat-card.event-card { border-color: var(--cyan); background: var(--cyan-tint); }
-  .repeat-card.event-card.open { box-shadow: 0 0 0 2px var(--cyan); }
   .repeat-card.condition-card { border-color: var(--nova); background: var(--nova-tint); }
   .repeat-card.condition-card.open { box-shadow: 0 0 0 2px var(--nova); }
-  .repeat-card.block-card { border-color: var(--tool); background: var(--tool-tint); }
-  .repeat-card.block-card.open { box-shadow: 0 0 0 2px var(--tool); }
   .repeat-head { display: flex; align-items: center; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--ink); flex-wrap: wrap; }
   .repeat-count-btn { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; background: var(--bg-panel); border: 1px solid var(--line); color: var(--ink); border-radius: 6px; width: 22px; height: 22px; cursor: pointer; line-height: 1; }
   .repeat-head-actions { display: flex; gap: 4px; margin-left: auto; align-items: center; }
@@ -173,20 +175,201 @@
   .cmd-btn.event-btn:hover { color: var(--cyan); border-color: var(--cyan); }
   .cmd-btn.condition-btn { border-color: var(--nova); }
   .cmd-btn.condition-btn:hover { color: var(--nova); border-color: var(--nova); }
-  .cmd-btn.score-btn { border-color: var(--success); }
-  .cmd-btn.score-btn:hover { color: var(--success); border-color: var(--success); }
-  .cmd-btn.block-btn { border-color: var(--tool); }
-  .cmd-btn.block-btn:hover { color: var(--tool); border-color: var(--tool); }
 
-  .score-readout { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--amber); background: var(--amber-tint); border: 1px solid var(--amber); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .fuel-chip { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--cyan); background: var(--cyan-tint); border: 1px solid var(--cyan); border-radius: 8px; padding: 6px 14px; display: inline-block; align-self: flex-start; }
+  .fuel-chip.low { color: var(--amber); background: var(--amber-tint); border-color: var(--amber); }
+
+  /* ---------------- Master style: full-screen mission stage (Missions 1 & 2 only) ----------------
+     Ported from Units 1-3's approved full-screen mission stage -- this was missing on Units 4-6, a
+     regression flagged by Lui and fixed here. Command deck floats as a translucent HUD panel on the
+     left, the mission grid gets the whole rest of the viewport on the right, over a starfield/galaxy
+     backdrop. Boot, Transmission 1 and Final Systems Check stay the normal in-page layout -- only the
+     two missions, the ones that are actually a "game", take over the screen. */
+  .screen.fullscreen-mission { display: none; }
+  .screen.fullscreen-mission.active { display: flex; position: fixed; inset: 0; z-index: 40; background: var(--bg); flex-direction: column; }
+  .game-topbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--bg-raised); gap: 10px; flex-wrap: wrap; }
+  .game-topbar-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .game-topbar-right { display: flex; align-items: center; gap: 12px; }
+  .game-xp { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+  .game-xp .xp-value { color: var(--amber); font-weight: 700; }
+  .theme-toggle-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink-soft); cursor: pointer; padding: 0; flex-shrink: 0; }
+  .theme-toggle-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .game-body { flex: 1 1 auto; position: relative; min-height: 0; overflow: hidden; --palette-w: min(640px, 58vw); }
+  /* CSS-only starfield/galaxy backdrop, reused verbatim from Unit 1. */
+  .stage-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(700px 420px at 22% 8%, color-mix(in srgb, #38E6EE 26%, transparent), transparent 70%),
+      radial-gradient(560px 380px at 78% 4%, color-mix(in srgb, #FFC24B 18%, transparent), transparent 70%),
+      radial-gradient(1px 1px at 8% 10%, var(--star), transparent),
+      radial-gradient(1px 1px at 18% 22%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 34% 6%, var(--star), transparent),
+      radial-gradient(1px 1px at 47% 18%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 62% 9%, var(--star), transparent),
+      radial-gradient(1px 1px at 71% 24%, var(--star), transparent),
+      radial-gradient(1.5px 1.5px at 85% 14%, var(--star), transparent),
+      radial-gradient(1px 1px at 93% 28%, var(--star), transparent),
+      radial-gradient(1px 1px at 5% 40%, var(--star), transparent),
+      radial-gradient(1px 1px at 40% 45%, var(--star), transparent),
+      radial-gradient(1px 1px at 65% 42%, var(--star), transparent),
+      var(--bg);
+    opacity: .9;
+  }
+  .game-stage-col { position: absolute; inset: 0; left: var(--palette-w); display: flex; align-items: center; justify-content: center; }
+  .stage-grid-wrap { position: relative; z-index: 1; }
+  .stage-grid-wrap .grid { background: transparent; border: none; padding: 0; }
+  .stage-grid-wrap .cell { border: 1px solid rgba(233,236,255,.4); background: rgba(10,14,30,.12); }
+  .stage-grid-wrap .cell.wall { background: rgba(255,107,127,.32); }
+  .stage-grid-wrap .cell.pad { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.pad.collected { background: rgba(233,236,255,.08); opacity: 0.6; }
+  .stage-grid-wrap .cell.goal { background: rgba(75,227,154,.32); }
+  .stage-grid-wrap .cell.wall::after, .stage-grid-wrap .cell.goal::after { font-size: 28px; }
+
+  .game-palette-col {
+    position: absolute; left: 0; top: 0; bottom: 0; z-index: 2;
+    width: var(--palette-w);
+    display: flex; flex-direction: column; gap: 10px; padding: 16px;
+    overflow-y: auto;
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--cyan) 16%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right: 1px solid color-mix(in srgb, var(--cyan) 40%, transparent);
+  }
+  .dialogue.compact { padding: 10px 12px; font-size: 14px; background: color-mix(in srgb, var(--bg-panel) 85%, transparent); color: var(--ink); }
+  .dialogue.compact .avatar { font-size: 18px; }
+
+  .palette-cols { display: flex; gap: 10px; flex: 1 1 auto; min-height: 0; }
+  /* Keep the whole control rail visible when a long mission message appears below it (the message
+     used to squeeze the rail and hide Reset / Start Over behind a scrollbar). */
+  .game-palette-col .palette-cols { min-height: 360px; }
+  .game-palette-col > .mission-msg, .game-palette-col > .hint-block, .game-palette-col > .primary, .game-palette-col > .dialogue { flex-shrink: 0; }
+  .control-rail { flex: 0 0 172px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; border-radius: 10px; }
+  .control-rail .mission-actions { flex-direction: column; margin-top: 0; }
+  .control-rail .mission-actions button { width: 100%; }
+  .control-rail .cmd-palette { flex-direction: column; align-items: stretch; }
+  .control-rail .dpad { align-self: center; }
+
+  /* Program column: the FUEL chip sits attached to the top of THIS column (same row as the
+     control-rail, right-aligned) -- same convention as Units 2-3/5's own slot/flag chip. */
+  .prog-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .prog-status-row { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .palette-cols .chip-order { flex: 1 1 auto; overflow-y: auto; }
+
+  .dpad { display: grid; grid-template-columns: repeat(3, 42px); grid-template-rows: repeat(2, 42px); gap: 6px; justify-content: center; margin: 2px 0; }
+  .dpad-btn { background: color-mix(in srgb, var(--bg-panel) 85%, transparent); border: 1.5px solid var(--amber); border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .dpad-btn:hover .dpad-tri { background: var(--ink); }
+  .dpad-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .dpad-up { grid-column: 2; grid-row: 1; }
+  .dpad-left { grid-column: 1; grid-row: 2; }
+  .dpad-down { grid-column: 2; grid-row: 2; }
+  .dpad-right { grid-column: 3; grid-row: 2; }
+  .dpad-tri { display: block; width: 15px; height: 15px; background: var(--cyan); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+  .dpad-up .dpad-tri { transform: rotate(0deg); }
+  .dpad-right .dpad-tri { transform: rotate(90deg); }
+  .dpad-down .dpad-tri { transform: rotate(180deg); }
+  .dpad-left .dpad-tri { transform: rotate(270deg); }
+
+  /* Phone-width fallback, ported verbatim from Unit 1. */
+  @media (max-width: 760px) {
+    .game-body { display: flex; flex-direction: column; overflow-y: auto; }
+    .game-palette-col {
+      position: relative; top: auto; left: auto; bottom: auto; right: auto;
+      width: auto; max-width: none; max-height: 58vh; flex: 0 0 auto;
+      border-right: none; border-bottom: 1px solid rgba(56,230,238,.35);
+    }
+    .game-stage-col {
+      position: relative; inset: auto; left: auto;
+      flex: 1 1 auto; min-height: 220px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .palette-cols { flex-direction: column; flex: 0 0 auto; }
+    .control-rail { flex: 0 0 auto; }
+    .prog-col { flex: 0 0 auto; }
+    .palette-cols .chip-order { flex: 0 0 auto; min-height: 140px; }
+  }
+
+  /* Master style: .panel's cosmic-vibes gradient border (pg2/scr-t1 and pg5/scr-final), applying in
+     BOTH themes -- ported verbatim from Units 1-3. */
+  .panel {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      linear-gradient(135deg, var(--purple) 0%, #38E6EE 30%, var(--green) 55%, var(--orange) 80%, #FFC24B 100%) border-box;
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.goal {
+    background: color-mix(in srgb, var(--green) 48%, transparent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--green) 55%, transparent);
+  }
+  html:not([data-theme="light"]) .stage-grid-wrap .cell.wall {
+    background: color-mix(in srgb, var(--danger) 48%, transparent);
+  }
+  html[data-theme="light"] {
+    --purple-tint: #F3E9FE;
+    --orange-tint: #FFF2DC;
+  }
+
+  /* Master style: Mission 1/2 zone theming -- Mission 1 (Platform Kilo) reads purple, Mission 2
+     (Platform Lima) reads orange, in BOTH themes. REPEAT/Condition keep their own dedicated accent
+     colors regardless of zone -- amber/nova mark WHAT KIND of block it is, the same way zone color
+     marks WHICH mission it is; the two systems don't overlap. */
+  #scr-t2 .game-topbar { border-bottom-color: var(--purple); }
+  #scr-t2 .transmission-tag { color: var(--purple); }
+  #scr-t2 .dialogue { border-left-color: var(--purple); }
+  #scr-t2 .dpad-tri { background: var(--purple); }
+  #scr-t2 .repeat-children { border-left-color: color-mix(in srgb, var(--purple) 55%, var(--line)); }
+  #scr-t2 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--purple) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--purple) 45%, transparent);
+  }
+  #scr-t2 .order-row { border-color: var(--purple); background: var(--purple-tint); }
+  #scr-t2 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--purple) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--purple) 14%, rgba(10,14,30,.12)); }
+  #scr-t2 .primary { background: linear-gradient(135deg, var(--purple), #9b4fe0); color: var(--purple-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--purple) 35%, transparent); }
+  #scr-t2 .ghost:hover { border-color: var(--purple); color: var(--purple); }
+  #scr-t2 .rover.celebrating { filter: drop-shadow(0 0 16px var(--purple)); }
+  #scr-t2 .stage-bg::before,
+  #scr-t2 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t2 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--purple) 34%, transparent), transparent 70%); }
+  #scr-t2 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--green) 22%, transparent), transparent 70%); }
+
+  #scr-t3 .game-topbar { border-bottom-color: var(--orange); }
+  #scr-t3 .transmission-tag { color: var(--orange); }
+  #scr-t3 .dialogue { border-left-color: var(--orange); }
+  #scr-t3 .dpad-tri { background: var(--orange); }
+  #scr-t3 .repeat-children { border-left-color: color-mix(in srgb, var(--orange) 55%, var(--line)); }
+  #scr-t3 .game-palette-col {
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--orange) 18%, transparent) 0 1px, transparent 1px 32px),
+      color-mix(in srgb, var(--bg) 30%, transparent);
+    border-right-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  }
+  #scr-t3 .order-row { border-color: var(--orange); background: var(--orange-tint); }
+  #scr-t3 .stage-grid-wrap .cell { border-color: color-mix(in srgb, var(--orange) 55%, rgba(233,236,255,.4)); background: color-mix(in srgb, var(--orange) 14%, rgba(10,14,30,.12)); }
+  #scr-t3 .primary { background: linear-gradient(135deg, var(--orange), #cc7000); color: var(--orange-ink); box-shadow: 0 6px 16px color-mix(in srgb, var(--orange) 35%, transparent); }
+  #scr-t3 .ghost:hover { border-color: var(--orange); color: var(--orange); }
+  #scr-t3 .rover.celebrating { filter: drop-shadow(0 0 16px var(--orange)); }
+  #scr-t3 .stage-bg::before,
+  #scr-t3 .stage-bg::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  #scr-t3 .stage-bg::before { background: radial-gradient(700px 420px at 25% 10%, color-mix(in srgb, var(--orange) 36%, transparent), transparent 70%); }
+  #scr-t3 .stage-bg::after { background: radial-gradient(520px 360px at 75% 6%, color-mix(in srgb, var(--purple) 22%, transparent), transparent 70%); }
+
+  .hint-block { display: flex; flex-direction: column; gap: 4px; align-self: flex-start; }
+  .hint-btn { align-self: flex-start; }
+  .hint-text { font-size: 13.5px; color: var(--cyan); font-weight: 600; margin: 0; min-height: 0; }
+  .hint-text:empty { display: none; }
 
   .grid-wrap { display: flex; justify-content: center; padding: 10px 0; }
   .grid { position: relative; display: grid; background: var(--bg-panel); border: 1px solid var(--line); border-radius: 10px; padding: 4px; }
   .cell { border: 1px solid var(--line); background: var(--bg-raised); display: flex; align-items: center; justify-content: center; font-size: 18px; }
   .cell.wall { background: var(--wall-bg); }
   .cell.wall::after { content: "🚧"; font-size: 16px; }
-  .cell.beacon { background: var(--cyan-tint); }
-  .cell.beacon::after { content: "📡"; font-size: 16px; }
+  .cell.pad { background: var(--cyan-tint); font-size: 13px; font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--cyan); }
+  .cell.pad.collected { background: var(--bg-raised); color: var(--ink-soft); opacity: 0.5; }
   .cell.goal { background: var(--success-tint); }
   .rover { position: absolute; transform-origin: 50% 50%; }
   .rover-shape {
@@ -196,6 +379,25 @@
     pointer-events: none;
     user-select: none;
   }
+
+  /* V2 E15: mission-complete celebration -- a 1.2s spin+scale flourish on the rover plus a handful
+     of sparkle particles, so a win reads as a moment, not just a text swap. Ported verbatim from
+     unit_01_sequence.html via Units 4/5's T1/T3 -- the per-zone `.rover.celebrating` filter rules
+     above were already in place (copied along with the zone theming block) but had no animation or
+     JS to trigger them until this build. */
+  @keyframes celebrate-spin {
+    0% { transform: scale(1) rotate(0deg); }
+    40% { transform: scale(1.35) rotate(180deg); }
+    70% { transform: scale(0.9) rotate(300deg); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .rover.celebrating .rover-shape { animation: celebrate-spin 1.2s ease; }
+  @keyframes sparkle-pop {
+    0% { opacity: 0; transform: scale(0.2) translateY(0); }
+    30% { opacity: 1; transform: scale(1.1) translateY(-6px); }
+    100% { opacity: 0; transform: scale(0.6) translateY(-22px); }
+  }
+  .sparkle { position: absolute; font-size: 20px; pointer-events: none; animation: sparkle-pop 1.2s ease forwards; z-index: 5; }
 
   .quiz-q { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
   .quiz-q:first-of-type { border-top: none; padding-top: 0; }
@@ -237,6 +439,60 @@
 
   footer { text-align: center; color: var(--ink-soft); font-size: 12px; font-family: "JetBrains Mono", monospace; padding-top: 20px; }
 
+  /* ---------------- Unit 7: slot budget (E1) + open route (E2) + custom block (E9) ---------------- */
+  .slot-chip {
+    font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px;
+    color: var(--ink-soft); background: var(--bg-panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 12px; display: inline-block; align-self: flex-start;
+  }
+  .slot-chip.over { color: var(--danger); background: var(--danger-tint); border-color: var(--danger); }
+  .slot-chip.complete { color: var(--success); background: var(--success-tint); border-color: var(--success); }
+
+  /* E2: the amber route is drawn on the grid from load; each cell tints as the rover walks it. */
+  .cell.patrol { box-shadow: inset 0 0 0 2px var(--amber); }
+  .cell.visited { background: var(--cyan-tint); }
+  .cell.patrol.visited { background: var(--cyan-tint); box-shadow: inset 0 0 0 2px var(--amber); }
+  .stage-grid-wrap .cell.visited { background: rgba(56,230,238,.28); }
+  .stage-grid-wrap .cell.patrol { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--amber) 75%, transparent); }
+  #scr-t2 .stage-grid-wrap .cell.visited { background: color-mix(in srgb, var(--purple) 40%, rgba(56,230,238,.28)); }
+  #scr-t3 .stage-grid-wrap .cell.visited { background: color-mix(in srgb, var(--orange) 40%, rgba(56,230,238,.28)); }
+  html[data-theme="light"] .stage-grid-wrap .cell.patrol { box-shadow: inset 0 0 0 3px #B86E00; }
+
+  /* E9: the named block. Purple "nova" accent for the definition, green for a call. */
+  .cmd-btn.block-btn { border-color: var(--nova); }
+  .cmd-btn.block-btn:hover:not(:disabled) { color: var(--nova); border-color: var(--nova); }
+  .cmd-btn.call-btn { border-color: var(--success); }
+  .cmd-btn.call-btn:hover:not(:disabled) { color: var(--success); border-color: var(--success); }
+  .repeat-card.def-card { border-color: var(--nova); background: var(--nova-tint); }
+  .repeat-card.def-card.open { box-shadow: 0 0 0 2px var(--nova); }
+  .def-head { gap: 8px; }
+  .def-name { font-family: "Orbitron", sans-serif; font-weight: 700; color: var(--nova); letter-spacing: .04em; }
+  .def-name-input { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; width: 8.5em; text-transform: uppercase; background: var(--bg-panel); border: 1.5px solid var(--nova); color: var(--ink); border-radius: 6px; padding: 3px 6px; }
+  .def-edit-btn { background: var(--bg-panel); border: 1px solid var(--line); border-radius: 6px; width: 24px; height: 24px; cursor: pointer; color: var(--ink); padding: 0; }
+  .def-edit-btn:hover:not(:disabled) { border-color: var(--nova); }
+  .def-num-label { display: inline-flex; align-items: center; gap: 4px; font-family: "Atkinson Hyperlegible", sans-serif; font-size: 12.5px; font-weight: 700; color: var(--ink); cursor: pointer; }
+  .def-num-label input { accent-color: var(--nova); width: 16px; height: 16px; }
+  .def-note { font-size: 12.5px; font-weight: 700; color: var(--danger); min-height: 0; }
+  .def-note:empty { display: none; }
+  .def-cap { font-size: 12.5px; font-weight: 700; color: var(--amber); }
+  .def-reopen-btn { align-self: flex-start; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 11.5px; background: var(--bg-panel); border: 1px solid var(--nova); color: var(--ink); padding: 4px 9px; border-radius: 7px; cursor: pointer; }
+  .n-toggle { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; background: var(--bg-panel); border: 1.5px solid var(--line); color: var(--ink); border-radius: 6px; min-width: 24px; height: 22px; cursor: pointer; padding: 0 6px; }
+  .n-toggle.on { background: var(--nova); border-color: var(--nova); color: #1B0A2E; }
+  .n-toggle:disabled { opacity: .35; cursor: not-allowed; }
+  .order-row.call-row { border-color: var(--success); background: var(--success-tint); }
+  #scr-t2 .order-row.call-row, #scr-t3 .order-row.call-row { border-color: var(--success); background: var(--success-tint); }
+  .call-stepper { display: inline-flex; align-items: center; gap: 4px; }
+  .call-stepper-n { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 12px; color: var(--ink-soft); }
+  /* H.22: visible while a call runs -- the call row and the definition card light up. */
+  .order-row.executing, #scr-t2 .order-row.executing, #scr-t3 .order-row.executing { box-shadow: 0 0 0 3px var(--amber); }
+  .repeat-card.executing { box-shadow: 0 0 0 3px var(--amber); }
+  @keyframes def-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--nova); } 50% { box-shadow: 0 0 0 5px var(--nova); } }
+  .repeat-card.def-card.pulse { animation: def-pulse .8s ease-in-out infinite; }
+  .wk-rows { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+  .wk-row { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg-panel); color: var(--ink); overflow-wrap: anywhere; }
+  .wk-row.wk-def { border-color: var(--nova); background: var(--nova-tint); }
+  .wk-row.wk-call { border-color: var(--success); background: var(--success-tint); }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -246,8 +502,8 @@
     <div class="topbar-left">
       <a id="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
     </div>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <button id="theme-toggle" type="button"></button>
+    <div style="display:flex; align-items:center; gap:10px;" id="topbarRightHome">
+      <button id="theme-toggle" class="theme-toggle-btn" type="button"></button>
       <div id="acct-wrap">
         <button id="acct-btn"></button>
         <div id="acct-menu"></div>
@@ -258,17 +514,27 @@
     (function(){
       var ICON_SUN = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="3.5"/><line x1="10" y1="1.5" x2="10" y2="3.5"/><line x1="10" y1="16.5" x2="10" y2="18.5"/><line x1="1.5" y1="10" x2="3.5" y2="10"/><line x1="16.5" y1="10" x2="18.5" y2="10"/><line x1="4.2" y1="4.2" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="15.8" y2="15.8"/><line x1="4.2" y1="15.8" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="15.8" y2="4.2"/></svg>';
       var ICON_MOON = '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 1 1 8.5 4a5 5 0 0 0 7.5 8.5z"/></svg>';
-      var btn = document.getElementById('theme-toggle');
+      // Master style: the two mission screens are fixed full-viewport overlays (z-index 40) that
+      // visually cover #topbar while open, so each carries its own .theme-toggle-btn -- all of them
+      // (main topbar + both mission topbars) share this one apply()/click wiring via the class
+      // selector, delegated on document since the mission-screen buttons don't exist yet at parse
+      // time. Ported verbatim from Unit 1.
       function apply(theme){
         if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
         else document.documentElement.removeAttribute('data-theme');
-        btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
-        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        document.querySelectorAll('.theme-toggle-btn').forEach(function(btn){
+          btn.innerHTML = theme === 'light' ? ICON_SUN : ICON_MOON;
+          btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        });
       }
-      apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
-      btn.addEventListener('click', function(){
+      document.addEventListener('DOMContentLoaded', function(){
+        apply(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+      });
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.theme-toggle-btn');
+        if (!btn) return;
         var next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        try { localStorage.setItem('flow_theme', next); } catch (e) {}
+        try { localStorage.setItem('flow_theme', next); } catch (e2) {}
         apply(next);
       });
     })();
@@ -276,7 +542,7 @@
 
   <div class="hud" id="hud">
     <span>CADET: <span class="cadet" id="hudName">—</span></span>
-    <span>XP: <span class="xp" id="hudXp">0</span></span>
+    <span>XP: <span class="xp xp-value" id="hudXp">0</span></span>
     <span class="tx" id="hudTx">TRANSMISSION 1/3</span>
     <div class="hud-bar"><div class="hud-bar-fill" id="hudBarFill" style="width:0%"></div></div>
   </div>
@@ -287,7 +553,7 @@
       <img class="logo" src="../assets/flow_logo.png" alt="Flow Academy logo">
       <h1>FLOW ACADEMY</h1>
       <div class="tagline">The Loop · Unit 07 · Custom Block Protocol</div>
-      <p style="color:var(--ink-soft); max-width: 46ch;">Some of Rover-7's maneuvers get used again and again — the same handful of steps, rebuilt from scratch every single time they're needed. That's wasted work. Command Control needs you to master the CUSTOM BLOCK: a named group of steps you build once, then reuse anywhere in your program just by calling its name — no rebuilding required.</p>
+      <p style="color:var(--ink-soft); max-width: 46ch;">Some moves keep coming back again and again. Rebuilding them by hand every time costs program slots and a lot of tapping. Command Control needs you to master the custom BLOCK: build a routine once, give it a name, and call it wherever you need it — even with a different number each time.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="primary" id="beginBtn">Begin Training →</button>
         <button class="ghost" id="reviewBtn" style="display:none;">🔍 Review</button>
@@ -308,14 +574,13 @@
     <div class="dialogue">
       <div class="avatar">🧑‍🚀</div>
       <div>
-        <p><strong>COMMANDER:</strong> Good work on Variable Protocol, Cadet. Here's something you've probably noticed already: some maneuvers keep coming back. A tight U-turn, a specific dodge-and-recover — the same steps, over and over, rebuilt by hand every single time they're needed. Every mission so far, that meant re-clicking the exact same commands again from scratch.</p>
-        <p>A <strong>CUSTOM BLOCK</strong> fixes that. You build it once — give it a name, fill it with steps — and after that, calling it by name runs those exact same recorded steps, in order, every single time you call it. Build once, reuse anywhere, as many times as you want. It's the same idea as learning to ride a bike: you learn the balance once, and you don't have to relearn it every time you get back on.</p>
+        <p><strong>COMMANDER:</strong> Good work on Variables, Cadet. Some moves keep coming back — the same little routine, in different places along a route. Rebuilding it by hand every time wastes slots and taps. A BLOCK fixes that: you build the routine once, give it a name, and then CALL it wherever you need it. Like riding a bike — you learn it once and use it on every ride.</p>
       </div>
     </div>
 
     <div class="panel">
-      <h2>Calibration Test: Spot the Custom Block</h2>
-      <p class="sub">A real custom block is a named group of steps you build once, that you can call by name from anywhere, as many times as you want — and it runs the exact same recorded steps every time. Which one of these actually works like that?</p>
+      <h2>Calibration Test: Spot the Working Block</h2>
+      <p class="sub">Command Control wants Rover-7 to do the same 3-move SCAN — Right, Up, Left — at two spots, with Up, Up in between. Which program does exactly that?</p>
       <div id="calChoices" style="display:flex; flex-direction:column; gap:8px;"></div>
       <div class="mission-actions">
         <button class="primary" id="calCheckBtn">Run Calibration</button>
@@ -325,12 +590,19 @@
 
     <div class="field-manual" id="fieldManual" style="display:none;">
       <h3>📖 Field Manual: CUSTOM BLOCKS</h3>
-      <p>A <strong>CUSTOM BLOCK</strong> is a named group of steps you build once, that you can then run from anywhere just by calling its name. Three rules to remember:</p>
       <ol>
-        <li><strong>You define it once</strong> — give it a name, fill it with steps. After that, you never need to rebuild it.</li>
-        <li><strong>Calling it runs its exact recorded steps, in order, every single time</strong> — the whole point is that it doesn't change unless you go back and edit the definition itself.</li>
-        <li><strong>Command Control counts how many times you actually CALL it during the run</strong> — not just whether you built one and never used it.</li>
+        <li><strong>Build it once.</strong> 🧩 Define Block, give it a name, put moves inside, ✅ Done. A recipe on its own does nothing.</li>
+        <li><strong>▶ Call runs the whole recipe</strong> right where the call sits. Three calls = the recipe runs three times.</li>
+        <li><strong>A block's recipe costs ONE program slot, and each call costs ONE.</strong> A routine you need in three places is cheaper as a block.</li>
+        <li><strong>A block can take a NUMBER.</strong> Tick "takes a number", set a Repeat inside it to n, and every call picks its own n.</li>
       </ol>
+      <p style="margin-top:10px;"><strong>Worked example</strong> — one recipe, two sizes:</p>
+      <div class="wk-rows">
+        <div class="wk-row wk-def">🧩 STEP (takes a number) = [ Repeat n [Right], Up ]</div>
+        <div class="wk-row wk-call">▶ STEP(3) → Right, Right, Right, Up</div>
+        <div class="wk-row wk-call">▶ STEP(1) → Right, Up</div>
+      </div>
+      <p style="font-size:13.5px; color:var(--ink-soft); margin:6px 0 0;">One recipe, two sizes. In Python this is <code>def step(n):</code> — you'll write exactly this on The Core.</p>
     </div>
 
     <div class="mission-actions">
@@ -339,90 +611,124 @@
   </section>
 
   <!-- TRANSMISSION 2 -->
-  <section class="screen" id="scr-t2">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 2 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t1')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t3')">Next ▶</button>
+  <section class="screen fullscreen-mission" id="scr-t2">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 2 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight2">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Time to build one for real. Click "🧩 Define Block: U-Turn," fill it with a couple of steps, then hit Done. After that, "▶ Call U-Turn" will run those exact same steps. Patrol Platform Mike, and make sure you actually <strong>Call U-Turn at least once</strong> somewhere in your route — Command Control checks that you called it, not just that you built one.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 1 · Platform Mike</h2>
-      <div class="score-readout" id="score1">SCORE: 0</div>
-      <div class="cmd-palette" id="palette1">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
-        <button class="cmd-btn event-btn" type="button" id="addEvent1">🔔 Add Event</button>
-        <button class="cmd-btn condition-btn" type="button" id="addCondition1">🔀 Add Condition</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
-        <button class="cmd-btn block-btn" type="button" id="addBlock1">🧩 Define Block: U-Turn</button>
-        <button class="cmd-btn block-btn" type="button" id="callBlock1">▶ Call U-Turn</button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform Mike's survey route is drawn in amber. Look closely: the same little hop shows up three times, with different moves in between — and you only have 7 program slots. I've started a block called HOP and placed one call for you. Fill in HOP's recipe once, then call it wherever the route hops.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette1">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat1">🔁 Add Repeat</button>
+              <button class="cmd-btn block-btn" type="button" id="defineBlock1">🧩 Define Block</button>
+              <button class="cmd-btn call-btn" type="button" id="callBlock1">▶ Call</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run1">▶ Run Program</button>
+              <button class="ghost" id="reset1">Reset Rover</button>
+              <button class="ghost" id="clear1">Clear Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap1" style="display:none;">
+              <button class="ghost" id="watchAgain1">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots1">SLOTS: 0 / 7</span>
+              <span class="slot-chip" id="route1">ROUTE: 0 / 13</span>
+            </div>
+            <div class="chip-order" id="prog1"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg1"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint1" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText1"></p></div>
+        <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
       </div>
-      <div class="chip-order" id="prog1"></div>
-      <div class="grid-wrap"><div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run1">▶ Run Program</button>
-        <button class="ghost" id="reset1">Reset Rover</button>
-        <button class="ghost" id="clear1">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid1"><div class="rover" id="rover1"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg1"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toT3Btn" disabled>Continue to Transmission 3 →</button>
     </div>
   </section>
 
-  <!-- TRANSMISSION 3 -->
-  <section class="screen" id="scr-t3">
-    <div class="tx-header">
-      <div class="transmission-tag">Transmission 3 of 3</div>
-      <div class="tx-nav">
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-t2')">◀ Prev</button>
-        <button type="button" class="tx-nav-btn" onclick="showScreen('scr-final')">Next ▶</button>
+  <!-- TRANSMISSION 3 (full-screen mission stage -- master style) -->
+  <section class="screen fullscreen-mission" id="scr-t3">
+    <div class="game-topbar">
+      <div class="game-topbar-left">
+        <a class="brand" href="../the-loop.html"><img src="../assets/flow_logo.png" alt="Flow Academy logo" class="brand-logo"> Flow Academy</a>
+        <div class="transmission-tag">Transmission 3 of 3</div>
+      </div>
+      <div class="game-topbar-right" id="gameTopbarRight3">
+        <button type="button" class="theme-toggle-btn" aria-label="Toggle theme"></button>
+        <span class="game-xp">XP: <span class="xp-value">0</span></span>
       </div>
     </div>
-    <div class="dialogue">
-      <div class="avatar">🧑‍🚀</div>
-      <div><p><strong>COMMANDER:</strong> Platform November is where a Custom Block actually earns its keep. This time, one call isn't enough — Command Control wants to see the whole point of "build once, reuse anywhere." Call U-Turn <strong>at least twice</strong> at two different points along your route before reaching the flag.</p></div>
-    </div>
-
-    <div class="panel">
-      <h2>Mission 2 · Platform November</h2>
-      <div class="score-readout" id="score2">SCORE: 0</div>
-      <div class="cmd-palette" id="palette2">
-        <button class="cmd-btn" type="button" data-cmd="F">⬆️ Forward</button>
-        <button class="cmd-btn" type="button" data-cmd="L">↺ Turn Left</button>
-        <button class="cmd-btn" type="button" data-cmd="R">↻ Turn Right</button>
-        <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
-        <button class="cmd-btn event-btn" type="button" id="addEvent2">🔔 Add Event</button>
-        <button class="cmd-btn condition-btn" type="button" id="addCondition2">🔀 Add Condition</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="S+">🔢 +1 Score</button>
-        <button class="cmd-btn score-btn" type="button" data-cmd="SR">↺ Reset Score</button>
-        <button class="cmd-btn block-btn" type="button" id="addBlock2">🧩 Define Block: U-Turn</button>
-        <button class="cmd-btn block-btn" type="button" id="callBlock2">▶ Call U-Turn</button>
+    <div class="game-body">
+      <div class="game-palette-col">
+        <div class="dialogue compact">
+          <div class="avatar">🧑‍🚀</div>
+          <div><p><strong>COMMANDER:</strong> Platform November has three hops again — but this time they're different heights. One block can still fly all three, if each call can hand it a number. Build it from scratch. You have 6 slots.</p></div>
+        </div>
+        <div class="palette-cols">
+          <div class="control-rail">
+            <div class="cmd-palette" id="palette2">
+              <div class="dpad">
+                <button class="dpad-btn dpad-up" type="button" data-cmd="UP" aria-label="Up"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-left" type="button" data-cmd="LEFT" aria-label="Left"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-down" type="button" data-cmd="DOWN" aria-label="Down"><span class="dpad-tri"></span></button>
+                <button class="dpad-btn dpad-right" type="button" data-cmd="RIGHT" aria-label="Right"><span class="dpad-tri"></span></button>
+              </div>
+              <button class="cmd-btn repeat-btn" type="button" id="addRepeat2">🔁 Add Repeat</button>
+              <button class="cmd-btn block-btn" type="button" id="defineBlock2">🧩 Define Block</button>
+              <button class="cmd-btn call-btn" type="button" id="callBlock2">▶ Call</button>
+            </div>
+            <div class="mission-actions">
+              <button class="primary" id="run2">▶ Run Program</button>
+              <button class="ghost" id="reset2">Reset Rover</button>
+              <button class="ghost" id="clear2">Clear Program</button>
+            </div>
+            <div class="mission-actions" id="watchAgainWrap2" style="display:none;">
+              <button class="ghost" id="watchAgain2">🔁 Watch Again</button>
+            </div>
+          </div>
+          <div class="prog-col">
+            <div class="prog-status-row">
+              <span class="slot-chip" id="slots2">SLOTS: 0 / 6</span>
+              <span class="slot-chip" id="route2">ROUTE: 0 / 17</span>
+            </div>
+            <div class="chip-order" id="prog2"></div>
+          </div>
+        </div>
+        <p class="mission-msg" id="msg2"></p>
+        <div class="hint-block"><button class="ghost hint-btn" type="button" id="hint2" style="display:none;">💡 Ask Command Control</button><p class="hint-text" id="hintText2"></p></div>
+        <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
       </div>
-      <div class="chip-order" id="prog2"></div>
-      <div class="grid-wrap"><div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover-ship.svg" alt="Rover-7 spaceship" draggable="false"></div></div></div>
-      <div class="mission-actions">
-        <button class="primary" id="run2">▶ Run Program</button>
-        <button class="ghost" id="reset2">Reset Rover</button>
-        <button class="ghost" id="clear2">Clear Program</button>
+      <div class="stage-bg"></div>
+      <div class="game-stage-col">
+        <div class="stage-grid-wrap">
+          <div class="grid" id="grid2"><div class="rover" id="rover2"><img class="rover-shape" src="../assets/rover_7.png" alt="Rover-7 spaceship" draggable="false"></div></div>
+        </div>
       </div>
-      <p class="mission-msg" id="msg2"></p>
-    </div>
-
-    <div class="mission-actions">
-      <button class="primary" id="toFinalBtn" disabled>Continue to Final Systems Check →</button>
     </div>
   </section>
 
@@ -445,28 +751,28 @@
       <p class="sub">Nothing is graded until you click Debrief. Questions 1 and 2: choose the one best answer. Question 3 works differently — read the note on it.</p>
 
       <div class="quiz-q" data-qid="q1">
-        <div class="qtext">1. What makes a Custom Block different from a REPEAT loop? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q1" value="0">A Custom Block has a name you choose, and you can Call it by that name from anywhere in your program — a REPEAT just runs its own steps back-to-back automatically, right where it sits</label>
-        <label class="choice"><input type="radio" name="q1" value="1">A Custom Block can only ever be used once, while a REPEAT can be used forever</label>
-        <label class="choice"><input type="radio" name="q1" value="2">There's no real difference — they always do the exact same thing</label>
-        <label class="choice"><input type="radio" name="q1" value="3">A REPEAT can be called by name from other parts of the program, but a Custom Block can't</label>
+        <div class="qtext">1. What makes a block different from a REPEAT? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q1" value="0">A block has a name, and you can call it from several different places in your program — a REPEAT runs its moves over and over right where it sits.</label>
+        <label class="choice"><input type="radio" name="q1" value="1">A block can only ever be called once.</label>
+        <label class="choice"><input type="radio" name="q1" value="2">There's no real difference — they always do the same thing.</label>
+        <label class="choice"><input type="radio" name="q1" value="3">A REPEAT can be called by name from other places, but a block can't.</label>
         <div class="debrief-note" id="explainQ1"></div>
       </div>
       <div class="quiz-q" data-qid="q2">
-        <div class="qtext">2. A cadet defines a "U-Turn" block containing 2 Left Turns, then places "Call U-Turn" in three different spots in their program. How many Left Turns will actually run in total? Choose the one best answer:</div>
-        <label class="choice"><input type="radio" name="q2" value="0">2 — only whatever's inside the block itself, no matter how many times it's called</label>
-        <label class="choice"><input type="radio" name="q2" value="1">6 — the block's steps run once for every single Call, so 3 calls × 2 turns each = 6 turns total</label>
-        <label class="choice"><input type="radio" name="q2" value="2">0 — Custom Blocks are just labels and never actually run</label>
-        <label class="choice"><input type="radio" name="q2" value="3">3 — once per Call, no matter how many steps are inside the block</label>
+        <div class="qtext">2. A block HOP takes a number: Repeat n [Up], Right, Repeat n [Down]. The program is ▶ HOP(2) then ▶ HOP(1). How many Up moves does Rover-7 make in total? Choose the one best answer:</div>
+        <label class="choice"><input type="radio" name="q2" value="0">3</label>
+        <label class="choice"><input type="radio" name="q2" value="1">2</label>
+        <label class="choice"><input type="radio" name="q2" value="2">4</label>
+        <label class="choice"><input type="radio" name="q2" value="3">1</label>
         <div class="debrief-note" id="explainQ2"></div>
       </div>
       <div class="quiz-q" data-qid="q3">
-        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through every situation below and decide: is this really "build/learn it once, then reuse the exact same thing over and over" — or is it something else?</div>
-        <div class="yn-row" data-idx="0"><div class="yn-text">Learning to tie your shoelaces once, then tying them the same way every single morning</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="1"><div class="yn-text">Memorizing the answer to one specific question that will only ever be asked once</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="2"><div class="yn-text">A recipe card for pancakes, followed the same way every single time pancakes get made</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="3"><div class="yn-text">Watching one specific movie exactly once and never watching it again</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
-        <div class="yn-row" data-idx="4"><div class="yn-text">Learning to ride a bike once, then using that same balance skill on every bike ride after</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="qtext">Answer YES or NO for each one — more than one can be YES.<br><br>3. Go through each situation and decide: is this really "build it once, then reuse it — sometimes with a different number"?</div>
+        <div class="yn-row" data-idx="0"><div class="yn-text">Learning to tie your shoelaces once, then tying them the same way every morning.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="1"><div class="yn-text">One pancake recipe card that says "1 egg per person" — the same card works for 2 people or 5 people.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="2"><div class="yn-text">Memorizing the answer to one question that will only ever be asked once.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="3"><div class="yn-text">Learning to ride a bike once, then using that same balance on every ride after.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
+        <div class="yn-row" data-idx="4"><div class="yn-text">Watching one particular movie exactly once and never again.</div><div class="yn-btns"><button type="button" class="yn-btn" data-val="yes">YES</button><button type="button" class="yn-btn" data-val="no">NO</button></div></div>
         <div class="debrief-note" id="explainQ3"></div>
       </div>
 
@@ -489,6 +795,7 @@
 <div id="modal-bg">
   <div class="modal" id="modal-content"></div>
 </div>
+
 
 <script>window.FLOW_BASE = '../';</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -558,23 +865,36 @@
 
   function addXp(n) {
     xp += n;
-    document.getElementById('hudXp').textContent = xp;
+    // Updates every '.xp-value' on the page (main hud + both mission topbars), same as Units 1-3.
+    document.querySelectorAll('.xp-value').forEach(el => { el.textContent = xp; });
     document.getElementById('hudBarFill').style.width = Math.min(100, Math.round(xp / XP_TARGET * 100)) + '%';
+  }
+  // Master style: the two mission screens are fixed full-viewport overlays that visually cover
+  // #topbar's acct-wrap while open, so the widget physically relocates into whichever mission
+  // topbar is active (and back to the home topbar otherwise). Ported verbatim from Unit 1.
+  function relocateAcctWidget(screenId) {
+    const acctWrap = document.getElementById('acct-wrap');
+    if (!acctWrap) return;
+    const targetId = screenId === 'scr-t2' ? 'gameTopbarRight2'
+      : screenId === 'scr-t3' ? 'gameTopbarRight3'
+      : 'topbarRightHome';
+    const target = document.getElementById(targetId);
+    if (target && acctWrap.parentElement !== target) target.appendChild(acctWrap);
   }
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     window.scrollTo(0, 0);
+    relocateAcctWidget(id);
+    if (typeof syncReviewNav === 'function') syncReviewNav(id);
   }
 
   // ================= Load-time randomization =================
   // Reshuffle quiz answer order so answers can't be memorized by screen position.
-  // NOTE: the command palette (Forward / Turn Left / Turn Right / Add Repeat / Add Event / Add
-  // Condition / +1 Score / Reset Score / Define Block / Call Block) is deliberately NOT shuffled —
-  // it's a fixed toolbar, same order every load and every unit, so cadets build muscle memory for
-  // the tool itself instead of re-reading button positions each time. Define/Call Block are
-  // appended last since they're this unit's new tools, in teaching order (Repeat → Event →
-  // Condition → Variable → Custom Block).
+  // NOTE: the command palette (d-pad / Add Repeat / Define Block / Call) is deliberately NOT
+  // shuffled — it's a fixed toolbar, same order every load and every unit, so cadets build muscle
+  // memory for the tool itself instead of re-reading button positions each time. The block tools are
+  // appended last since they're this unit's new tools, in teaching order (Repeat → Block).
   function shuffleDomChildren(container, selector, anchor) {
     const items = Array.from(container.querySelectorAll(selector));
     for (let i = items.length - 1; i > 0; i--) {
@@ -604,12 +924,16 @@
     document.getElementById('beginBtn').click();
   });
 
-  // ================= Calibration: Spot the Custom Block =================
+  // ================= Calibration: Spot the Working Block =================
   const CAL_CHOICES = [
-    { id: 0, label: '🧩 A block named "U-Turn" you define once, then Call from anywhere', correct: true },
-    { id: 1, label: '🔁 Repeat 4 [ Forward ]', correct: false },
-    { id: 2, label: '🔔 On Signal Beacon → Turn Right', correct: false },
-    { id: 3, label: '🔢 SCORE + 1', correct: false },
+    { id: 0, label: '🧩 SCAN = [Right, Up, Left]  ·  ▶ SCAN  ·  Up  ·  Up  ·  ▶ SCAN', correct: true,
+      msg: '✅ Correct. The recipe is written once, and each ▶ SCAN runs all three moves right where the call sits — first scan, two Ups, second scan.' },
+    { id: 1, label: '🧩 SCAN = [Right, Up, Left]  ·  Up  ·  Up', correct: false,
+      msg: 'Not quite — SCAN\'s recipe is there, but nothing ever CALLS it. A recipe on its own does nothing, so the rover only moves Up, Up.' },
+    { id: 2, label: '🧩 SCAN = [Right, Up, Left]  ·  🔁 Repeat ×2 [▶ SCAN]  ·  Up  ·  Up', correct: false,
+      msg: 'Not quite — both scans run back-to-back at the start, then the Ups. The calls have to sit where the scans should happen.' },
+    { id: 3, label: '🧩 SCAN = [Right, Up, Left, Up, Up]  ·  ▶ SCAN  ·  ▶ SCAN', correct: false,
+      msg: 'Not quite — now the Ups are INSIDE the recipe, so every call does them: that\'s four Ups, not two.' },
   ];
   let calAnswered = false;
   let calAttempts = 0;
@@ -648,24 +972,15 @@
       if (c.correct) label.classList.add('correct');
       else if (input === picked) label.classList.add('incorrect');
     });
+    msg.textContent = choice.msg;
     if (choice.correct) {
+      const firstSolve = !calAnswered;
       calAnswered = true;
-      msg.textContent = '✅ Correct. That\'s a real custom block — a named group of steps you build once, then reuse anywhere just by calling its name.';
       msg.className = 'puzzle-msg ok';
       document.getElementById('fieldManual').style.display = 'block';
       document.getElementById('toT2Btn').disabled = false;
-      addXp(10);
-    } else if (choice.id === 1) {
-      msg.textContent = '🤖 That\'s a REPEAT loop — it runs its own steps back-to-back automatically, right where it sits. It doesn\'t have a name you can call from somewhere else in your program.';
-      msg.className = 'puzzle-msg bad';
-    } else if (choice.id === 2) {
-      msg.textContent = '🤖 That\'s an EVENT — it fires automatically when its trigger happens. You don\'t call it by name whenever you choose.';
-      msg.className = 'puzzle-msg bad';
-    } else if (choice.id === 3) {
-      msg.textContent = '🤖 That\'s a VARIABLE changing — a tracked value going up, not a reusable group of steps you can call by name.';
-      msg.className = 'puzzle-msg bad';
+      if (firstSolve) addXp(10);
     } else {
-      msg.textContent = 'Not quite — think about which one is a named group of steps you build once and can call from anywhere.';
       msg.className = 'puzzle-msg bad';
     }
   });
@@ -683,95 +998,103 @@
     showScreen('scr-final');
   });
 
-  // ================= Rover engine w/ REPEAT + EVENT + CONDITION + VARIABLE + CUSTOM BLOCK support =================
-  const DELTA = { N: { dr: -1, dc: 0 }, E: { dr: 0, dc: 1 }, S: { dr: 1, dc: 0 }, W: { dr: 0, dc: -1 } };
-  const ROT = { N: 0, E: 90, S: 180, W: 270 };
-  const TURN_R = { N: 'E', E: 'S', S: 'W', W: 'N' };
-  const TURN_L = { N: 'W', W: 'S', S: 'E', E: 'N' };
-  const CMD_LABEL = { F: '⬆️ Forward', L: '↺ Left', R: '↻ Right', 'S+': '🔢 +1 Score', SR: '↺ Reset Score', CB: '▶ Call U-Turn' };
-  const COND_LABEL = { wall: '🧱 Wall Ahead', beacon: '📡 On Beacon' };
+  // ================= Rover engine: REPEAT + named BLOCK (E9) + slot budget (E1) + open route (E2) =================
+  const DELTA = { UP: { dr: -1, dc: 0 }, DOWN: { dr: 1, dc: 0 }, LEFT: { dr: 0, dc: -1 }, RIGHT: { dr: 0, dc: 1 } };
+  const CMD_LABEL = { UP: '⬆ Up', DOWN: '⬇ Down', LEFT: '⬅ Left', RIGHT: '➡ Right' };
+  const RECIPE_CAP = 6;
 
-  function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+  // V2 E15: "Watch Again" replays the winning program at 1.5x speed (2/3 the real-run delay) by
+  // scaling every wait() through this shared factor while a replay is in flight.
+  let replaySpeedFactor = 1;
+  function wait(ms) { return new Promise(res => setTimeout(res, ms * replaySpeedFactor)); }
   class MissionFail extends Error {}
-
-  // Reshuffle each mission's destination cell on every load (walls/beacon/start stay put — only
-  // the goal moves), so the flag isn't always in the same corner from a past run. BFS guarantees
-  // the new goal is reachable, and never lands on the beacon cell.
-  function bfsReachable(mission) {
-    const key = (r, c) => r + ',' + c;
-    const visited = new Set([key(mission.start.r, mission.start.c)]);
-    const queue = [[mission.start.r, mission.start.c]];
-    while (queue.length) {
-      const [r, c] = queue.shift();
-      [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].forEach(([nr, nc]) => {
-        if (nr < 0 || nr >= mission.rows || nc < 0 || nc >= mission.cols) return;
-        if (mission.walls.some(w => w.r === nr && w.c === nc)) return;
-        const k = key(nr, nc);
-        if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
-      });
-    }
-    return visited;
-  }
-  function randomizeGoal(mission, minDist) {
-    const reachable = bfsReachable(mission);
-    const candidates = [];
-    reachable.forEach(k => {
-      const [r, c] = k.split(',').map(Number);
-      if (r === mission.start.r && c === mission.start.c) return;
-      if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) return;
-      if (Math.abs(r - mission.start.r) + Math.abs(c - mission.start.c) < minDist) return;
-      candidates.push({ r, c });
-    });
-    return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : mission.goal;
-  }
+  class OffRouteFail extends MissionFail { constructor(msg, k) { super(msg); this.k = k; } }
 
   function createLoopRoverGame(cfg) {
     const mission = cfg.mission;
-    // program is a tree of top-level items: {type:'cmd', cmd}, {type:'repeat', count, children},
-    // {type:'event', trigger, children}, {type:'condition', condA, combinator, condB, children},
-    // or {type:'block', name, children} -- a Custom Block definition. 'cmd' items now include 'S+'
-    // (+1 Score), 'SR' (Reset Score), and 'CB' (Call U-Turn) alongside F/L/R -- they're flat leaf
-    // commands like movement, so they compose everywhere a cmd already could (top level, inside a
-    // repeat, inside an event's/condition's/block's own flat children) with no new container rules.
-    // A 'block' definition itself, like 'event', can ONLY ever be added at true top level (nothing
-    // else open) and can only ever hold flat commands -- no nested containers, and only one U-Turn
-    // block may exist per mission (H.14: mutually exclusive with repeat/event/condition; the Call
-    // button is disabled while the block's own definition is open, so it can't call itself).
-    let program = [];
-    let openStack = [];
-    let state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
-    let score = cfg.initialScore || 0;
+    // program is a tree of top-level items:
+    //   {type:'cmd', cmd}
+    //   {type:'repeat', count (2..6 or 'n'), children}  -- top level: children are cmds and calls;
+    //                                                      inside a block's recipe: children are cmds only
+    //   {type:'def', name, takesNumber, children}       -- ONE per mission, always index 0; children are
+    //                                                      cmds and flat repeats (no calls, no recursion)
+    //   {type:'call', arg}                              -- runs the recipe in place; arg 1..5 when the
+    //                                                      block "takes a number"
+    // This unit's one new idea is the BLOCK. FUEL/pad code is carried forward from Unit 6 but switched
+    // off (no mission sets mission.fuel); IF blocks are not offered in this unit.
+    function cloneStarter() { return cfg.starterProgram ? JSON.parse(JSON.stringify(cfg.starterProgram)) : []; }
+    function starterOpen() { return (cfg.starterOpenDef && program.length && program[0].type === 'def') ? [program[0]] : []; }
+    let program = cloneStarter();
+    let openStack = starterOpen();
+    let state = { r: mission.start.r, c: mission.start.c };
     let running = false;
     let succeeded = false;
     let attempts = 0;
-    let eventTriggered = false;
-    let conditionFiredTrue = false;
-    let conditionFiredWithCombinator = false;
-    let blockCallCount = 0;
+    let failCount = 0;
+    let hintsUsed = 0;
+    let fuel = mission.fuel ? mission.fuel.start : null;
+    let padsCollected = new Set();
+    let winningProgram = null; // V2 E15: snapshot of the program tree that just won, for "Watch Again"
+    let cellEls = [];
+    let slotsOverBudget = false;
+    // E2 route state
+    let routeIdx = 1;       // next expected index into mission.routePath (0 == start)
+    let routeProgress = 0;  // route moves taken correctly so far this run
+    let offRouteRuns = 0;
+    let offRouteMoves = []; // move number k of each off-route stop (real runs only)
+    let failedRunsNoNumber = 0; // failed runs where a block existed but did NOT take a number
+    // per-run telemetry (real runs only; Watch Again writes to a scratch object instead)
+    let tele = { callCount: 0, callArgs: [], routeProgress: 0, blockName: null, blockTakesArg: false };
+    let activeStats = tele;
+    let currentRoot = program;
+    let replaying = false;
+    const itemEls = new Map();
+
+    // ---- V2 E13: graduated hints ----
+    function updateHintUI() {
+      if (!cfg.hints || !cfg.hintBtnEl) return;
+      let show = false, pending = '';
+      if (hintsUsed < 1 && failCount >= 3) { show = true; pending = cfg.hints.after3; }
+      else if (hintsUsed < 2 && failCount >= 6) { show = true; pending = cfg.hints.after6; }
+      cfg.hintBtnEl.style.display = show ? '' : 'none';
+      cfg.hintBtnEl.dataset.pending = pending;
+    }
+    if (cfg.hintBtnEl) {
+      cfg.hintBtnEl.addEventListener('click', () => {
+        cfg.hintTextEl.textContent = cfg.hintBtnEl.dataset.pending || '';
+        hintsUsed++;
+        cfg.hintBtnEl.style.display = 'none';
+        updateHintUI();
+      });
+    }
 
     function isWall(r, c) { return mission.walls.some(w => w.r === r && w.c === c); }
     function inBounds(r, c) { return r >= 0 && r < mission.rows && c >= 0 && c < mission.cols; }
-    function checkCond(key, st) {
-      if (key === 'wall') {
-        const d = DELTA[st.dir];
-        const nr = st.r + d.dr, nc = st.c + d.dc;
-        return !inBounds(nr, nc) || isWall(nr, nc);
-      }
-      if (key === 'beacon') {
-        return !!(mission.beacon && st.r === mission.beacon.r && st.c === mission.beacon.c);
-      }
-      return false;
+    function padAt(r, c) { return mission.fuel ? mission.fuel.pads.find(p => p.r === r && p.c === c) : null; }
+    function cellEl(r, c) { return cellEls[r * mission.cols + c]; }
+    function routeTotal() { return mission.routePath ? mission.routePath.length - 1 : 0; }
+    function getDef(root) { return (root || program).find(i => i.type === 'def') || null; }
+    function recipeCount(def) {
+      return def.children.reduce((n, ch) => n + 1 + (ch.type === 'repeat' ? ch.children.length : 0), 0);
     }
-    function evalCondition(item, st) {
-      const a = checkCond(item.condA, st);
-      if (item.combinator === 'none') return a;
-      const b = checkCond(item.condB, st);
-      return item.combinator === 'and' ? (a && b) : (a || b);
+    function blockName() { const d = getDef(); return d ? d.name : 'your block'; }
+
+    function updateFuelUI() {
+      if (!cfg.fuelEl || !mission.fuel) return;
+      cfg.fuelEl.textContent = '⛽ FUEL: ' + fuel;
+      cfg.fuelEl.classList.toggle('low', fuel <= 2);
     }
-    function updateScoreDisplay() { cfg.scoreEl.textContent = 'SCORE: ' + score; }
+
+    function updateRouteChip() {
+      if (!cfg.routeEl) return;
+      const total = routeTotal();
+      cfg.routeEl.textContent = 'ROUTE: ' + Math.min(routeProgress, total) + ' / ' + total;
+      cfg.routeEl.classList.toggle('complete', routeProgress >= total && total > 0);
+    }
 
     function buildGrid() {
       cfg.gridEl.innerHTML = '';
+      cellEls = [];
       cfg.gridEl.style.gridTemplateColumns = `repeat(${mission.cols}, ${mission.cellPx}px)`;
       cfg.gridEl.style.gridTemplateRows = `repeat(${mission.rows}, ${mission.cellPx}px)`;
       for (let r = 0; r < mission.rows; r++) {
@@ -779,10 +1102,21 @@
           const cell = document.createElement('div');
           cell.className = 'cell';
           if (isWall(r, c)) cell.classList.add('wall');
-          if (mission.beacon && r === mission.beacon.r && c === mission.beacon.c) cell.classList.add('beacon');
+          const pad = padAt(r, c);
+          if (pad) {
+            cell.classList.add('pad');
+            cell.textContent = '⚡' + pad.amount;
+            if (padsCollected.has(r + ',' + c)) cell.classList.add('collected');
+          }
           if (r === mission.goal.r && c === mission.goal.c) { cell.classList.add('goal'); cell.textContent = '🚩'; }
           cfg.gridEl.appendChild(cell);
+          cellEls.push(cell);
         }
+      }
+      // E2: draw the amber route on the grid from load; the start cell reads as already visited.
+      if (mission.routePath) {
+        mission.routePath.forEach(({ r, c }) => { const el = cellEl(r, c); if (el) el.classList.add('patrol'); });
+        const s = cellEl(mission.start.r, mission.start.c); if (s) s.classList.add('visited');
       }
       cfg.gridEl.appendChild(cfg.roverEl);
     }
@@ -792,40 +1126,102 @@
       const y = state.r * mission.cellPx + mission.cellPx * 0.15;
       cfg.roverEl.style.width = (mission.cellPx * 0.7) + 'px';
       cfg.roverEl.style.height = (mission.cellPx * 0.7) + 'px';
-      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease, transform 0.4s ease' : 'none';
+      cfg.roverEl.style.transition = animate ? 'left 0.4s ease, top 0.4s ease' : 'none';
       cfg.roverEl.style.left = x + 'px';
       cfg.roverEl.style.top = y + 'px';
-      cfg.roverEl.style.transform = `rotate(${state.rotDeg}deg)`;
     }
 
-    function findBlockDef() { return program.find(it => it.type === 'block') || null; }
+    // ---- V2 E1: slot budget. A block's definition = 1, every call = 1, every REPEAT = 1, every command = 1. ----
+    function updateSlotGate() {
+      if (typeof cfg.maxSlots !== 'number') return;
+      const used = program.length;
+      if (cfg.slotsEl) {
+        cfg.slotsEl.textContent = 'SLOTS: ' + used + ' / ' + cfg.maxSlots;
+        cfg.slotsEl.classList.toggle('over', used > cfg.maxSlots);
+      }
+      const wasOver = slotsOverBudget;
+      slotsOverBudget = used > cfg.maxSlots;
+      if (slotsOverBudget) {
+        cfg.runBtn.disabled = true;
+        cfg.msgEl.textContent = '⚠ Command Control gave you ' + cfg.maxSlots + ' program slots and you\'re using ' + used + '. A REPEAT counts as ONE slot, a block\'s recipe counts as ONE slot, and every ▶ Call is ONE slot.';
+        cfg.msgEl.className = 'mission-msg bad';
+      } else if (wasOver) {
+        cfg.runBtn.disabled = running;
+        cfg.msgEl.textContent = '';
+        cfg.msgEl.className = 'mission-msg';
+      }
+    }
 
+    // Nesting matrix: top level takes cmds, a Repeat (holds cmds + calls), the one block, and calls.
+    // An open block takes cmds and flat Repeats (no calls, no recursion). An open Repeat takes cmds
+    // (and, at top level only, calls). No Repeat inside a Repeat in this unit.
     function updateContainerBtns() {
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      cfg.addRepeatBtn.disabled = running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'));
-      cfg.addEventBtn.disabled = running || openStack.length !== 0;
-      cfg.addConditionBtn.disabled = running || openStack.length !== 0;
-      cfg.addBlockBtn.disabled = running || openStack.length !== 0 || !!findBlockDef();
-      const blockDef = findBlockDef();
-      cfg.callBlockBtn.disabled = running || !blockDef || blockDef.children.length === 0 || topType === 'block';
+      const top = openStack.length ? openStack[openStack.length - 1] : null;
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      const capFull = inDef && recipeCount(openStack[0]) >= RECIPE_CAP;
+      const hasDef = !!getDef();
+      cfg.addRepeatBtn.disabled = running || capFull || !(openStack.length === 0 || (openStack.length === 1 && top.type === 'def'));
+      cfg.defineBtn.disabled = running || hasDef;
+      cfg.callBtn.disabled = running || !hasDef || inDef;
+      cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => { btn.disabled = running || capFull; });
+      cfg.callBtn.textContent = '▶ Call' + (hasDef ? ' ' + getDef().name : '');
     }
 
     function currentTarget() {
       return openStack.length ? openStack[openStack.length - 1].children : program;
     }
 
-    function renderItems(items, containerEl, hintMode) {
+    // Name changes touch only text nodes, so typing in the name box never loses focus.
+    function refreshNames() {
+      const d = getDef();
+      const nm = d ? d.name : '';
+      document.querySelectorAll('#' + cfg.programListEl.id + ' [data-nameref]').forEach(el => { el.textContent = nm; });
+      cfg.callBtn.textContent = '▶ Call' + (d ? ' ' + nm : '');
+    }
+
+    function mkBtn(cls, text, label, disabled, onClick) {
+      const b = document.createElement('button');
+      b.type = 'button'; if (cls) b.className = cls; b.textContent = text;
+      if (label) b.setAttribute('aria-label', label);
+      b.disabled = !!disabled;
+      b.addEventListener('click', onClick);
+      return b;
+    }
+
+    function renderItems(items, containerEl, hintMode, ctx) {
       containerEl.innerHTML = '';
       if (items.length === 0) {
         const span = document.createElement('span');
         span.className = 'empty-hint';
         span.textContent = hintMode === 'top'
-          ? 'Add commands (or a Repeat / Event / Condition block) from the panel above.'
-          : (hintMode ? 'Click commands above — they’ll go in here.' : '(empty)');
+          ? 'Add commands, a Repeat, or a block from the panel on the left.'
+          : (hintMode ? 'Click commands on the left — they’ll go in here.' : '(empty)');
         containerEl.appendChild(span);
         return;
       }
       items.forEach((item, i) => {
+        const upBlocked = running || i === 0 || (items === program && i === 1 && items[0].type === 'def'); // the definition always stays on top
+        const moveUp = () => { if (running) return; [items[i - 1], items[i]] = [items[i], items[i - 1]]; renderProgram(); };
+        const moveDown = () => { if (running) return; [items[i + 1], items[i]] = [items[i], items[i + 1]]; renderProgram(); };
+        const removeItem = () => {
+          if (running) return;
+          if (item.type === 'def') {
+            // Removing the definition removes every call to it too -- a call with nothing to call is meaningless.
+            const purge = (arr) => { for (let k = arr.length - 1; k >= 0; k--) {
+              if (arr[k].type === 'call') arr.splice(k, 1);
+              else if (arr[k].type === 'repeat') purge(arr[k].children);
+            } };
+            const idx0 = items.indexOf(item); if (idx0 !== -1) items.splice(idx0, 1);
+            purge(program);
+            openStack = [];
+          } else {
+            items.splice(items.indexOf(item), 1);
+            const idx = openStack.indexOf(item);
+            if (idx !== -1) openStack = openStack.slice(0, idx);
+          }
+          renderProgram();
+        };
+
         if (item.type === 'cmd') {
           const row = document.createElement('div');
           row.className = 'order-row';
@@ -833,520 +1229,613 @@
           label.className = 'order-label';
           label.innerHTML = '<span class="num">' + (i + 1) + '.</span>' + CMD_LABEL[item.cmd];
           row.appendChild(label);
-
           const btns = document.createElement('div');
           btns.className = 'order-btns';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
-          const rmBtn = document.createElement('button');
-          rmBtn.type = 'button'; rmBtn.className = 'remove'; rmBtn.textContent = '✕'; rmBtn.setAttribute('aria-label', 'Remove');
-          rmBtn.disabled = running;
-          rmBtn.addEventListener('click', () => { if (running) return; items.splice(i, 1); renderProgram(); });
-
-          btns.appendChild(upBtn); btns.appendChild(downBtn); btns.appendChild(rmBtn);
+          btns.append(
+            mkBtn('', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('remove', '✕', 'Remove', running, removeItem)
+          );
           row.appendChild(btns);
+          itemEls.set(item, row);
           containerEl.appendChild(row);
-        } else if (item.type === 'repeat' || item.type === 'event' || item.type === 'block') {
-          const isRepeat = item.type === 'repeat';
-          const isBlock = item.type === 'block';
+        } else if (item.type === 'call') {
+          const d = getDef();
+          const row = document.createElement('div');
+          row.className = 'order-row call-row';
+          const label = document.createElement('span');
+          label.className = 'order-label';
+          label.innerHTML = '<span class="num">' + (i + 1) + '.</span>▶ <span data-nameref>' + (d ? d.name : '') + '</span>'
+            + (d && d.takesNumber ? '(' + item.arg + ')' : '');
+          row.appendChild(label);
+          if (d && d.takesNumber) {
+            const step = document.createElement('div');
+            step.className = 'call-stepper';
+            const lab = document.createElement('span'); lab.className = 'call-stepper-n'; lab.textContent = 'n';
+            step.append(
+              mkBtn('repeat-count-btn', '−', 'Lower n', running, () => { if (running) return; item.arg = Math.max(1, item.arg - 1); renderProgram(); }),
+              lab,
+              mkBtn('repeat-count-btn', '+', 'Raise n', running, () => { if (running) return; item.arg = Math.min(5, item.arg + 1); renderProgram(); })
+            );
+            row.appendChild(step);
+          }
+          const btns = document.createElement('div');
+          btns.className = 'order-btns';
+          btns.append(
+            mkBtn('', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('remove', '✕', 'Remove', running, removeItem)
+          );
+          row.appendChild(btns);
+          itemEls.set(item, row);
+          containerEl.appendChild(row);
+        } else if (item.type === 'repeat') {
           const isOpen = openStack.includes(item);
           const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
           const card = document.createElement('div');
-          card.className = 'repeat-card' + (isRepeat ? '' : isBlock ? ' block-card' : ' event-card') + (isOpen ? ' open' : '');
+          card.className = 'repeat-card' + (isOpen ? ' open' : '');
           const head = document.createElement('div');
           head.className = 'repeat-head';
-
-          if (isRepeat) {
-            const minus = document.createElement('button');
-            minus.type = 'button'; minus.className = 'repeat-count-btn'; minus.textContent = '−';
-            minus.disabled = running;
-            minus.addEventListener('click', () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); });
-            const plus = document.createElement('button');
-            plus.type = 'button'; plus.className = 'repeat-count-btn'; plus.textContent = '+';
-            plus.disabled = running;
-            plus.addEventListener('click', () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); });
-            const label = document.createElement('span');
-            label.textContent = '🔁 Repeat × ' + item.count;
-            head.append(minus, label, plus);
-          } else if (isBlock) {
-            const label = document.createElement('span');
-            label.textContent = '🧩 ' + item.name + ' Block';
+          const label = document.createElement('span');
+          if (item.count === 'n') {
+            label.textContent = '🔁 Repeat × n';
             head.append(label);
           } else {
-            const label = document.createElement('span');
-            label.textContent = '🔔 On Signal Beacon';
-            head.append(label);
+            label.textContent = '🔁 Repeat × ' + item.count;
+            head.append(
+              mkBtn('repeat-count-btn', '−', 'Lower count', running, () => { if (running) return; item.count = Math.max(2, item.count - 1); renderProgram(); }),
+              label,
+              mkBtn('repeat-count-btn', '+', 'Raise count', running, () => { if (running) return; item.count = Math.min(6, item.count + 1); renderProgram(); })
+            );
           }
-
+          if (ctx && ctx.def && ctx.def.takesNumber) {
+            const nb = mkBtn('n-toggle' + (item.count === 'n' ? ' on' : ''), 'n', item.count === 'n' ? 'Use a fixed count' : 'Use the block\'s number n', running, () => {
+              if (running) return; item.count = item.count === 'n' ? 2 : 'n'; renderProgram();
+            });
+            head.appendChild(nb);
+          }
           const actions = document.createElement('div');
           actions.className = 'repeat-head-actions';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
-          const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', isRepeat ? 'Remove loop' : isBlock ? 'Remove block' : 'Remove event');
-          remove.disabled = running;
-          remove.addEventListener('click', () => {
-            if (running) return;
-            items.splice(i, 1);
-            const idx = openStack.indexOf(item);
-            if (idx !== -1) openStack = openStack.slice(0, idx);
-            renderProgram();
-          });
-          actions.append(upBtn, downBtn, remove);
+          actions.append(
+            mkBtn('repeat-move-btn', '▲', 'Move up', upBlocked, moveUp),
+            mkBtn('repeat-move-btn', '▼', 'Move down', running || i === items.length - 1, moveDown),
+            mkBtn('repeat-remove', '✕', 'Remove loop', running, removeItem)
+          );
           head.appendChild(actions);
           card.appendChild(head);
-
           const childrenEl = document.createElement('div');
           childrenEl.className = 'repeat-children';
-          renderItems(item.children, childrenEl, isOpen);
+          renderItems(item.children, childrenEl, isOpen, { def: ctx && ctx.def, inRepeat: true });
           card.appendChild(childrenEl);
-
           if (isInnermostOpen) {
-            const done = document.createElement('button');
-            done.type = 'button';
-            done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this ' + (isRepeat ? 'loop' : isBlock ? 'block' : 'event');
-            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
-            card.appendChild(done);
+            card.appendChild(mkBtn('repeat-done-btn', '✅ Done adding to this loop', '', false, () => { openStack.pop(); renderProgram(); }));
           }
+          itemEls.set(item, card);
           containerEl.appendChild(card);
-        } else if (item.type === 'condition') {
+        } else if (item.type === 'def') {
           const isOpen = openStack.includes(item);
           const isInnermostOpen = openStack.length > 0 && openStack[openStack.length - 1] === item;
           const card = document.createElement('div');
-          card.className = 'repeat-card condition-card' + (isOpen ? ' open' : '');
+          card.className = 'repeat-card def-card' + (isOpen ? ' open' : '');
           const head = document.createElement('div');
-          head.className = 'repeat-head';
-
-          const ifLabel = document.createElement('span');
-          ifLabel.textContent = '🔀 IF';
-          head.appendChild(ifLabel);
-
-          const condASel = document.createElement('select');
-          condASel.className = 'cond-select';
-          condASel.disabled = running;
-          ['wall', 'beacon'].forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k; opt.textContent = COND_LABEL[k];
-            if (item.condA === k) opt.selected = true;
-            condASel.appendChild(opt);
+          head.className = 'repeat-head def-head';
+          const tag = document.createElement('span'); tag.textContent = '🧩 BLOCK';
+          const nameSpan = document.createElement('span'); nameSpan.className = 'def-name'; nameSpan.setAttribute('data-nameref', ''); nameSpan.textContent = item.name;
+          const nameInput = document.createElement('input');
+          nameInput.type = 'text'; nameInput.className = 'def-name-input'; nameInput.maxLength = 12; nameInput.value = item.name;
+          nameInput.setAttribute('aria-label', 'Block name'); nameInput.disabled = running;
+          const note = document.createElement('div'); note.className = 'def-note';
+          const showEdit = (on) => {
+            item.editingName = on;
+            nameInput.style.display = on ? '' : 'none';
+            nameSpan.style.display = on ? 'none' : '';
+          };
+          showEdit(!!item.editingName);
+          let lastValid = item.name;
+          nameInput.addEventListener('input', () => {
+            const raw = nameInput.value;
+            if (/^[A-Za-z0-9-]*$/.test(raw)) {
+              note.textContent = '';
+              const up = raw.toUpperCase();
+              nameInput.value = up;
+              if (up.length) { item.name = up; lastValid = up; refreshNames(); }
+            } else {
+              nameInput.value = lastValid;
+              note.textContent = 'Names use letters, numbers and - only.';
+            }
           });
-          condASel.addEventListener('change', () => { item.condA = condASel.value; });
-          head.appendChild(condASel);
-
-          const combSel = document.createElement('select');
-          combSel.className = 'cond-select';
-          combSel.disabled = running;
-          [['none', '(just this)'], ['and', 'AND'], ['or', 'OR']].forEach(([v, l]) => {
-            const opt = document.createElement('option');
-            opt.value = v; opt.textContent = l;
-            if (item.combinator === v) opt.selected = true;
-            combSel.appendChild(opt);
+          const commit = () => { if (!nameInput.value) nameInput.value = lastValid; showEdit(false); refreshNames(); };
+          nameInput.addEventListener('blur', commit);
+          nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); } });
+          const editBtn = mkBtn('def-edit-btn', '✏', 'Rename block', running, () => { showEdit(true); nameInput.focus(); nameInput.select(); });
+          head.append(tag, nameSpan, nameInput, editBtn);
+          const numLabel = document.createElement('label');
+          numLabel.className = 'def-num-label';
+          const numBox = document.createElement('input');
+          numBox.type = 'checkbox'; numBox.checked = !!item.takesNumber; numBox.disabled = running;
+          numBox.addEventListener('change', () => {
+            if (running) return;
+            item.takesNumber = numBox.checked;
+            if (!item.takesNumber) {
+              // Unticking turns every n back into 2 and resets every call's number.
+              item.children.forEach(ch => { if (ch.type === 'repeat' && ch.count === 'n') ch.count = 2; });
+              const reset = (arr) => arr.forEach(x => { if (x.type === 'call') x.arg = 1; else if (x.type === 'repeat') reset(x.children); });
+              reset(program);
+            }
+            renderProgram();
           });
-          combSel.addEventListener('change', () => { item.combinator = combSel.value; renderProgram(); });
-          head.appendChild(combSel);
-
-          if (item.combinator !== 'none') {
-            const condBSel = document.createElement('select');
-            condBSel.className = 'cond-select';
-            condBSel.disabled = running;
-            ['wall', 'beacon'].forEach(k => {
-              const opt = document.createElement('option');
-              opt.value = k; opt.textContent = COND_LABEL[k];
-              if (item.condB === k) opt.selected = true;
-              condBSel.appendChild(opt);
-            });
-            condBSel.addEventListener('change', () => { item.condB = condBSel.value; });
-            head.appendChild(condBSel);
-          }
-
+          numLabel.append(numBox, document.createTextNode(' takes a number'));
+          head.appendChild(numLabel);
           const actions = document.createElement('div');
           actions.className = 'repeat-head-actions';
-          const upBtn = document.createElement('button');
-          upBtn.type = 'button'; upBtn.className = 'repeat-move-btn'; upBtn.textContent = '▲'; upBtn.setAttribute('aria-label', 'Move up');
-          upBtn.disabled = running || i === 0;
-          upBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i - 1], items[i]] = [items[i], items[i - 1]];
-            renderProgram();
-          });
-          const downBtn = document.createElement('button');
-          downBtn.type = 'button'; downBtn.className = 'repeat-move-btn'; downBtn.textContent = '▼'; downBtn.setAttribute('aria-label', 'Move down');
-          downBtn.disabled = running || i === items.length - 1;
-          downBtn.addEventListener('click', () => {
-            if (running) return;
-            [items[i + 1], items[i]] = [items[i], items[i + 1]];
-            renderProgram();
-          });
-          const remove = document.createElement('button');
-          remove.type = 'button'; remove.className = 'repeat-remove'; remove.textContent = '✕'; remove.setAttribute('aria-label', 'Remove condition');
-          remove.disabled = running;
-          remove.addEventListener('click', () => {
-            if (running) return;
-            items.splice(i, 1);
-            const idx = openStack.indexOf(item);
-            if (idx !== -1) openStack = openStack.slice(0, idx);
-            renderProgram();
-          });
-          actions.append(upBtn, downBtn, remove);
+          actions.append(mkBtn('repeat-remove', '✕', 'Remove block', running, removeItem));
           head.appendChild(actions);
           card.appendChild(head);
+          card.appendChild(note);
 
           const childrenEl = document.createElement('div');
           childrenEl.className = 'repeat-children';
-          renderItems(item.children, childrenEl, isOpen);
+          renderItems(item.children, childrenEl, isOpen, { def: item });
           card.appendChild(childrenEl);
-
-          if (isInnermostOpen) {
-            const done = document.createElement('button');
-            done.type = 'button';
-            done.className = 'repeat-done-btn';
-            done.textContent = '✅ Done adding to this IF';
-            done.addEventListener('click', () => { openStack.pop(); renderProgram(); });
-            card.appendChild(done);
+          if (recipeCount(item) >= RECIPE_CAP) {
+            const cap = document.createElement('div'); cap.className = 'def-cap';
+            cap.textContent = '🧩 A block\'s recipe holds up to 6 items.';
+            card.appendChild(cap);
           }
+          if (isInnermostOpen) {
+            card.appendChild(mkBtn('repeat-done-btn', '✅ Done', '', false, () => { openStack.pop(); renderProgram(); }));
+          } else if (openStack.length === 0 && !running) {
+            // Not in the plan: a way back into a finished recipe, so one wrong move doesn't force a rebuild.
+            card.appendChild(mkBtn('def-reopen-btn', '✎ Edit recipe', '', false, () => { openStack = [item]; renderProgram(); }));
+          }
+          itemEls.set(item, card);
           containerEl.appendChild(card);
         }
       });
     }
 
     function renderProgram() {
-      renderItems(program, cfg.programListEl, 'top');
+      itemEls.clear();
+      renderItems(program, cfg.programListEl, 'top', null);
       updateContainerBtns();
+      updateSlotGate();
     }
 
+    function endNameEdit() { const d = getDef(); if (d) d.editingName = false; }
     cfg.paletteEl.querySelectorAll('[data-cmd]').forEach(btn => {
       btn.addEventListener('click', () => {
         if (running) return;
+        endNameEdit();
+        const inDef = openStack.length > 0 && openStack[0].type === 'def';
+        if (inDef && recipeCount(openStack[0]) >= RECIPE_CAP) return;
         currentTarget().push({ type: 'cmd', cmd: btn.dataset.cmd });
         renderProgram();
       });
     });
 
     cfg.addRepeatBtn.addEventListener('click', () => {
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      if (running || !(openStack.length === 0 || (openStack.length === 1 && topType === 'repeat'))) return;
-      const newRepeat = { type: 'repeat', count: 2, children: [] };
-      currentTarget().push(newRepeat);
-      openStack.push(newRepeat);
+      const top = openStack.length ? openStack[openStack.length - 1] : null;
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      if (running || !(openStack.length === 0 || (openStack.length === 1 && top.type === 'def'))) return;
+      if (inDef && recipeCount(openStack[0]) >= RECIPE_CAP) return;
+      endNameEdit();
+      const nr = { type: 'repeat', count: 2, children: [] };
+      currentTarget().push(nr);
+      openStack.push(nr);
       renderProgram();
     });
 
-    cfg.addEventBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0) return;
-      const newEvent = { type: 'event', trigger: 'signal', children: [] };
-      currentTarget().push(newEvent);
-      openStack.push(newEvent);
+    cfg.defineBtn.addEventListener('click', () => {
+      if (running || getDef()) return;
+      if (openStack.length) {
+        cfg.msgEl.textContent = '🧩 Finish the open Repeat first — tap ✅ Done on it — then define your block.';
+        cfg.msgEl.className = 'mission-msg bad';
+        return;
+      }
+      const def = { type: 'def', name: 'HOP', takesNumber: false, editingName: true, children: [] };
+      program.unshift(def);
+      openStack = [def];
+      renderProgram();
+      const inp = cfg.programListEl.querySelector('.def-name-input');
+      if (inp) { inp.focus(); inp.select(); }
+    });
+
+    cfg.callBtn.addEventListener('click', () => {
+      const inDef = openStack.length > 0 && openStack[0].type === 'def';
+      if (running || !getDef() || inDef) return;
+      endNameEdit();
+      currentTarget().push({ type: 'call', arg: 1 });
       renderProgram();
     });
 
-    cfg.addConditionBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0) return;
-      const newCondition = { type: 'condition', condA: 'wall', combinator: 'none', condB: 'beacon', children: [] };
-      currentTarget().push(newCondition);
-      openStack.push(newCondition);
-      renderProgram();
-    });
+    function resetRunState() {
+      state = { r: mission.start.r, c: mission.start.c };
+      fuel = mission.fuel ? mission.fuel.start : null;
+      padsCollected = new Set();
+      routeIdx = 1;
+      routeProgress = 0;
+      updateFuelUI();
+      buildGrid();
+      updateRouteChip();
+    }
 
-    cfg.addBlockBtn.addEventListener('click', () => {
-      if (running || openStack.length !== 0 || findBlockDef()) return;
-      const newBlock = { type: 'block', name: 'U-Turn', children: [] };
-      currentTarget().push(newBlock);
-      openStack.push(newBlock);
-      renderProgram();
-    });
-
-    // Call U-Turn is a flat leaf command like +1 Score, but it needs its own guard (not the generic
-    // [data-cmd] wiring below): it must never be placeable while the U-Turn block's own definition
-    // is the open container, since that would let the block call itself and recurse forever.
-    cfg.callBlockBtn.addEventListener('click', () => {
-      if (running) return;
-      const topType = openStack.length ? openStack[openStack.length - 1].type : null;
-      if (topType === 'block') return;
-      const blockDef = findBlockDef();
-      if (!blockDef || blockDef.children.length === 0) return;
-      currentTarget().push({ type: 'cmd', cmd: 'CB' });
-      renderProgram();
-    });
-
+    if (cfg.starterProgram) cfg.clearBtn.textContent = '↺ Start Over';
     cfg.clearBtn.addEventListener('click', () => {
       if (running) return;
-      program = []; openStack = [];
+      program = cloneStarter();
+      openStack = starterOpen();
       renderProgram();
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+      updateSlotGate();
     });
 
     cfg.resetBtn.addEventListener('click', () => {
       if (running) return;
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
-      score = cfg.initialScore || 0;
-      updateScoreDisplay();
+      resetRunState();
       updateRoverPosition(true);
+      hideWatchAgain();
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
+      updateSlotGate();
     });
 
-    // Collects top-level 'event' items into a trigger -> [handler,...] map. Events aren't tied to
-    // their position in the program -- wherever they sit in the list, they're "listening" for the
-    // whole run, per the Field Manual. 'condition' items are NOT collected here -- they're checked
-    // in-place, exactly when runItems reaches them (see below), not registered as handlers.
-    function collectHandlers(items) {
-      const handlers = {};
-      items.forEach(item => {
-        if (item.type === 'event') {
-          handlers[item.trigger] = handlers[item.trigger] || [];
-          handlers[item.trigger].push(item);
-        }
-      });
-      return handlers;
+    function mark(item, on) {
+      const el = itemEls.get(item);
+      if (el) el.classList.toggle('executing', on);
+    }
+    function clearExecuting() {
+      cfg.programListEl.querySelectorAll('.executing, .pulse').forEach(el => el.classList.remove('executing', 'pulse'));
     }
 
-    async function executeOne(cmd, handlers, inHandler) {
-      if (cmd === 'L') { state.dir = TURN_L[state.dir]; state.rotDeg -= 90; updateRoverPosition(true); await wait(400); }
-      else if (cmd === 'R') { state.dir = TURN_R[state.dir]; state.rotDeg += 90; updateRoverPosition(true); await wait(400); }
-      else if (cmd === 'F') {
-        const d = DELTA[state.dir];
-        const nr = state.r + d.dr, nc = state.c + d.dc;
-        if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover drove off the platform edge.');
-        if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
-        state.r = nr; state.c = nc;
-        updateRoverPosition(true);
-        await wait(400);
-
-        // Trigger check: only after an actual move, only outside of a handler's own reaction (so a
-        // handler that itself steps onto the beacon can't re-fire itself), and only if a handler for
-        // this beacon's trigger is actually registered in the program.
-        if (!inHandler && mission.beacon && state.r === mission.beacon.r && state.c === mission.beacon.c) {
-          const list = (handlers && handlers['signal']) || [];
-          if (list.length) {
-            eventTriggered = true;
-            for (const handler of list) {
-              for (const child of handler.children) {
-                await executeOne(child.cmd, handlers, true);
-              }
-            }
+    async function executeOne(cmd) {
+      const d = DELTA[cmd];
+      const nr = state.r + d.dr, nc = state.c + d.dc;
+      if (!inBounds(nr, nc)) throw new MissionFail('🤖 SYSTEM ERROR: Rover-7 drove off the edge of the platform. The platform ends there, so look at which way your moves go.');
+      if (isWall(nr, nc)) throw new MissionFail('🤖 COLLISION: Rover hit a barrier and stopped.');
+      state.r = nr; state.c = nc;
+      if (mission.fuel) {
+        fuel -= mission.fuel.costPerForward;
+        const pad = padAt(nr, nc);
+        if (pad) {
+          const key = nr + ',' + nc;
+          if (!padsCollected.has(key)) {
+            padsCollected.add(key);
+            fuel += pad.amount;
+            const el = cellEl(nr, nc);
+            if (el) el.classList.add('collected');
           }
         }
-      } else if (cmd === 'S+') {
-        score += 1;
-        updateScoreDisplay();
-        await wait(250);
-      } else if (cmd === 'SR') {
-        score = 0;
-        updateScoreDisplay();
-        await wait(250);
-      } else if (cmd === 'CB') {
-        // Calling a Custom Block just replays its exact recorded steps, in order, right now --
-        // same mechanism as an event handler's inline execution above, just triggered by an
-        // explicit Call command instead of a beacon trigger.
-        blockCallCount++;
-        const blockDef = findBlockDef();
-        if (blockDef) {
-          for (const child of blockDef.children) {
-            await executeOne(child.cmd, handlers, inHandler);
-          }
+        updateFuelUI();
+      }
+      updateRoverPosition(true);
+      await wait(400);
+      if (mission.fuel && fuel <= 0) throw new MissionFail('⛽ Out of fuel!');
+      // E2: the amber route is the whole instruction. The first step that isn't the next route cell
+      // ends the run, with the rover left sitting on that off-route cell so the failure is visible.
+      if (mission.routePath) {
+        const expected = mission.routePath[routeIdx];
+        if (expected && expected.r === nr && expected.c === nc) {
+          routeIdx++; routeProgress++;
+          const el = cellEl(nr, nc); if (el) el.classList.add('visited');
+          updateRouteChip();
+        } else {
+          const k = routeProgress + 1;
+          throw new OffRouteFail('🛰 Rover-7 left the amber route on move ' + k + '. The route is the flight plan, so Command Control stopped the run right there. Look at what your program does just before move ' + k + ', and compare it with the shape of the route at that spot.', k);
         }
       }
     }
 
-    async function runItems(items, handlers, inHandler) {
+    async function runItems(items, ctx) {
       for (const item of items) {
         if (item.type === 'cmd') {
-          await executeOne(item.cmd, handlers, inHandler);
+          mark(item, true);
+          await executeOne(item.cmd);
+          mark(item, false);
         } else if (item.type === 'repeat') {
-          for (let n = 0; n < item.count; n++) {
-            await runItems(item.children, handlers, inHandler);
+          const times = item.count === 'n' ? (ctx ? ctx.n : 1) : item.count;
+          for (let n = 0; n < times; n++) await runItems(item.children, ctx);
+        } else if (item.type === 'def') {
+          continue; // a recipe does nothing on its own -- only a ▶ Call runs it
+        } else if (item.type === 'call') {
+          const def = getDef(currentRoot);
+          if (!def) continue;
+          if (def.children.length === 0) {
+            throw new MissionFail('🧩 Rover-7 called ' + def.name + ', but its recipe is empty, so there was nothing to do. Open the block and put its moves inside.');
           }
-        } else if (item.type === 'condition') {
-          // Checked right here, right now -- using the rover's real state at this exact point in
-          // the program, not once at the start and not on a schedule.
-          const result = evalCondition(item, state);
-          if (result) {
-            conditionFiredTrue = true;
-            if (item.combinator !== 'none') conditionFiredWithCombinator = true;
-            await runItems(item.children, handlers, inHandler);
+          activeStats.callCount++;
+          activeStats.callArgs.push(item.arg);
+          const defEl = itemEls.get(def);
+          mark(item, true);
+          if (defEl) defEl.classList.add('pulse');
+          try {
+            await runItems(def.children, { n: def.takesNumber ? item.arg : 1 });
+          } finally {
+            mark(item, false);
+            if (defEl) defEl.classList.remove('pulse');
           }
         }
-        // 'event' and 'block' items are declarations, not inline steps -- skipped here on
-        // purpose. A block's children only ever run when a 'CB' (Call) leaf command reaches
-        // them, exactly like an event's children only ever run when its trigger fires.
       }
+    }
+
+    // ---- V2 E15: mission-complete celebration + Watch Again (a replay is never an attempt) ----
+    function hideWatchAgain() {
+      if (cfg.watchAgainWrapEl) cfg.watchAgainWrapEl.style.display = 'none';
+    }
+    function spawnSparkles() {
+      const cx = state.c * mission.cellPx + mission.cellPx * 0.5;
+      const cy = state.r * mission.cellPx + mission.cellPx * 0.5;
+      for (let i = 0; i < 6; i++) {
+        const s = document.createElement('span');
+        s.className = 'sparkle';
+        s.textContent = '✨';
+        s.style.left = (cx + (Math.random() * 44 - 22)) + 'px';
+        s.style.top = (cy + (Math.random() * 44 - 22)) + 'px';
+        cfg.gridEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+    function celebrate() {
+      const tier = attempts === 1 ? 'firstTry' : attempts >= 4 ? 'afterStruggle' : 'normal';
+      const lines = cfg.successLines || {};
+      cfg.msgEl.textContent = lines[tier] || lines.normal || '🎉 MISSION COMPLETE — Rover reached the flag!';
+      cfg.msgEl.className = 'mission-msg ok';
+      cfg.roverEl.classList.add('celebrating');
+      spawnSparkles();
+      setTimeout(() => cfg.roverEl.classList.remove('celebrating'), 1200);
+      if (cfg.watchAgainWrapEl && winningProgram && winningProgram.length) cfg.watchAgainWrapEl.style.display = '';
+      if (cfg.onSuccess) cfg.onSuccess();
+    }
+    if (cfg.watchAgainBtn) {
+      cfg.watchAgainBtn.addEventListener('click', async () => {
+        if (running || !winningProgram || !winningProgram.length) return;
+        running = true;
+        replaying = true;
+        cfg.runBtn.disabled = true;
+        cfg.watchAgainBtn.disabled = true;
+        updateContainerBtns();
+        // A replay is not an attempt: snapshot everything the real run's telemetry depends on and
+        // restore it afterwards (route progress is reset first, as the plan requires).
+        const savedAttempts = attempts, savedSucceeded = succeeded, savedFailCount = failCount;
+        const savedOffRouteRuns = offRouteRuns, savedOffRouteMoves = offRouteMoves.slice();
+        const savedNoNumber = failedRunsNoNumber, savedTele = tele, savedRoot = currentRoot, savedStats = activeStats;
+        const savedMsgText = cfg.msgEl.textContent, savedMsgClass = cfg.msgEl.className;
+        activeStats = { callCount: 0, callArgs: [] };
+        currentRoot = winningProgram;
+        resetRunState();
+        updateRoverPosition(false);
+        replaySpeedFactor = 2 / 3; // 1.5x speed
+        try {
+          await runItems(winningProgram, null);
+        } catch (e) {
+          if (!(e instanceof MissionFail)) throw e;
+        } finally {
+          replaySpeedFactor = 1;
+          clearExecuting();
+        }
+        attempts = savedAttempts; succeeded = savedSucceeded; failCount = savedFailCount;
+        offRouteRuns = savedOffRouteRuns; offRouteMoves = savedOffRouteMoves;
+        failedRunsNoNumber = savedNoNumber; tele = savedTele; currentRoot = savedRoot; activeStats = savedStats;
+        cfg.msgEl.textContent = savedMsgText; cfg.msgEl.className = savedMsgClass;
+        replaying = false;
+        running = false;
+        cfg.runBtn.disabled = slotsOverBudget;
+        cfg.watchAgainBtn.disabled = false;
+        updateContainerBtns();
+      });
+    }
+
+    function noteFail() {
+      failCount++;
+      const d = getDef();
+      if (d && !d.takesNumber) failedRunsNoNumber++;
+      updateHintUI();
     }
 
     cfg.runBtn.addEventListener('click', async () => {
       if (running || program.length === 0) return;
+      if (typeof cfg.maxSlots === 'number' && program.length > cfg.maxSlots) return;
       running = true;
+      replaying = false;
       attempts++;
-      const handlers = collectHandlers(program);
-      eventTriggered = false;
-      conditionFiredTrue = false;
-      conditionFiredWithCombinator = false;
-      blockCallCount = 0;
-      score = cfg.initialScore || 0;
-      updateScoreDisplay();
+      const d0 = getDef();
+      tele = { callCount: 0, callArgs: [], routeProgress: 0, blockName: d0 ? d0.name : null, blockTakesArg: !!(d0 && d0.takesNumber) };
+      activeStats = tele;
+      currentRoot = program;
+      hideWatchAgain();
       cfg.runBtn.disabled = true;
       updateContainerBtns();
-      state = { ...mission.start, rotDeg: ROT[mission.start.dir] };
+      resetRunState();
       updateRoverPosition(false);
       await wait(150);
       cfg.msgEl.textContent = ''; cfg.msgEl.className = 'mission-msg';
 
       try {
-        await runItems(program, handlers, false);
-        if (state.r === mission.goal.r && state.c === mission.goal.c) {
+        await runItems(program, null);
+        const total = routeTotal();
+        const atGoal = state.r === mission.goal.r && state.c === mission.goal.c;
+        if (routeProgress >= total && atGoal) {
+          const def = getDef();
           let blockedMsg = null;
-          if (cfg.requireEventUsed && !eventTriggered) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Wire up an ON SIGNAL BEACON handler and make sure your route genuinely passes over the beacon (📡) so it actually fires, then run it again.';
-          } else if (cfg.requireCombinedConditionUsed && !conditionFiredWithCombinator) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control needs a COMBINED condition (AND or OR) to actually fire TRUE during this run. Combine two checks in your IF block, place it where it\'s genuinely true, then run it again.';
-          } else if (cfg.requireConditionUsed && !conditionFiredTrue) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control won\'t log this as complete. Build an IF block and make sure its condition is actually TRUE at some point during the run.';
-          } else if (cfg.targetScore !== undefined && score !== cfg.targetScore) {
-            blockedMsg = '🛰 Rover reached the flag — but SCORE reads ' + score + ', not ' + cfg.targetScore + '. Command Control checks the exact final value, not just whether you used +1 Score. Adjust your Score commands and run it again.';
-          } else if (cfg.requireBlockCallCount && blockCallCount < cfg.requireBlockCallCount) {
-            blockedMsg = '🛰 Rover reached the flag — but Command Control needs your U-Turn block actually CALLED ' + cfg.requireBlockCallCount + ' time' + (cfg.requireBlockCallCount === 1 ? '' : 's') + ' during this run (it ran ' + blockCallCount + '). Add more Call U-Turn commands to your route and run it again.';
+          if (cfg.requireBlockParam && !(def && def.takesNumber)) {
+            blockedMsg = '🧩 Route complete — but the point of this platform is ONE block for all three sizes. Tick "takes a number" and let each call choose.';
+          } else if (cfg.requireBlockCallCount && tele.callCount < cfg.requireBlockCallCount) {
+            blockedMsg = '🧩 Route complete — but Command Control only logs this when your block does the hopping. Call ' + (def ? def.name : 'your block') + ' at every hop.';
           }
           if (blockedMsg) {
             cfg.msgEl.textContent = blockedMsg;
             cfg.msgEl.className = 'mission-msg bad';
+            noteFail();
           } else {
             succeeded = true;
-            cfg.msgEl.textContent = cfg.targetScore !== undefined
-              ? '🎉 MISSION COMPLETE — Rover reached the flag with SCORE at exactly ' + score + '!'
-              : '🎉 MISSION COMPLETE — Rover reached the flag!';
-            cfg.msgEl.className = 'mission-msg ok';
-            if (cfg.onSuccess) cfg.onSuccess();
+            winningProgram = JSON.parse(JSON.stringify(program));
+            celebrate();
           }
         } else {
-          cfg.msgEl.textContent = 'Rover stopped short of the flag. Adjust your sequence and try again.';
+          cfg.msgEl.textContent = '🛰 Rover-7 stopped after ' + routeProgress + ' of ' + total + ' route moves. The flag is at the end of the amber path — keep building.';
           cfg.msgEl.className = 'mission-msg bad';
+          noteFail();
         }
       } catch (e) {
         if (e instanceof MissionFail) {
-          cfg.msgEl.textContent = e.message;
+          let extra = '';
+          if (e instanceof OffRouteFail) {
+            offRouteRuns++;
+            offRouteMoves.push(e.k);
+            const def = getDef();
+            if (cfg.appendNumberHint && def && !def.takesNumber) {
+              extra = ' 🧩 Your block gets one hop right, but the hops are different heights. What if the block could take a NUMBER, and each call chose its own?';
+            }
+          }
+          cfg.msgEl.textContent = e.message + extra;
           cfg.msgEl.className = 'mission-msg bad';
+          noteFail();
         } else { throw e; }
       } finally {
+        tele.routeProgress = routeProgress;
         running = false;
+        clearExecuting();
         cfg.runBtn.disabled = false;
         updateContainerBtns();
+        updateSlotGate();
       }
     });
 
-    buildGrid();
+    resetRunState();
     updateRoverPosition(false);
-    updateScoreDisplay();
     renderProgram();
+    updateHintUI();
 
     return {
       get succeeded() { return succeeded; },
       get attempts() { return attempts; },
-      get finalScore() { return score; },
-      get blockCallCount() { return blockCallCount; }
+      get hintsUsed() { return hintsUsed; },
+      get slotsUsed() { return program.length; },
+      get blockName() { return tele.blockName; },
+      get blockTakesArg() { return tele.blockTakesArg; },
+      get callArgs() { return tele.callArgs.slice(); },
+      get blockCallCount() { return tele.callCount; },
+      get routeProgress() { return tele.routeProgress; },
+      get routeTotal() { return routeTotal(); },
+      get offRouteRuns() { return offRouteRuns; },
+      get offRouteMoves() { return offRouteMoves.slice(); },
+      get failedRunsNoNumber() { return failedRunsNoNumber; }
     };
   }
 
-  // Mission 1 · Platform Mike — open platform, no obstacles (the first mission of a new concept
-  // stays simple, matching the pattern from every prior unit). Must Call the U-Turn block at
-  // least once during the successful run.
-  const mission1Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: null, walls: [], goal: { r: 0, c: 2 } };
-  mission1Def.goal = randomizeGoal(mission1Def, 3);
+  // Mission 1 · Platform Mike — the same hop, three places (guided). 4x7, no walls, no fuel. The amber
+  // route is the move string  U R D · R R · U R D · D R · U R D  -- one hop, two steps right, the same
+  // hop, a drop and a step right, the same hop. Fixed per load: the route IS the task.
+  const mission1Def = {
+    rows: 4, cols: 7, cellPx: 64, start: { r: 2, c: 0 }, goal: { r: 3, c: 6 }, walls: [],
+    routePath: [
+      { r: 2, c: 0 }, { r: 1, c: 0 }, { r: 1, c: 1 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 2, c: 3 },
+      { r: 1, c: 3 }, { r: 1, c: 4 }, { r: 2, c: 4 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 2, c: 5 },
+      { r: 2, c: 6 }, { r: 3, c: 6 }
+    ]
+  };
   const mission1 = createLoopRoverGame({
     gridEl: document.getElementById('grid1'), roverEl: document.getElementById('rover1'),
     programListEl: document.getElementById('prog1'), msgEl: document.getElementById('msg1'),
     runBtn: document.getElementById('run1'), resetBtn: document.getElementById('reset1'),
     clearBtn: document.getElementById('clear1'), paletteEl: document.getElementById('palette1'),
-    addRepeatBtn: document.getElementById('addRepeat1'), addEventBtn: document.getElementById('addEvent1'),
-    addConditionBtn: document.getElementById('addCondition1'), scoreEl: document.getElementById('score1'),
-    addBlockBtn: document.getElementById('addBlock1'), callBlockBtn: document.getElementById('callBlock1'),
+    addRepeatBtn: document.getElementById('addRepeat1'), defineBtn: document.getElementById('defineBlock1'),
+    callBtn: document.getElementById('callBlock1'),
+    slotsEl: document.getElementById('slots1'), routeEl: document.getElementById('route1'),
+    hintBtnEl: document.getElementById('hint1'), hintTextEl: document.getElementById('hintText1'),
+    watchAgainBtn: document.getElementById('watchAgain1'), watchAgainWrapEl: document.getElementById('watchAgainWrap1'),
     mission: mission1Def,
-    initialScore: 0,
-    requireBlockCallCount: 1,
+    maxSlots: 7,
+    requireBlockCallCount: 3, // backstop only -- no in-budget solution calls the block fewer times
+    // E14 starter: an empty, open block called HOP plus one call. The cadet fills in the recipe.
+    starterProgram: [{ type: 'def', name: 'HOP', takesNumber: false, children: [] }, { type: 'call', arg: 1 }],
+    starterOpenDef: true,
+    hints: {
+      after3: 'Look at the amber route. Can you find the same shape three times? Those moves are what goes inside HOP.',
+      after6: 'HOP\'s recipe is just one hop — three moves. Then build the route left to right: ▶ HOP wherever the route hops, and plain moves for the bits in between.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! You spotted the hop, built it once, and used it three times.',
+      afterStruggle: '🎉 MISSION COMPLETE — Rover-7 flew the whole route. Finding the shape that repeats is the hard part, Cadet — and you found it.',
+      normal: '🎉 MISSION COMPLETE — one block, three calls, whole route!'
+    },
     onSuccess: () => { document.getElementById('toT3Btn').disabled = false; addXp(20); }
   });
+  window.__mission1 = mission1; window.__mission1Def = mission1Def; // test hook, not used in gameplay
 
-  // Mission 2 · Platform November — one wall for a barrier to route around (matches the "mission 2
-  // has a barrier" pattern from every prior unit). Must Call the U-Turn block at least TWICE during
-  // the successful run — this is what actually forces "define once, reuse anywhere," not just
-  // "used it one time."
-  const mission2Def = { rows: 5, cols: 5, cellPx: 62, start: { r: 4, c: 2, dir: 'N' }, beacon: null, walls: [{ r: 2, c: 2 }], goal: { r: 0, c: 2 } };
-  mission2Def.goal = randomizeGoal(mission2Def, 3);
+  // Mission 2 · Platform November — one block, three sizes (free build). 5x6, no walls, empty program.
+  // Route move string:  UU R DD · R · UUU R DDD · R · U R D  -- three hops of heights 2, 3 and 1. The
+  // last hop is exactly Mission 1's HOP, i.e. HOP(1).
+  const mission2Def = {
+    rows: 5, cols: 6, cellPx: 64, start: { r: 4, c: 0 }, goal: { r: 4, c: 5 }, walls: [],
+    routePath: [
+      { r: 4, c: 0 }, { r: 3, c: 0 }, { r: 2, c: 0 }, { r: 2, c: 1 }, { r: 3, c: 1 }, { r: 4, c: 1 },
+      { r: 4, c: 2 }, { r: 3, c: 2 }, { r: 2, c: 2 }, { r: 1, c: 2 }, { r: 1, c: 3 }, { r: 2, c: 3 },
+      { r: 3, c: 3 }, { r: 4, c: 3 }, { r: 4, c: 4 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 4, c: 5 }
+    ]
+  };
   const mission2 = createLoopRoverGame({
     gridEl: document.getElementById('grid2'), roverEl: document.getElementById('rover2'),
     programListEl: document.getElementById('prog2'), msgEl: document.getElementById('msg2'),
     runBtn: document.getElementById('run2'), resetBtn: document.getElementById('reset2'),
     clearBtn: document.getElementById('clear2'), paletteEl: document.getElementById('palette2'),
-    addRepeatBtn: document.getElementById('addRepeat2'), addEventBtn: document.getElementById('addEvent2'),
-    addConditionBtn: document.getElementById('addCondition2'), scoreEl: document.getElementById('score2'),
-    addBlockBtn: document.getElementById('addBlock2'), callBlockBtn: document.getElementById('callBlock2'),
+    addRepeatBtn: document.getElementById('addRepeat2'), defineBtn: document.getElementById('defineBlock2'),
+    callBtn: document.getElementById('callBlock2'),
+    slotsEl: document.getElementById('slots2'), routeEl: document.getElementById('route2'),
+    hintBtnEl: document.getElementById('hint2'), hintTextEl: document.getElementById('hintText2'),
+    watchAgainBtn: document.getElementById('watchAgain2'), watchAgainWrapEl: document.getElementById('watchAgainWrap2'),
     mission: mission2Def,
-    initialScore: 0,
-    requireBlockCallCount: 2,
+    maxSlots: 6,
+    requireBlockParam: true, requireBlockCallCount: 3, // backstops only
+    appendNumberHint: true,
+    hints: {
+      after3: 'Your block gets one hop right. What\'s different about the other two?',
+      after6: 'Tick "takes a number" on your block, and switch the Repeats inside it to n. Then give each call its own number — count how tall each hop is.'
+    },
+    successLines: {
+      firstTry: '🎉 MISSION COMPLETE — first try! One block, three sizes — that\'s exactly what a number is for.',
+      afterStruggle: '🎉 MISSION COMPLETE — you taught your block to take a number. That\'s the moment a block becomes a real tool, Cadet.',
+      normal: '🎉 MISSION COMPLETE — three hops, three sizes, one block!'
+    },
     onSuccess: () => { document.getElementById('toFinalBtn').disabled = false; addXp(30); }
   });
+  window.__mission2 = mission2; window.__mission2Def = mission2Def; // test hook, not used in gameplay
+
 
   // ================= Finish / Debrief =================
-  const QUIZ_ANSWERS = { q1: 0, q2: 1 };
-  const Q3_CORRECT = [0, 2, 4];
+  const QUIZ_ANSWERS = { q1: 0, q2: 0 };
+  const Q3_CORRECT = [0, 1, 3];
   const Q3_ALL = [0, 1, 2, 3, 4];
 
   const Q_EXPLAIN = {
     q1: {
       correct: 0,
       why: {
-        0: "Exactly right. A Custom Block gets a name and can be Called from anywhere in your program, any number of times — a REPEAT only ever runs its own steps automatically, right where it sits, with no name to call it by.",
-        1: "A Custom Block can be Called as many times as you want, from as many places as you want — that's the entire point of building one.",
-        2: "They're genuinely different tools: a REPEAT auto-runs where it sits; a Custom Block is a named, callable group of steps you can trigger from anywhere.",
-        3: "That's backwards — a REPEAT has no name and can't be called from elsewhere; a Custom Block is exactly the one with a name you Call."
+        0: "Exactly right. A block has a name and is built once; every ▶ Call runs it wherever the call sits. A REPEAT has no name — it just runs its moves over and over in the one place it sits.",
+        1: "It's the other way round — the whole point of a block is that you can call it as many times as you like, from as many places as you like.",
+        2: "They're different tools. A REPEAT loops the same moves in one spot; a block is a named recipe you can call from several different places.",
+        3: "That's backwards. A block is the one with a name that you can call from other places — a REPEAT has no name and only runs where it sits."
       },
-      codeLife: "Why it matters for coding: naming and reusing a group of steps (a function, later in real Python) is one of the most common things every program does. Why it matters in life: a skill you learn once — like riding a bike — doesn't need to be relearned every single time; you just reuse it."
+      codeLife: "Why it matters for coding: a named block is what programmers call a function — write it once, call it anywhere, and fix it in one place. Why it matters in life: a skill you learn once, like riding a bike, gets used again and again without relearning it each time."
     },
     q2: {
-      correct: 1,
+      correct: 0,
       why: {
-        0: "The block's 2 turns run every time it's Called, not just once total — 3 calls means those 2 turns happen 3 separate times.",
-        1: "Right. Calling a block replays its exact recorded steps every single time — 3 calls × 2 Left Turns each = 6 Left Turns actually running.",
-        2: "A Custom Block's recorded steps really do run, in full, every time it's called — it's not just a label.",
-        3: "Each Call runs ALL of the block's steps, not just one of them — 3 calls means all 2 turns run 3 separate times, not 1 turn each time."
+        0: "HOP(2) runs Up twice, HOP(1) runs Up once: 2 + 1 = 3. Each call uses its OWN number.",
+        1: "That's only the first call.",
+        2: "That treats both calls as HOP(2), but each call brings its own number.",
+        3: "That's only the second call."
       },
-      codeLife: "Why it matters for coding: calling a function runs its whole body every time, which is exactly why reusing one is so powerful — one small block can multiply into a lot of real work. Why it matters in life: reusing a learned skill (like a tied-shoelace routine) means doing the FULL routine again each time, not some partial version of it."
+      codeLife: "Why it matters for coding: the number you hand a block is called an argument — every call can pass a different one, and the block uses it each time it runs. Why it matters in life: a recipe card works the same way — the card stays the same, and you choose how many people it's for each time."
     }
   };
   // Neutral facts only — no "Right"/"Correct" wording baked in here. The ✅/❌ and its lead-in
   // (built at render time, based on what THIS cadet actually checked) carry the correctness signal.
   const Q3_EXPLAIN = {
-    0: "you learn the exact steps <strong>once</strong>, then reuse that same routine every morning — build once, call it over and over.",
-    1: "a one-time-only answer is used exactly once and never needed again — there's nothing being reused.",
-    2: "the recipe is built once and then followed the <strong>exact same way, every single time</strong> pancakes are made — a real reusable routine.",
-    3: "watching something exactly once, with no intention of repeating it, isn't a routine being reused at all.",
-    4: "the balance skill is learned <strong>once</strong> and then reused on every single ride after — exactly like a Custom Block built once and Called many times."
+    0: "<strong>Coding:</strong> tying your laces is one routine you learn once and run again every morning — like a block you build once and ▶ Call each time. <strong>Life:</strong> you never relearn it; you just use it.",
+    1: "<strong>Coding:</strong> the card is the block, \"per person\" is its number — every time you call it, you pick 2 or 5. <strong>Life:</strong> one recipe card, many dinners.",
+    2: "memorizing one answer for one question is a one-time job — nothing is reused, so there's no block here.",
+    3: "<strong>Coding:</strong> your balance is learned once and then called on every ride — a block you built once. <strong>Life:</strong> nobody relearns balancing before each ride.",
+    4: "watching one movie once and never again is a one-time event — nothing is reused, so there's no block here."
   };
 
   // Question 3 is a forced-choice YES/NO on every item, not a checkbox list — keeps the interaction
@@ -1374,9 +1863,7 @@
       msg.className = 'puzzle-msg bad';
       return;
     }
-    // Guard against repeated clicks re-scoring/re-adding XP/re-saving: once a valid debrief has
-    // been processed once, lock it. Without this, mashing the button kept stacking XP and firing
-    // duplicate saves to Supabase on every extra click.
+    // Guard against repeated clicks re-scoring/re-adding XP/re-saving.
     if (debriefed) return;
     debriefed = true;
     document.getElementById('finishBtn').disabled = true;
@@ -1425,14 +1912,14 @@
     q2Box.classList.add('show');
 
     let q3Html = '<strong>Transfer check review:</strong>';
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE tracked values that change over time — YES is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These ARE "build it once, then reuse it" — YES is correct:</p><ul>';
     Q3_CORRECT.forEach(i => {
       const lead = q3Answers[i] === 'yes' ? '✅ You said YES — right — ' : '❌ You said NO, but this needed YES — ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
     });
     q3Html += '</ul>';
     const q3Decoys = Q3_ALL.filter(i => !Q3_CORRECT.includes(i));
-    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT tracked/changing values — NO is correct:</p><ul>';
+    q3Html += '<p style="margin:10px 0 4px; font-weight:700;">These are NOT — NO is correct:</p><ul>';
     q3Decoys.forEach(i => {
       const lead = q3Answers[i] === 'no' ? '✅ You said NO — right — ' : '❌ You said YES, but ';
       q3Html += '<li>' + lead + Q3_EXPLAIN[i] + '</li>';
@@ -1442,6 +1929,16 @@
     q3Box.innerHTML = q3Html;
     q3Box.classList.add('show');
 
+    const missionStats = (m, def, extra) => Object.assign({
+      succeeded: m.succeeded, attempts: m.attempts,
+      block_name: m.blockName, block_takes_arg: m.blockTakesArg, call_args: m.callArgs,
+      block_call_count: m.blockCallCount, slots_used: m.slotsUsed, max_slots: def.maxSlots,
+      route_progress: m.routeProgress, route_total: m.routeTotal, off_route_runs: m.offRouteRuns,
+      hints_used: m.hintsUsed,
+      // Additive telemetry (not in plan T10) so the plan's §8 decision table can actually be read:
+      off_route_moves: m.offRouteMoves, failed_runs_block_without_number: m.failedRunsNoNumber
+    }, extra || {});
+
     const rawPayload = {
       unit_number: 7,
       unit_title: 'Custom Blocks',
@@ -1449,11 +1946,12 @@
       cadet_name: cadetName,
       completed_at: new Date().toISOString(),
       xp_earned: xp,
+      mission_version: 2,
       auto_stats: {
         calibration_solved: calAnswered,
         calibration_attempts: calAttempts,
-        mission_1: { succeeded: mission1.succeeded, attempts: mission1.attempts, block_call_count: mission1.blockCallCount, required_calls: 1 },
-        mission_2: { succeeded: mission2.succeeded, attempts: mission2.attempts, block_call_count: mission2.blockCallCount, required_calls: 2 }
+        mission_1: missionStats(mission1, { maxSlots: 7 }),
+        mission_2: missionStats(mission2, { maxSlots: 6 })
       },
       quiz: {
         concept_score: conceptScore, concept_out_of: 2, q1_correct: q1Correct, q2_correct: q2Correct,
